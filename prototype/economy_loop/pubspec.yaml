@@ -1,0 +1,8 @@
+name: economy_loop
+description: Throwaway prototype of the one-outlet economy loop (not sim_core).
+publish_to: none
+environment:
+  sdk: ^3.5.0
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0
