@@ -40,6 +40,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 | passive | Nothing. Never markets, visits, reworks the menu or replaces equipment |
 | remote | Markets (local ad every 4 weeks, menu rework every 8, prices 105%) and replaces flagged equipment, but never visits |
 | competent | As remote, plus one visit a week |
+| adaptive | As competent, and when a local ad flops or is weak, runs flyers the next day |
 
 "OWNER-RUN" rows are the Phase-1 reference: the owner is there every day, there is no
 manager and the crew includes a cashier.
@@ -92,6 +93,10 @@ Average weekly net profit after the manager's wage:
 | Capable | −0.8k | ≈ 0 | +0.9k |
 | Senior | −0.4k | +0.8k | +1.5k |
 | Veteran | ≈ 0 | +1.4k | +2.0k |
+
+The adaptive owner does +0.1k to +0.3k a week better than the competent one at every
+grade. The last four report columns are the ad measures: campaigns per run, flop %,
+big-hit % and marketing as a share of revenue.
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).

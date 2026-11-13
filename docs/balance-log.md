@@ -20,8 +20,20 @@ flop is a full loss). Demand still holds at −3%. Risk rises: for the one-outle
 test company, Capable survival went 97% → 70%. That is the intended effect — same
 average, less certainty.
 
-The scripted owner buys the same local ad every 28 days regardless of outcome; a player
-who switches channel after a flop should do slightly better. Not measured.
+**Reacting to a bad ad, measured.** A fourth scripted owner ("adaptive") does the same
+as the competent one but, when a local ad flops or draws a weak response, runs flyers
+the next day (a different channel, so no repeat penalty).
+
+| Owner markets + visits weekly | Owner-run | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|---|
+| Same ad every 4 weeks | +3.8k | −0.2k | +0.3k | +0.9k | +1.5k | +2.0k |
+| Switches channel after a bad ad | +4.0k | −0.2k | +0.4k | +1.1k | +1.7k | +2.3k |
+
+Worth about +0.1k to +0.3k a week, and it removes most of the added risk: Capable
+survival 70% → 89%. It costs about 2.7 extra campaigns per 26 weeks.
+
+Observed outcome rates over all campaigns: flop 12–14%, big hit 8–11% (targets in doc 06 §4).
+The bot report now prints campaigns per run, flop %, big-hit % and marketing as a share of revenue.
 
 ## Entry 3 — manager mastery
 

@@ -48,6 +48,22 @@ class RemoteOwner extends CompetentOwner {
   }
 }
 
+/// Competent, and reacts to a bad ad: if yesterday's local ad flopped or drew a weak
+/// response, tries flyers today (a different channel has no repeat penalty, doc 02 §13.1).
+class AdaptiveOwner extends CompetentOwner {
+  @override
+  String get name => 'adaptive';
+  @override
+  void act(OutletSim s) {
+    super.act(s);
+    if (s.campaignLog.isEmpty) return;
+    final last = s.campaignLog.last;
+    if (last.name == 'localAd' && last.day == s.day - 1 && last.mult <= 0.5) {
+      s.runCampaign('flyers');
+    }
+  }
+}
+
 class RunSummary {
   final bool survived;
   final int? failWeek;
@@ -60,6 +76,11 @@ class RunSummary {
   final double dailyProfitCv;
   final int managerDecisionsCoins;
   final double managerMeanEnd;
+  final int campaigns;
+  final int flops;
+  final int bigHits;
+  final int marketingSpend;
+  final int revenue;
   RunSummary({
     required this.survived,
     required this.failWeek,
@@ -72,6 +93,11 @@ class RunSummary {
     required this.dailyProfitCv,
     required this.managerDecisionsCoins,
     required this.managerMeanEnd,
+    required this.campaigns,
+    required this.flops,
+    required this.bigHits,
+    required this.marketingSpend,
+    required this.revenue,
   });
 }
 
@@ -118,5 +144,10 @@ RunSummary runOne(
     managerDecisionsCoins:
         s.weeks.expand((w) => w.managerEvents).fold(0, (a, e) => a + e.coins),
     managerMeanEnd: s.manager.mean,
+    campaigns: s.campaignLog.length,
+    flops: s.campaignLog.where((c) => c.mult == 0).length,
+    bigHits: s.campaignLog.where((c) => c.mult > 2).length,
+    marketingSpend: s.weeks.fold(0, (a, w) => a + w.marketing),
+    revenue: s.weeks.fold(0, (a, w) => a + w.revenue),
   );
 }

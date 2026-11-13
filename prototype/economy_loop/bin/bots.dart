@@ -35,13 +35,22 @@ void main(List<String> args) {
           ? '${(v / 1000).toStringAsFixed(1)}k'
           : v.round().toString();
 
+  String pct(int n, int d) =>
+      d == 0 ? '-' : '${(100 * n / d).toStringAsFixed(1)}%';
+
   stdout.writeln('Good tier, average location, $seeds seeds x $weeks weeks\n');
   stdout.writeln(
-      'owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk');
+      'owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk  ads/run  flop%  bighit%  mkt%rev');
   final configs = <(OwnerPolicy, Grade?)>[
     if (!only) (PassiveOwner(), null),
     if (!only) (CompetentOwner(), null),
-    for (final o in [PassiveOwner(), RemoteOwner(), CompetentOwner()])
+    if (!only) (AdaptiveOwner(), null),
+    for (final o in [
+      PassiveOwner(),
+      RemoteOwner(),
+      CompetentOwner(),
+      AdaptiveOwner()
+    ])
       for (final g in Grade.values) (o, g),
   ];
   for (final (owner, g) in configs) {
@@ -80,6 +89,13 @@ void main(List<String> args) {
         k(avg(runs.map((r) =>
             r.managerDecisionsCoins /
             (r.weeklyProfit.isEmpty ? 1 : r.weeklyProfit.length)))).padLeft(17),
+        avg(runs.map((r) => r.campaigns)).toStringAsFixed(1).padLeft(8),
+        pct(runs.fold(0, (a, r) => a + r.flops),
+            runs.fold(0, (a, r) => a + r.campaigns)).padLeft(6),
+        pct(runs.fold(0, (a, r) => a + r.bigHits),
+            runs.fold(0, (a, r) => a + r.campaigns)).padLeft(8),
+        pct(runs.fold(0, (a, r) => a + r.marketingSpend),
+            runs.fold(0, (a, r) => a + r.revenue)).padLeft(8),
       ].join(' '));
     }
   }

@@ -41,6 +41,9 @@ class OutletSim {
   final List<bool> recentGapDays = [];
   int lastSuggestionDay = -999;
   final Map<String, int> lastCampaignDay = {};
+
+  /// Every campaign run: for the ad measures in the bot report.
+  final List<({int day, String name, double mult, int cost})> campaignLog = [];
   double lastCampaignMult = 1;
 
   List<Manager> applicants = [];
@@ -241,6 +244,7 @@ class OutletSim {
     }
     lastCampaignDay[name] = day;
     lastCampaignMult = mult;
+    campaignLog.add((day: day, name: name, mult: mult, cost: cost));
     campaigns.add((
       boost: (c['boost'] as num).toDouble() * mult,
       until: day + (c['days'] as num).toInt() - 1
