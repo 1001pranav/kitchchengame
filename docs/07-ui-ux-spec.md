@@ -189,6 +189,10 @@ the actual effects, then **OK**.
 - **Open a new outlet** flow: choose takeover or new build → cost breakdown → "After
   this you will have X coins, about N weeks of running costs" (red below 4 weeks) →
   choose opening team (transfer staff / hire) → appoint manager.
+- **Manager card** (hire screen and outlet screen): three skill bars (ranges until
+  known), wage, traits, and — once in post — "This month: decisions cost 1,240, saved
+  860" with the list of events behind it. Coaching choice on visit: pick which skill to coach.
+- **Break-even line** on each outlet's daily bar chart of parties served.
 - **Company tab:** table of locations (profit this week, trend arrow, reputation, days
   since visit, manager), crisis banner with the rescue/close choice.
 
@@ -238,6 +242,9 @@ without explaining it**.
 | contribution | Contribution | What a branch added to or took from company money this week | Shows which branches carry the others |
 | payback | Paid back | How much of what you spent on a branch it has earned back | Tells you whether opening it was worth it |
 | transfer | Transfer | Moving a staff member to another branch | Strengthens one branch and weakens another |
+| break-even | Break-even | The number of parties you must serve in a day to cover that day's costs | Below it the day loses money even if the room looked busy |
+| fixed costs | Costs that never stop | Rent, wages and loan payments you owe whether customers come or not | A slow week still costs the same |
+| manager skills | People / Upkeep / Stock | How well a manager handles staff, equipment and ordering | Weak skills show up as waste, breakdowns and resignations |
 | policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
 | neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
 | skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |

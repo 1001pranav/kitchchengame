@@ -76,6 +76,8 @@ manager decisions (doc 02 §15.2, §15.4) · 2.3b Neglect, skimming, audit, loca
 closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.3c Company cash ledger per outlet, opening an
 outlet (takeover / new build, reserve check), manager authority and requests, owner's desk,
 coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
+2.3d Manager sub-skills and behaviours, attribution events, break-even (doc 02 §15.12–15.13); bot run comparing
+skill-80 and skill-35 managers against doc 06 manager targets ·
 2.4 Company tab and per-location reports that name causes · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
 bulk contracts, brand reputation · 2.8 Balance bot for multi-location + tuning.
 

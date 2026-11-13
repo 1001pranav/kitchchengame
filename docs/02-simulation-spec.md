@@ -548,9 +548,7 @@ Policy fields: `spendingLimit` (default 500), `mayHire` (default false), `mayGiv
 - Owner answers: **approve**, **deny**, or **cheaper** (where a cheaper variant exists:
   second-hand, cheap repair, half raise). A request unanswered for 3 days: the problem
   persists and the manager's morale −2 per further day.
-- Manager quality: when a manager acts alone, success chances shift by
-  `(managerSkill − 50)/200`; a manager with skill < 40 fails to raise a needed request
-  with probability `(40 − skill)/100` (the owner only finds out from results).
+- Manager quality: see §15.12.
 - Manager bonus (owner sets 0–10% of the outlet's positive weekly operating profit):
   each 1% gives manager loyalty +1 and honesty +1 (effective, not permanent), paid weekly.
 
@@ -567,3 +565,77 @@ Policy fields: `spendingLimit` (default 500), `mayHire` (default false), `mayGiv
   1 day per 4 tables, up to +50% of original tables.
 - All upgrade commands (train, raise, buy equipment, renovate, marketing) can be issued
   for any outlet from anywhere.
+
+### 15.12 Manager competence
+
+An outlet's income varies every day (§5.1) while rent, wages, loan payments and
+utilities do not stop. Whether an unattended outlet stays in profit depends largely on
+how well its manager handles the avoidable problems. A manager has three sub-skills
+(0–100): **people**, **upkeep**, **stock**. `managerSkill` used elsewhere in this
+document = their mean. Expected wage uses the mean with the manager base wage (§7.1),
+so an experienced manager costs roughly 50% more than a cheap one.
+
+Applied only at locations where the owner is **not** present at the relevant moment
+(when the owner is there in prep, the owner's own commands are used instead).
+
+**Stock**
+- Par-level orders: per ingredient per day, ordered quantity is multiplied by
+  `1 + u × (100 − stock)/200`, `u` uniform in [−1, 1]. (stock 90 → ±5%; stock 30 → ±35%:
+  regular waste and sold-out dishes.)
+- Bad delivery handling: with probability `stock/100` the manager rejects a bad batch
+  and tops up from Cash & Carry; otherwise uses it.
+- Supplier problems: if the standing supplier was late/short twice in 14 days, a manager
+  with stock ≥ 60 raises a "switch supplier" request; below 60 does nothing.
+
+**Upkeep**
+- Each maintenance that is due under the policy threshold is actually done with
+  probability `clamp(0.3 + upkeep/100, 0, 1)` (upkeep 70+ → always; 30 → 60%).
+- Cleaning effectiveness × `(0.8 + upkeep/250)`.
+- Breakdown response within spending limit: upkeep ≥ 60 chooses proper repair when cash
+  allows, else cheap repair; below 60 always cheap repair (25% repeat failure, §10.3).
+- Early warning: with probability `upkeep/100` a unit at condition < 45 produces a
+  replace request before it breaks; otherwise the owner hears about it when it fails.
+
+**People**
+- Rota: every day, with probability `(100 − people)/300`, one rostered staff member is
+  wrongly left off (random role) — a self-inflicted short shift.
+- Absence cover: when someone is absent, with probability `people/100` the manager calls
+  in an off-duty staff member of the same role (paid overtime, fatigue +6).
+- Fatigue care: people ≥ 60 gives a day off to anyone with fatigue > 75 if the role
+  stays covered; below 60 never does (burnout and quitting follow).
+- Daily morale modifier for all staff at the outlet: `clamp((people − 50)/50, −1, +1)`.
+- Wage demands and resignations within authority: handled with success chance shifted
+  by `(people − 50)/200`.
+
+**Requests and incidents**
+- A needed request (§15.10) is raised with probability `clamp(0.4 + relevantSkill/100, 0, 1)`
+  each day the condition holds; so weak managers raise problems late or never.
+- Incidents decided by the manager use the sub-skill matching the incident category
+  (staff → people; equipment/premises/compliance → upkeep; ingredients/suppliers →
+  stock; customers/money → mean) for the `(skill − 50)/200` shift.
+
+**Learning and limits**
+- Sub-skills are shown as ranges (±15) at hire and become exact after 28 days in post.
+- A manager gains +1 in their lowest sub-skill per 28 days in post (cap 85), in addition
+  to owner coaching (§15.11), which adds +1 to the sub-skill of the owner's choice.
+- A manager **cannot fix structural problems**: a poor location, rent too high for the
+  footfall, prices set wrong by the owner, denied requests, or missing equipment. An
+  excellent manager makes an outlet lose *less* in a bad situation; only the owner can
+  change the situation.
+
+**Attribution.** Every manager action above that costs money emits an event with a
+plain reason (`managerOverOrdered`, `managerSkippedMaintenance`, `managerRotaError`,
+`managerCheapRepairFailed`, `managerMissedRequest`, and the positive counterparts
+`managerCoveredAbsence`, `managerCaughtWearEarly`, `managerRejectedBadBatch`). The
+weekly report totals their estimated cost/saving per outlet as "Manager's decisions:
+−1,240 / +860".
+
+### 15.13 Break-even
+For each outlet and day the sim computes and exposes through `explain`:
+```
+fixedPerDay   = (weeklyRent + rostered wages for the week + loan share + UTILITIES_BASE × 7) / 7
+marginPerGroup = average payment per group − average ingredient cost per group  (trailing 7 days)
+breakEvenGroups = ceil(fixedPerDay / marginPerGroup)
+```
+`loan share` = the outlet's `ledger.invested` proportion of total weekly instalments.
+The daily report shows "Served 48 parties · needed 41 to break even".

@@ -300,6 +300,26 @@ comes to the owner as a **request**. The owner alone decides:
 | Staff transfers and promotions | |
 | Standing orders themselves | |
 
+**Good managers and cheap managers.** An outlet's income changes every day while its
+rent, wages and loan payments never stop, so an outlet is not automatically profitable
+just because someone is in charge. A manager has three skills — *people*, *upkeep* and
+*stock* — and they show in results:
+
+| | Experienced manager | Inexperienced / cheap manager |
+|---|---|---|
+| Staff | Covers absences, rests tired staff, keeps mood up | Schedule mistakes, burnt-out staff, more resignations |
+| Equipment | Services on time, warns before a breakdown, repairs properly | Skips servicing, cheap fixes that fail again |
+| Stock | Orders close to what is needed, rejects bad deliveries | Over-orders (waste) or under-orders (sold-out dishes) |
+| Asking you | Raises problems early | Raises them late or not at all |
+| Cost | About 50% higher wage | Cheap |
+
+A good manager keeps a sound outlet profitable without you for a long time. A cheap one
+slowly turns a sound outlet into a losing one — and the weekly report says which of
+their decisions cost what. But no manager can fix what only the owner controls: a bad
+location, rent too high for the trade, wrong prices, or requests the owner refused.
+Managers learn on the job and from the owner's coaching, so a cheap hire you invest in
+can become a good one.
+
 **The owner's day at chain size** (still about five minutes):
 1. *Owner's desk* in Prep — a short inbox of requests from all outlets (approve / deny /
    "do it cheaper"), yesterday's one-line result per outlet, and warnings.
