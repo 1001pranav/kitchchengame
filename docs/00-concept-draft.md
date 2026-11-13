@@ -1,4 +1,9 @@
-# Restaurant Chain Tycoon — Concept Draft (v0.1)
+# Restaurant Chain Tycoon — Concept Draft (v0.2)
+
+> **Changes in v0.2 (owner decisions):** mobile platform; five-minute sessions (one
+> session = one game day); owner is hands-on and can do floor work (§3); player picks a
+> cuisine theme, currency is generic (§5.1); takeover tiers use honest pricing plus a
+> separate difficulty modifier (§5); realism goal restated (§2).
 
 > **Status:** DRAFT for discussion. Nothing here is final. Numbers are placeholders
 > to make the design concrete, not balanced values.
@@ -12,8 +17,9 @@
 
 You take over an existing, already-running restaurant using limited starting capital
 and a loan. You inherit its staff, its equipment, its lease, its reputation — and its
-problems. You are the **owner, not the cook**: you hire, schedule, buy, price, repair,
-borrow and react to the things that go wrong every day. Survive, become profitable,
+problems. You are a **hands-on owner**: you hire, schedule, buy, price, repair and
+borrow — and when the restaurant is short-handed you take orders, carry plates and work
+the till yourself. Survive, become profitable,
 open a second location, turn it into a chain, and eventually run several restaurant
 brands as a holding company. Fully offline, single-player.
 
@@ -28,23 +34,26 @@ Every feature must serve at least one of these. If it serves none, it is cut.
    cash problem.
 3. **Every problem has more than one answer, and each answer costs something.**
    No "click to fix". Cheap/fast/good — pick two.
-4. **Your job changes as you grow.** One restaurant: hands-on operator. Three: you
-   manage managers. A brand: you set policy and allocate capital.
+4. **Your job changes as you grow.** One restaurant: you are on the floor covering
+   gaps. Three: you manage managers. A brand: you set policy and allocate capital.
+   Getting *off* the floor is itself a goal the player works towards.
 5. **Readable simulation.** The player must always be able to find out *why*
    something happened (why profit fell, why the chef quit). An opaque sim feels random.
 
 ### Realism stance (important)
 
-Target the realism of **problems and trade-offs**, not the realism of **proportions**.
-Real restaurants run 3–5% net margins and most fail within a few years; a faithful
-simulation of that is a depressing spreadsheet. We keep real *causes and effects* and
-compress time, widen margins and shorten feedback loops so decisions feel consequential
-within minutes.
+**Goal: the player should finish a week of play understanding why running a restaurant
+is hard.** We get there through the realism of **problems and trade-offs**, not the
+realism of **proportions**. Real restaurants run 3–5% net margins and most fail within
+a few years; copying those numbers produces a depressing spreadsheet. We keep real
+*causes and effects* (a no-show cook really does wreck a Friday) and take liberties with
+time, margins and feedback speed so decisions feel consequential within one session.
 
 ## 3. Player role and what the player actually does
 
-The player never performs dexterity tasks (no cooking mini-games, no dragging plates).
-All play is **decisions under constraints**:
+The owner is a character in the restaurant with two kinds of work.
+
+### 3.1 Management decisions
 
 | Frequency | Decisions |
 |---|---|
@@ -52,6 +61,32 @@ All play is **decisions under constraints**:
 | Weekly | Hire/fire, adjust menu and prices, pay wages, pick suppliers, schedule maintenance, marketing |
 | Monthly | Rent, loan instalment, taxes, review P&L, renegotiate, plan upgrades |
 | Rarely | Renovate, buy equipment, open/acquire a location, appoint a manager, launch a brand |
+
+### 3.2 Floor work (hands-on)
+
+During service the owner can personally do any front-of-house or back-office job:
+**take orders, deliver food, take payment at the till, clear tables, receive and count
+deliveries, do a stock check.** (Cooking is an open question — see D9.)
+
+Rules that make this a decision rather than a reflex test:
+
+- **The owner is one body.** Floor tasks appear as markers in the restaurant view
+  (table 4 wants to order, order 12 is ready, table 2 wants the bill). Tapping one
+  queues it for the owner, who walks there and spends time doing it. No timing or
+  accuracy skill is tested — the skill is *choosing which fire to put out*.
+- **Staff do the same tasks automatically.** The owner is the wildcard who covers
+  whatever the rota cannot. A fully staffed, well-run shift needs no owner taps at all.
+- **Floor time costs management time.** While the owner is carrying plates, incident
+  cards wait (with a timer) and nobody is watching the till or the back door. Some
+  problems (theft, sloppy portioning) are only noticed when the owner is *not* busy.
+- **Owner energy.** Floor work drains an energy bar. Run it to zero several days in a
+  row and the owner makes mistakes (wrong change, dropped order) and eventually loses a
+  day to exhaustion. This is the game's honest answer to "just do it all yourself".
+- **It does not scale.** The owner can be in only one restaurant per day. From the
+  second location on, every other outlet runs on its staff and manager (§6.9).
+
+This models the real arc of a small-business owner: at first you are the cheapest and
+most reliable employee you have; success means making yourself unnecessary.
 
 ## 4. Game structure: continuous, with stages
 
@@ -72,13 +107,19 @@ Each stage also has 3–5 optional objectives (e.g. "pass a health inspection wi
 "reach 4.5★") that award cash, reputation or unlocks. A scenario/challenge mode can be
 added later on top of the same simulation.
 
-**Time model:** day-based. One game day ≈ 2–4 minutes of real time at 1× speed, with
-pause and 2×/4× speed. Each day has three phases:
+**Time model:** day-based, built around a **five-minute mobile session = one game
+day**. A day can be stopped and resumed at any point (autosave on every phase change
+and on app backgrounding). Each day has three phases:
 
-1. **Prep (paused planning):** deliveries arrive, check stock, set rota, handle overnight events.
-2. **Service (simulation runs):** customers arrive, orders flow through stations,
-   incidents pop up and demand a decision. The player watches the bottlenecks, not individual plates.
-3. **Close (report):** day P&L, waste, complaints, staff notes, tomorrow's warnings.
+1. **Prep (~1 min, untimed):** deliveries arrive, check stock, set rota, handle
+   overnight events. Sensible defaults ("same as yesterday") so it can be done in three taps.
+2. **Service (~3 min, simulation runs):** customers arrive, orders flow through
+   stations, the owner covers gaps on the floor (§3.2), incidents demand decisions.
+   Pause any time; 2× speed; **auto-run** option once staffing covers every role.
+3. **Close (~1 min, untimed):** day P&L, waste, complaints, staff notes, tomorrow's warnings.
+
+Weekly and monthly decisions (payroll, menu, rent, loan) surface inside Prep or Close of
+the relevant day, so no session ever needs more than about five minutes.
 
 **Fail state:** bankruptcy — cash below zero with no credit left for N consecutive days,
 or defaulting on the loan. Before game over the player gets escalating lifelines with real
@@ -89,16 +130,24 @@ investor who claims a share of profits).
 
 ## 5. Starting choice: the takeover
 
-The player starts with fixed capital (draft: 100,000) and chooses one of five
-restaurants for sale. This choice doubles as the difficulty setting.
+The player starts with fixed capital (draft: 100,000 coins) and chooses one of five
+restaurants for sale. **Pricing is honest: you get what you pay for.** Anything above
+your capital is financed by a loan.
 
-| Tier | Difficulty | Staff | Equipment | Reputation | Location / footfall | Rent | Loan burden | Hidden problems |
-|---|---|---|---|---|---|---|---|---|
-| Excellent | Easy | Skilled, loyal, well paid | ~90% condition | 4.5★ | Prime | High (justified by footfall) | Small, low interest | 0 |
-| Best | Normal- | Good, one weak link | ~75% | 4.0★ | Good | Above average | Moderate | 1 |
-| Good | Normal | Mixed | ~60% | 3.5★ | Average | Average | Moderate | 2 |
-| Bad | Hard | Low skill or low morale | ~40% | 2.5★ | Weak, or good with bad lease | Slightly high for what it is | Large | 3 |
-| Worst | Very hard | Unskilled, demoralised, one troublemaker | ~25%, one machine dead | 1.5★ | Poor | Overpriced lease, locked in | Large, high interest, plus inherited supplier debt | 4–5 |
+| Tier | Price | Loan needed | Cash left | Staff | Equipment | Reputation | Location / rent | Hidden problems | Where the pressure comes from |
+|---|---|---|---|---|---|---|---|---|---|
+| Excellent | 300k | 220k | 20k | Skilled, loyal, well paid | ~90% | 4.5★ | Prime, high rent | 0 | Big loan instalment and rent; little room for a bad month |
+| Best | 220k | 140k | 20k | Good, one weak link | ~75% | 4.0★ | Good, above-average rent | 1 | Loan plus first equipment replacements |
+| Good | 150k | 70k | 20k | Mixed | ~60% | 3.5★ | Average | 2 | A bit of everything |
+| Bad | 80k | 0 | 20k | Low skill or low morale | ~40% | 2.5★ | Weak, or good with a bad lease | 3 | Weak sales, repairs, staff turnover |
+| Worst | 30k | 0 | 70k | Unskilled, demoralised, one troublemaker | ~25%, one machine dead | 1.5★ | Poor, overpriced locked-in lease | 4–5, incl. inherited supplier debt | Loses money daily; cash runs out before reputation recovers |
+
+Balance target: for a first-time player the order from most to least forgiving is still
+Excellent → Worst, because good staff and reputation absorb mistakes and debt does not
+punish you until you miss a payment.
+
+A separate **difficulty modifier** (Easy / Normal / Hard) scales interest rates,
+incident frequency, customer patience and price volatility independently of the tier.
 
 **Hidden problems** are what make the takeover feel real: they are revealed over the
 first weeks, not on the purchase screen. Examples: unpaid supplier bills, a pending
@@ -106,16 +155,24 @@ health violation, the head chef already planning to leave, a pest issue, a walk-
 fridge near failure, a staff member skimming the till, a lease clause that raises rent
 in month 3. A paid "due diligence" option before purchase reveals some of them.
 
-**Design tension to resolve (see §13, D1):** in reality an excellent restaurant costs
-*more* to buy, so it should need a *bigger* loan. The table above follows the brief
-(excellent = easy = less loan), which works as a difficulty preset but is not how
-acquisition pricing works. Alternative: honest pricing — excellent is expensive and
-leaves you heavily indebted but with strong cash flow; worst is nearly free but drains
-cash on repairs and wages before it earns. That version makes all five tiers a genuine
-strategic choice rather than a difficulty slider.
-
 Restaurants within a tier are procedurally generated from a seed (names, staff roster,
-cuisine, which hidden problems) so replays differ.
+which hidden problems) so replays differ.
+
+### 5.1 Cuisine theme and currency
+
+Before the takeover screen the player picks a **cuisine theme**: one country-specific
+cuisine (launch with a small set, e.g. 3–4) or **Mixed / multi-cuisine**.
+
+- A theme is a **content pack**: dishes, ingredients, staff and restaurant name pools,
+  seasonal events/festivals, a few theme-specific incidents and the visual skin.
+- Themes **do not change rules or balance formulas**. Every pack must fill the same
+  slots (e.g. N starters, N mains, same spread of cost, prep time and station use) so
+  one balance pass covers all of them.
+- *Mixed* draws dishes from all packs: wider customer appeal, but more distinct
+  ingredients to stock and more skills needed in the kitchen — a real trade-off.
+- Currency is a generic in-game unit (**coins**), the same in every theme. No real
+  currencies, no real-world price claims.
+- Stage 5 "new brand" (§6.9) reuses this: a second brand is a second theme.
 
 ## 6. Core systems
 
@@ -242,15 +299,24 @@ long-tail consequences of earlier choices, visible restaurant improvement, valua
 
 ## 9. Presentation (draft)
 
-- Management UI first: dashboard, lists, cards, charts. A simple 2D top-down view of the
-  restaurant during service is a *nice to have*, not core.
-- Art scope must stay small: icons, portraits from a parts-based generator, a few backgrounds.
+- **Mobile, portrait, one-thumb.** Large tap targets, no hover, no dense tables; every
+  list has a summary line and a drill-down.
+- **Restaurant view is core** (it is where floor tasks are tapped): a simple 2D
+  top-down room with tables, pass, till, back door, staff and owner as small figures,
+  task markers above them. Management screens are cards and sheets over this view.
+- Art scope must stay small: one room layout per size class re-skinned per theme,
+  icons, staff portraits from a parts-based generator. Each cuisine theme adds art cost —
+  this is the main reason to launch with few themes.
 - Text-heavy content means localisation should be planned from the start (all strings in data files).
 
 ## 10. Technical direction (proposal, not decided)
 
-- **Recommended stack:** TypeScript, web-based, installable offline as a PWA; wrap with
-  Capacitor/Tauri for mobile/desktop stores later.
+- **Target:** Android and iOS phones, fully offline.
+- **Recommended stack (D3, still open):** TypeScript; simulation core as a plain
+  library; a 2D canvas renderer (e.g. Phaser or PixiJS) for the restaurant view and
+  HTML/CSS for management screens; packaged as native apps with Capacitor. Alternative:
+  Godot, which gives a stronger game toolchain but is harder to unit-test headlessly
+  and harder for weaker models to edit reliably (scene files).
 - **Architecture rule:** the simulation core is pure logic with no UI or platform
   dependencies — `state + player actions + seed → new state`. UI only renders state and
   sends actions. This is what makes the game unit-testable and what lets weaker models
@@ -266,7 +332,7 @@ Build in vertical slices; each phase is playable on its own.
 | Phase | Contents | Proves |
 |---|---|---|
 | P0 Prototype | Headless sim: one restaurant, demand, kitchen queue, stock, wages, cash. Text output only | The economy is tunable |
-| P1 MVP | Stage 1–2 complete: takeover choice, staff, inventory, equipment, menu, finance, ~40 incidents, save/load, UI | One restaurant is fun for 5+ hours |
+| P1 MVP | Stage 1–2 complete: takeover choice, **one cuisine theme**, owner floor work, staff, inventory, equipment, menu, finance, ~40 incidents, save/load, mobile UI | One restaurant is fun for 5+ hours in five-minute sessions |
 | P2 | Stage 3–4: multiple locations, managers, policies, central purchasing | Delegation is fun, not busywork |
 | P3 | Stage 5: brands, acquisitions, franchising | Endgame |
 | P4 | Scenarios, more cuisines, polish, localisation | Replayability |
@@ -279,6 +345,10 @@ Build in vertical slices; each phase is playable on its own.
 |---|---|---|
 | Spreadsheet syndrome | Sim is correct but joyless | Incidents with characters and consequences; strong daily report; visible change |
 | Micromanagement explosion at 3+ locations | Daily clicks × N restaurants kills the game | Policies and managers replace manual actions; player "visits" one location at a time |
+| Floor work becomes the whole game | Tapping tables is easier to enjoy than reading a P&L; players never learn the management layer and hit a wall at location two | Owner energy, incidents that only management can solve, stage goals that require hiring |
+| Floor work becomes a chore | By day 30 tapping tables is repetitive | Staff make it unnecessary; auto-run service; it returns only in crises |
+| Theme packs multiply content and art cost | Each cuisine needs dishes, names, art, testing | Fixed slot template per pack; one pack in MVP |
+| Too much UI for a phone | Sim games drown small screens | Card-based drill-down, defaults for every daily decision |
 | Random-feeling failures | Player blames dice, quits | State-driven incidents, warnings before failures, "why" explanations everywhere |
 | Balance complexity | Many interacting systems | Headless sim + automated balance runs over thousands of seeded days |
 | Scope creep | Never ships | Phase gates in §11 |
@@ -288,14 +358,18 @@ Build in vertical slices; each phase is playable on its own.
 
 | # | Decision | Options | Draft recommendation |
 |---|---|---|---|
-| D1 | Takeover tiers | (a) difficulty preset as in §5 (b) honest pricing where every tier is a trade-off | (b), with a separate Easy/Normal/Hard modifier |
-| D2 | Platform | Mobile / desktop / web | Web-first PWA, mobile-friendly layout |
-| D3 | Tech stack | TypeScript web / Godot / Unity | TypeScript (most testable, best fit for a UI-heavy sim) |
-| D4 | Setting | Generic city / specific country, cuisine, currency | Pick one concrete setting; it drives dishes, wages, festivals, incidents |
-| D5 | Service phase | Watchable real-time sim / instant day resolution | Real-time with pause and speed, skippable |
+| D1 | Takeover tiers | — | **Assumed decided:** honest pricing + difficulty modifier (§5). Confirm |
+| D2 | Platform | — | **Decided:** mobile |
+| D3 | Tech stack | TypeScript + Capacitor / Godot / Unity | TypeScript + Capacitor |
+| D4 | Setting | — | **Decided:** player-chosen cuisine theme or mixed; generic coins (§5.1) |
+| D5 | Service phase | — | **Decided by D8:** ~3 min real-time with pause, 2×, auto-run |
 | D6 | Tone | Serious sim / light and humorous | Grounded with dry humour in incident writing |
 | D7 | Monetisation | Premium / free | Affects nothing in design as long as there are no ads or IAP (offline) |
-| D8 | Session length target | 5-minute mobile sessions / 1-hour desktop sessions | Drives day length and UI density |
+| D8 | Session length | — | **Decided:** five minutes = one game day |
+| D9 | Can the owner cook? | Yes, any dish / yes, at low skill / no | Yes at low fixed skill: slow and mediocre, a last resort when the cook is absent |
+| D10 | Floor work style | Tap-to-queue (choice) / timing and swipes (dexterity) | Tap-to-queue; no dexterity |
+| D11 | Launch cuisine themes | Which and how many | One in MVP, 3–4 + Mixed at launch; owner to name them |
+| D12 | Orientation | Portrait / landscape | Portrait |
 
 ## 14. Planned document set (after this draft is agreed)
 
