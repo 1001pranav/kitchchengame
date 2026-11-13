@@ -188,7 +188,7 @@ clear policies, and choose where your presence matters most today.
 - **Hidden information:** on hire, skill is shown as a range (±15) and reliability /
   honesty are hidden; they are revealed after 7 worked days (14 for honesty).
 - **Actions:** hire (from 3–5 weekly applicants), fire (severance = 7 days' wage;
-  morale hit to others), raise, train (cost + days; skill +5–10), set weekly rota,
+  morale hit to others), raise, train (cost + days; skill +5–10), set each person's weekly day off (the restaurant is open all seven days; there is no shared closing day),
   give day off, warn, promote (line cook → head chef, server → manager).
 - **Dynamics:** absence, lateness, quitting, wage demands, fatigue from too many
   consecutive days, morale from pay, workload, tips, and how the owner handles incidents.
@@ -266,6 +266,13 @@ clear policies, and choose where your presence matters most today.
 
 Flyers (cheap, small, short), local ads (medium), promotion day (discount, large
 demand spike, low margin), food blogger (expensive, reputation gain if the visit goes well).
+
+**Advertising is a gamble.** Any campaign can flop, do roughly what was expected, or hit
+big — like throwing stones into a lake full of fish. On average it pays the same as a
+steady ad would, but no single ad is safe. The odds improve when the ad reaches the kind
+of customers that location actually has, when the menu is fresh and the rating good, and
+they worsen if the same ad is repeated too soon. The game says the next morning how it
+went and why.
 
 ### 6.8b A good restaurant does not stay good by itself
 
@@ -353,7 +360,8 @@ just because someone is in charge. A manager has three skills — *people*, *upk
 | Equipment | Services on time, warns before a breakdown, repairs properly | Skips servicing, cheap fixes that fail again |
 | Stock | Orders close to what is needed, rejects bad deliveries | Over-orders (waste) or under-orders (sold-out dishes) |
 | Asking you | Raises problems early | Raises them late or not at all |
-| Cost | About 50% higher wage | Cheap |
+| Extras (Senior and Veteran) | Negotiates supplier prices down and finds deals, makes machines last longer, develops the crew's skills, halves resignations, trains a deputy who can run your next outlet | None |
+| Cost | About twice a Trainee's wage | Cheap |
 
 Between those two extremes there are **five grades** — Trainee, Junior, Capable, Senior
 and Veteran — at roughly 190 to 370 coins a day, and **four profiles** (all-rounder,
@@ -361,6 +369,10 @@ people person, tight ship, numbers), so two managers of the same grade can be st
 different things. Senior and Veteran managers only join well-rated companies and expect
 a share of the outlet's profit. Every manager has hidden potential: a cheap Trainee you
 coach can grow into a Senior.
+
+**Managers work the floor.** A manager is not an extra salary sitting in an office: they
+run the till in place of a cashier and fill in wherever the crew is short, as in most
+real small restaurants. That is what makes a manager affordable for one outlet.
 
 A good manager keeps a sound outlet profitable without you for a long time. A cheap one
 slowly turns a sound outlet into a losing one — and the weekly report says which of

@@ -25,7 +25,7 @@ its current effect and what would reverse it. A manager never reverses any of th
 `buzz` ∈ [0, 1] per outlet. Takeover starts at 0.5, new build at 0.8 (opening hype).
 
 ```
-at close:  buzz = max(0, buzz − BUZZ_DECAY (0.02))
+at close:  buzz = max(0, buzz − BUZZ_DECAY (0.01))
 buzzFactor = 0.90 + 0.20 × buzz            (multiplies demand, doc 02 §5.1)
 ```
 
@@ -39,8 +39,12 @@ buzzFactor = 0.90 + 0.20 × buzz            (multiplies demand, doc 02 §5.1)
 | Renovation | +0.30 |
 | Award or gold badge (Part D) | +0.40 |
 
-Capped at 1. The short-term demand boosts in doc 02 §13 are unchanged and add on top.
-With no promotion at all, buzz reaches 0 in 25–40 days and demand settles 10% below neutral.
+Capped at 1. Gains from flyers, local ads and promotion days are multiplied by the
+campaign's rolled outcome (doc 02 §13.1): a flop adds no buzz at all, a big hit can fill
+the gauge in one go. The short-term demand boosts in doc 02 §13 are unchanged and add on top.
+With no promotion at all, buzz reaches 0 in 50–80 days and demand settles 10% below neutral.
+(Decay was 0.02; at that rate one local ad a month could not keep up — measured −10% demand
+for the competent bot — so it was halved.)
 
 ### A.2 Menu freshness — regulars get bored
 
@@ -87,11 +91,12 @@ Renovation or a gold badge: competition −0.10. The `inc_competitor_opens` inci
 ### A.6 What this does to the numbers
 
 All three demand factors are neutral (≈ 1.0) at buzz 0.5, freshness 0.6, competition 0.
-A neglected but well-operated outlet drifts to about **−15% demand in two months** and
+A neglected but well-operated outlet drifts to about **−12% demand in two months and
+−15% by week nine** (measured: −12% in weeks 5–8), and
 further as rivals arrive — enough to turn a Good-tier profit into a small loss. Add to
 doc 06 targets: the *passive* bot must show this decline; the *competent* bot (now also
 buying one local ad per 4 weeks and a menu rework per 8 weeks) must hold demand within
-±5% of neutral at a marketing cost of 2–4% of revenue.
+±5% of neutral at a marketing cost of 2–4% of revenue (measured: −3%).
 
 ### A.7 Showing it
 

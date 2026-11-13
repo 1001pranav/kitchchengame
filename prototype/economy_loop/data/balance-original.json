@@ -1,0 +1,263 @@
+{
+  "_comment": "HISTORY: the numbers in the docs before balance-log entry 1. Every managed outlet goes bankrupt with these. Kept for comparison only.",
+  "BASE_FOOTFALL": 50,
+  "WEEKLY_RENT": 2800,
+  "TABLES": 14,
+  "START_CASH": 20000,
+  "START_LOAN": 70000,
+  "START_REPUTATION": 3.5,
+  "START_HYGIENE": 70,
+  "START_CREW_MORALE": 55,
+  "CREW_SKILL_MIN": 40,
+  "CREW_SKILL_MAX": 65,
+  "CREW_ROLES": [
+    "headChef",
+    "lineCook",
+    "prepCook",
+    "dishwasher",
+    "server",
+    "server",
+    "cashier",
+    "cleaner"
+  ],
+  "BASE_WAGE": {
+    "headChef": 220,
+    "lineCook": 140,
+    "prepCook": 100,
+    "dishwasher": 80,
+    "server": 100,
+    "cashier": 100,
+    "cleaner": 80,
+    "manager": 260
+  },
+  "EQUIP_CONDITION_MIN": 55,
+  "EQUIP_CONDITION_MAX": 65,
+  "EQUIP_AGE_DAYS_MIN": 336,
+  "EQUIP_AGE_DAYS_MAX": 1008,
+  "DOW_FACTOR": [
+    0.8,
+    0.85,
+    0.9,
+    1.0,
+    1.25,
+    1.4,
+    1.2
+  ],
+  "SEASON_FACTOR": [
+    1.0,
+    0.95,
+    1.0,
+    1.1
+  ],
+  "DAYS_PER_SEASON": 84,
+  "SEGMENT_MIX": {
+    "office": 0.3,
+    "family": 0.35,
+    "student": 0.2,
+    "tourist": 0.15
+  },
+  "SEGMENT_PRICE_SENSITIVITY": {
+    "office": 1.0,
+    "family": 1.0,
+    "student": 1.5,
+    "tourist": 0.6
+  },
+  "REP_UP": 0.05,
+  "REP_DOWN": 0.1,
+  "HAPPINESS_SPEED": 0.15,
+  "BUZZ_START": 0.5,
+  "BUZZ_DECAY": 0.02,
+  "FRESHNESS_START": 0.6,
+  "FRESHNESS_DECAY": 0.01,
+  "MENU_REWORK_COST": 800,
+  "COMPETITION_UP": 0.01,
+  "COMPETITION_DOWN": 0.005,
+  "COMPETITION_MAX": 0.5,
+  "CAMPAIGNS": {
+    "flyers": {
+      "cost": 400,
+      "boost": 0.08,
+      "days": 3,
+      "buzz": 0.1,
+      "segments": [
+        "family",
+        "student"
+      ]
+    },
+    "localAd": {
+      "cost": 1500,
+      "boost": 0.15,
+      "days": 7,
+      "buzz": 0.25,
+      "segments": [
+        "office",
+        "family"
+      ]
+    },
+    "promoDay": {
+      "cost": 0,
+      "boost": 0.5,
+      "days": 1,
+      "buzz": 0.15,
+      "segments": [
+        "student",
+        "family"
+      ]
+    }
+  },
+  "PROMO_PRICE_MULT": 0.75,
+  "CAMPAIGN_BOOST_CAP": 0.6,
+  "MENU_REWORK_BUZZ": 0.1,
+  "UTILITIES_BASE": 80,
+  "UTILITIES_PER_GROUP": 1.2,
+  "UTILITIES_PER_UNIT": 15,
+  "LICENCE_FEE": 500,
+  "TAX_RATE": 0.1,
+  "LOAN_WEEKLY_RATE": 0.004,
+  "LOAN_TERM_WEEKS": 52,
+  "MISSED_PAYMENT_PENALTY": 0.05,
+  "BREAK_BASE": 0.002,
+  "MAINTENANCE_COST_PCT": 0.02,
+  "MAINTENANCE_GAIN": 15,
+  "MAINTENANCE_THRESHOLD": 65,
+  "CHEAP_REPAIR_PCT": 0.1,
+  "PROPER_REPAIR_PCT": 0.25,
+  "CHEAP_REPAIR_CONDITION": 40,
+  "PROPER_REPAIR_CONDITION": 70,
+  "CHEAP_REPAIR_REFAIL": 0.25,
+  "HYGIENE_PER_GROUP": 0.15,
+  "HYGIENE_PER_CLEANER": 12,
+  "INSPECTION_FINE_WARN": 1500,
+  "INSPECTION_FINE_CLOSE": 5000,
+  "INSPECTION_CLOSE_DAYS": 2,
+  "NEGLECT_GRACE_BASE": 2,
+  "NEGLECT_PER_DAY": 0.02,
+  "NEGLECT_MAX": 0.3,
+  "MANAGER_LEARN_DAYS": 28,
+  "MANAGER_LEARN_CAP": 85,
+  "MANAGER_APPLICANT_DAYS": 14,
+  "MANAGER_GRADE_WEIGHTS": {
+    "trainee": 30,
+    "junior": 30,
+    "capable": 25
+  },
+  "PROTO_SPEND_PER_GROUP": 55,
+  "PROTO_FOOD_COST": 0.325,
+  "PROTO_BASE_WASTE": 0.05,
+  "PROTO_TABLE_TURNS": 6,
+  "PROTO_WALKOUT_BASE": 0.05,
+  "PROTO_WALKOUT_PER_GAP": 0.15,
+  "PROTO_FOOD_BASE": 50,
+  "PROTO_WAIT_BASE": 0.3,
+  "PROTO_WAIT_PER_GAP": 0.12,
+  "PROTO_MENU_LOSS_REVENUE_SHARE": 0.5,
+  "PROTO_UNAVAILABLE_PER_MENU_LOSS": 3,
+  "PROTO_OVERPORTION_COST": 0.25,
+  "PROTO_CREW_WORK_DAYS": 6,
+  "PROTO_OWNER_VISITS_PER_WEEK": 2,
+  "PROTO_MANAGER_SEVERANCE_DAYS": 7,
+  "PROTO_REFAIL_WINDOW": 7,
+  "EQUIPMENT": {
+    "range": {
+      "price": 6000,
+      "wear": 0.5,
+      "menuLoss": 0.4
+    },
+    "oven": {
+      "price": 5000,
+      "wear": 0.4,
+      "menuLoss": 0.3
+    },
+    "fridge": {
+      "price": 4000,
+      "wear": 0.3,
+      "menuLoss": 0.3,
+      "spoilage": 600
+    },
+    "freezer": {
+      "price": 3500,
+      "wear": 0.3,
+      "menuLoss": 0.1
+    },
+    "shelving": {
+      "price": 800,
+      "wear": 0.05
+    },
+    "dishMachine": {
+      "price": 3000,
+      "wear": 0.5,
+      "gap": 1,
+      "hygiene": 5
+    },
+    "hood": {
+      "price": 2500,
+      "wear": 0.3,
+      "hygiene": 5,
+      "morale": 4
+    },
+    "pos": {
+      "price": 1500,
+      "wear": 0.2,
+      "gap": 0.5
+    },
+    "ac": {
+      "price": 3000,
+      "wear": 0.3,
+      "morale": 4
+    }
+  },
+  "ABSENCE_DIVISOR": 400,
+  "NEGLECT_ABSENCE_DIVISOR": 5,
+  "NEGLECT_GRACE_SQ_DIV": 0,
+  "WORKING_MANAGER": 0,
+  "MANAGER_STEP_IN_GAP": 0.5,
+  "DOUBLE_PEOPLE_MORALE": 1,
+  "MGR_WAGE_A": 0.4,
+  "MGR_WAGE_B": 1.2,
+  "MANAGER_TILL_SKILL_REF": 0,
+  "PROTO_ROTA_HOLES": 0,
+  "PROTO_STANDIN_GAP": 0.25,
+  "NEVER_SEATED_SAT": 10,
+  "NEVER_SEATED_WEIGHT": 1.0,
+  "HYGIENE_CLEAN_PCT": 0,
+  "MASTERY_FROM": 65,
+  "MASTERY_FULL": 90,
+  "MASTERY_NEGOTIATION_MAX": 0,
+  "MASTERY_WEAR_MAX": 0,
+  "MASTERY_RETENTION_MAX": 0,
+  "MASTERY_TRAIN_DAYS": 28,
+  "MASTERY_TRAIN_CAP": 0,
+  "CAMPAIGN_VARIANCE": 0,
+  "CAMPAIGN_REPEAT_DAYS": 21,
+  "CAMPAIGN_FIT_WEIGHT": 0.2,
+  "CAMPAIGN_FRESH_BONUS": 0.08,
+  "CAMPAIGN_REPEAT_PENALTY": 0.15,
+  "CAMPAIGN_REP_WEIGHT": 0.05,
+  "CAMPAIGN_BANDS": [
+    {
+      "below": 0.15,
+      "mult": 0,
+      "label": "flopped"
+    },
+    {
+      "below": 0.4,
+      "mult": 0.5,
+      "label": "weak response"
+    },
+    {
+      "below": 0.75,
+      "mult": 1,
+      "label": "as expected"
+    },
+    {
+      "below": 0.93,
+      "mult": 1.5,
+      "label": "worked well"
+    },
+    {
+      "below": 99,
+      "mult": 3.5,
+      "label": "BIG HIT"
+    }
+  ]
+}

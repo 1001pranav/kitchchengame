@@ -76,7 +76,7 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 |---|---|---|---|
 | poor | 30 | 1,800 | 20/40/35/5 |
 | weak | 40 | 2,000 | 25/40/25/10 |
-| average | 50 | 2,800 | 30/35/20/15 |
+| average | 55 | 2,800 | 30/35/20/15 |
 | good | 65 | 3,800 | 35/30/15/20 |
 | prime | 85 | 5,200 | 35/25/10/30 |
 
@@ -146,6 +146,14 @@ Table states: `free → occupied → dirty → free`.
 | bill | group finishes eating (→ waitBill) | cashier, server (×1.5 time) | 2 | payment; satisfaction computed; group → left; table → dirty |
 | clear | table dirty | server, cleaner | 2 | table free; dirtyDishes += group size × 2 |
 | wash | — (continuous, §6.6) | dishwasher | — | — |
+
+**Stand-in roles.** With one person per role and a six-day week, some role is unstaffed
+on most weekdays. When a role has nobody working, its tasks may be taken by a stand-in
+at ×1.5 time and skill −15: wash ← cleaner, prepCook; clean (hygiene at close, at half
+effect) ← dishwasher; cook ← prepCook; bill/seat ← server; takeOrder/deliver/clear ←
+cashier. A stand-in only takes such a task when none of their own role's tasks is
+waiting. The owner (or a working manager, §15.15) covering the role takes priority over
+stand-ins.
 
 `EAT_TICKS = 12 + 3 × groupSize` (max 30). A fitting table is the smallest free table
 with seats ≥ group size; groups of 1 use two-seat tables.
@@ -234,7 +242,9 @@ waitScore  = 100 × (1 − totalWaitTicks / totalPatienceLimitTicks), clamp 0–
 valueScore = clamp(75 − 100 × (billPriceIndex − 1) × segment.priceSensitivity, 0, 100)
 cleanScore = hygiene
 satisfaction = 0.40 food + 0.30 wait + 0.15 value + 0.15 clean − 10 × unavailableCount
-walk-out before food: satisfaction = 10
+walk-out after being seated, before food: satisfaction = 10
+turned away / gave up waiting for a table (never seated): satisfaction = 30, and the group
+  counts as half a group in the day's star average and in `n` below
 stars = clamp(satisfaction / 20, 0, 5)
 ```
 
@@ -255,7 +265,7 @@ reputation += (avg − reputation) × k × weight        clamp 0–5
 Base daily wage at skill 50: headChef 220, lineCook 140, prepCook 100, dishwasher 80,
 server 100, cashier 100, cleaner 80, manager 260.
 `expectedWage = round(base × (0.6 + 0.8 × skill/100))`. Staff are paid only for days
-worked; overtime (6th and 7th consecutive day) is paid ×1.5.
+worked; working on their own day off (§7.7) is overtime, paid ×1.5.
 
 ### 7.2 Fatigue (at close)
 
@@ -279,7 +289,7 @@ morale += one-off shocks from incident effects (type `morale`), then clamp 0–1
 |---|---|---|
 | 1 | **Pay** | `clamp((wage − expectedWage) / expectedWage × 100, −20, +10)` |
 | 2 | **Tiredness** | `−0.3 × (fatigue − 50)` if fatigue > 50 (down to −15); `+3` if fatigue < 30 |
-| 3 | **Rest** | `−5` if consecutiveDays ≥ 6; `−5` for 14 days after a refused leave request |
+| 3 | **Rest** | `+3` while their day off is their preferred weekday; `−5` in any week they worked their day off; `−5` for 14 days after a refused day-off or leave request |
 | 4 | **Short-staffed shifts** | `−10 ×` (share of their last 7 worked days that were rush days) |
 | 5 | **Team** | `+3` if a `mentor` works in their role; `−5` if a `toxic` colleague works at the outlet; `−5` for 14 days after a colleague was fired (`+5` instead if that colleague was toxic); `−4` while a role at the outlet has been vacant > 14 days |
 | 6 | **Boss** | Outlet run by a manager: `(manager people skill − 50) / 5` (−10…+10). `+3` in any week the owner was present at the outlet (doc 02 §15.3; always true in a single-restaurant game unless the owner rested all week) |
@@ -307,7 +317,9 @@ index** = mean over all staff. Both are shown with a trend arrow.
 
 ### 7.4 Absence and lateness (at prep, rostered staff)
 
-`pAbsent = (100 − reliability)/400 + (0.05 if fatigue > 80) + (0.05 if morale < 30)`.
+`pAbsent = (100 − reliability)/ABSENCE_DIVISOR (1,000) + (0.05 if fatigue > 80) + (0.05 if morale < 30)`
+(about 4.5% of days for a Good-tier staff member; was /400 ≈ 11%, which the prototype
+showed to be the largest single cost at a managed outlet).
 If not absent: `pLate = (100 − reliability)/300`; late staff start work at tick `rng.int(15, 60)`.
 
 ### 7.5 Quitting, with or without notice (at close)
@@ -345,6 +357,35 @@ but the warning signs are identical.
 - Training: cost `10 × current skill` coins, staff unavailable 2 days, skill `+rng.int(5,10)`,
   cap 95, morale +5. Wage expectation rises accordingly (may trigger a wage demand).
 - Hidden stats reveal: skill exact + reliability after 7 worked days; honesty after 14.
+
+### 7.7 Days off
+
+The restaurant is **open seven days a week** — weekends are the busiest days and are
+never closed. There is no shared weekly holiday. Instead **every staff member has one
+day off a week, on their own weekday**, so the team rests in turns.
+
+- Each staff member has `dayOff` (0–6) and a hidden-until-asked `preferredDayOff`.
+  Preference is generated 25% Saturday, 25% Sunday, 50% uniform over Monday–Friday —
+  people want the days the restaurant can least spare.
+- Who decides the day:
+  - **The owner** sets it with `SetDayOff(staffId, weekday)`; it applies from the next
+    Monday so nobody loses or gains a day mid-week.
+  - **The manager** sets it at outlets the owner is not running (§15.12 People).
+  - **The staff member** can ask: incident `inc_day_off_request` ("Can I have Saturdays
+    instead?" or a one-off "Can I swap to Friday this week?"). Granting gives the Rest
+    bonus or a 14-day `+3`; refusing gives the 14-day `−5`.
+- Default assignment at takeover: days off spread over Monday–Thursday, two staff of the
+  same role never on the same day, single-holder roles on different days from each other.
+- On someone's day off their role is covered by a second holder of the role, a stand-in
+  role (§6.2), the working manager (§15.15) or the owner. The Days-off screen shows, per
+  weekday, which roles have no primary holder.
+- **Asking someone to work their day off:** `WorkDayOff(staffId)` for the coming day —
+  paid ×1.5, fatigue as a normal working day (no −30 rest), Rest factor `−5` that week.
+  They refuse if fatigue > 70 or happiness < 35. Nobody can be asked two weeks running.
+- Fatigue (§7.2) is unchanged: a day off gives `−30`. `consecutiveDays` only grows past 6
+  when a day off is worked.
+- The seven-day rota grid is gone: `rota` is derived as "everyone works except on their
+  `dayOff`", plus per-date overrides for swaps, worked days off and training.
 
 ## 8. Owner
 
@@ -444,10 +485,16 @@ Defined in doc 05. Engine rules:
 
 ```
 hygiene −= groupsServed × 0.15
-hygiene += 12 × workingCleaners × (0.5 + skill/100)      (owner cannot substitute at close)
+hygiene += HYGIENE_CLEAN_PCT (0.40) × (100 − hygiene) × Σ over working cleaners of (0.5 + skill/100)
+                                                       (owner cannot substitute at close)
 hygiene −= 5 if no dishwasher worked;  −5 if hood broken;  −8 if pests flag active
 clamp 0–100
 ```
+Cleaning recovers a share of the dirt present, so hygiene settles at a level set by
+customer numbers and cleaner skill — about 79 for a Good-tier outlet with one average
+cleaner, just under the pass mark — instead of pinning at 100 (the earlier flat `+12`
+rule) or collapsing (a flat `+8`). Both were measured; see `docs/balance-log.md`.
+
 Inspection: when scheduled or triggered, outcome by hygiene: ≥ 80 pass (reputation +0.1);
 50–79 warning, fine 1,500, re-inspection in 7 days; < 50 closure for 2 days, fine 5,000,
 reputation −0.5.
@@ -461,7 +508,50 @@ reputation −0.5.
 | promoDay | 0 (all prices −25% that day) | +0.50 | 1 day |
 | blogger | 3,000 | visit within 3 days; if that group's stars ≥ 4: reputation +0.3, else −0.2 | — |
 
-Boosts add up, capped at +0.6 total.
+Boosts add up, capped at +0.6 total. The boost and buzz figures are what a campaign
+does **when it goes as expected**; what it actually does is rolled per §13.1.
+
+### 13.1 Campaign outcomes
+
+Advertising is uncertain: the same money sometimes brings a crowd and sometimes nothing.
+Each time a flyers, localAd or promoDay campaign starts, one outcome is rolled and
+multiplies both its demand boost and its buzz gain (doc 11 §A.1). The cost is paid in
+full whatever happens. (For promoDay the price cut always applies; only the turnout varies.
+The blogger has its own all-or-nothing rule above.)
+
+```
+luck = rng.float()
+     + CAMPAIGN_FIT_WEIGHT (0.20) × (fit − 0.5)
+     + CAMPAIGN_FRESH_BONUS (0.08) if menu freshness ≥ 0.8
+     − CAMPAIGN_REPEAT_PENALTY (0.15) if the same campaign type ran in the last 21 days
+     + CAMPAIGN_REP_WEIGHT (0.05) × (reputation − 3.5)
+```
+
+| luck | Outcome | Multiplier | Chance with no modifiers |
+|---|---|---|---|
+| < 0.15 | Flopped | × 0 | 15% |
+| < 0.40 | Weak response | × 0.5 | 25% |
+| < 0.75 | As expected | × 1 | 35% |
+| < 0.93 | Worked well | × 1.5 | 18% |
+| ≥ 0.93 | Big hit | × 3.5 | 7% |
+
+The average multiplier with no modifiers is 0.99, so advertising is worth the same
+**on average** as before — but any single campaign is a gamble.
+
+`fit` = the share of the location's customers (segment mix, §4) that the campaign type
+reaches: flyers → family + student; localAd → office + family; promoDay → student +
+family. A campaign aimed at people who are not there is more likely to flop.
+
+What the player can do about it, and is told:
+- **Before buying**, the campaign screen shows the fit as words (poor / fair / good) and
+  any active modifier ("You ran flyers 9 days ago — people have seen them").
+- **The outcome is revealed the next morning** with its reason line, e.g. "The local ad
+  flopped. Few office workers around here." A flop is never silent.
+- A different campaign type has no repeat penalty, so after a flop the sensible move is
+  to change channel, not to pay for the same one again.
+- A fresh menu gives ads something to say; a better rating makes people more willing to try.
+
+The outcome is stored on the campaign (`outcome`, `mult`) and exposed through `explain`.
 
 ## 14. Finance
 
@@ -477,7 +567,11 @@ as they occur. `utilitiesAccrued += UTILITIES_BASE (80) + 1.2 × groupsServed + 
    If cash is insufficient for an instalment: it is missed → penalty 5% of the payment
    added to outstanding, `missedPayments += 1`, credit score −15. Wages and rent are
    always paid (cash may go negative).
-4. Operating profit of the week = revenue − all costs except loan principal.
+4. **Operating profit** of the week = revenue − all running costs (ingredients, wages,
+   rent, utilities, upkeep, marketing, fines). It contains **no loan money at all**.
+   **Net profit** = operating profit − loan interest paid that week (principal repaid is
+   not a cost). A "profitable week" in stage conditions, badges and `lossWeeks` means
+   net profit > 0; the bank's affordability check and valuation use operating profit.
 
 ### 14.3 Monthly (day 28 close)
 Utilities accrued are paid; tax = 10% of the month's positive profit; licence fee 500.
@@ -564,7 +658,7 @@ with neither does not open that day.
 
 ### 15.2 Managers at prep
 For each location the owner is not at during prep, the manager applies its policies:
-rota = all available staff respecting max 6 consecutive days; par-level auto-order;
+days off assigned per §7.7 and §15.12; par-level auto-order;
 maintenance when condition < policy threshold. The player may still open any location's
 screens and issue commands remotely (rota, orders, prices) — only floor work and
 "in person" incident options need presence.
@@ -591,15 +685,19 @@ An incident at a location where the owner is not present is raised as a **call**
 
 ### 15.5 Neglect (standards slip)
 ```
-graceDays = NEGLECT_GRACE_BASE (2) + managerSkill / 10          (skill 50 → 7 days)
+graceDays = managerSkill² / NEGLECT_GRACE_SQ_DIV (70)
+            (Trainee 27 → 10 days, Junior 42 → 25, Capable 57 → 46, Senior 72 → 74, Veteran 86 → 106)
 neglect   = max(0, (today − lastOwnerVisitDayIndex) − graceDays)
-slack     = min(NEGLECT_MAX (0.30), neglect × NEGLECT_PER_DAY (0.02))
+slack     = min(NEGLECT_MAX (0.20), neglect × NEGLECT_PER_DAY (0.01))
 ```
+The grace period grows steeply with manager skill so that the grade table in §15.14
+holds: a weak manager needs the owner within days, a Senior can be left for about ten
+weeks. (The earlier linear rule let every outlet hit the cap in three to four weeks
+whatever the grade.)
 Effects at that location while `slack > 0`:
 - all staff task durations × `(1 + slack)`
 - hygiene gained from cleaners × `(1 − slack)`
 - ingredient consumption per cook task: each recipe line has chance `slack` of using +1 unit (over-portioning)
-- absence chance `+ slack / 5`
 - skimming chance `+ slack` (below)
 
 A visit (§15.3) resets `neglect` to 0 from the next day. `slack` and its inputs are
@@ -784,13 +882,17 @@ Applied only at locations where the owner is **not** present at the relevant mom
   replace request before it breaks; otherwise the owner hears about it when it fails.
 
 **People**
-- Rota: every day, with probability `(100 − people)/300`, one rostered staff member is
-  wrongly left off (random role) — a self-inflicted short shift.
+- Days off (§7.7): each Sunday the manager may reassign days off. With people ≥ 60 they
+  place days off on the quietest weekdays, keep single-holder roles apart, and grant a
+  staff member's preferred day whenever the role stays covered. Below 60 they leave the
+  defaults and grant requests without checking coverage.
+- Rota mistakes: every day, with probability `(100 − people)/300`, one staff member who
+  should be working is wrongly left off (random role) — a self-inflicted short shift.
 - Absence cover: when someone is absent, with probability `people/100` the manager calls
   in an off-duty staff member of the same role (paid overtime, fatigue +6).
 - Fatigue care: people ≥ 60 gives a day off to anyone with fatigue > 75 if the role
   stays covered; below 60 never does (burnout and quitting follow).
-- Daily morale modifier for all staff at the outlet: `clamp((people − 50)/50, −1, +1)`.
+- Staff happiness: through the Boss factor of §7.3 only (no separate daily modifier).
 - Wage demands and resignations within authority: handled with success chance shifted
   by `(people − 50)/200`.
 
@@ -887,8 +989,60 @@ long-term deal in the game and a reason for the owner to visit.
 
 | Grade | Unvisited outlet in a sound location | Owner attention it needs |
 |---|---|---|
-| Trainee | Loses money within 2–4 weeks | Visit most days; expect to do the thinking |
-| Junior | Slides into loss within 4–8 weeks | Weekly visit; read the requests carefully |
-| Capable | Roughly break-even to small profit; occasional costly mistake | Visit every 1–2 weeks |
-| Senior | Reliably profitable for 8–12 weeks | Monthly visit; growth decisions only |
-| Veteran | Profitable until buzz and freshness fade (doc 11 Part A) | Growth decisions only |
+| Trainee | Loses money from the first weeks | Even weekly visits leave a small loss; visit more or coach hard |
+| Junior | Small profit for a month, then slides into loss | Weekly visit keeps it modestly profitable |
+| Capable | Profitable for the first month, then roughly break-even | Visit every 1–2 weeks |
+| Senior | Reliably profitable for about 12 weeks, fading after | Monthly visit; growth decisions only |
+| Veteran | Profitable for about half a year if the owner still markets, fading to break-even | Growth decisions only |
+
+Prototype measurements behind this table are in doc 06 §3a.
+
+### 15.15 The manager works the floor
+
+A restaurant of this size cannot carry a manager as a pure overhead: the prototype
+showed a manager's wage (1,300–2,600 a week) eating a third to two thirds of a Good-tier
+outlet's profit before a single mistake. So, as in real small restaurants, **the manager
+is a working member of the crew**.
+
+- The manager holds the **cashier** position (till and seating tasks) at skill = the
+  mean of their three sub-skills. A managed outlet therefore needs **no cashier**; an
+  outlet taken over with one can transfer, retrain (as server) or let them go.
+- When another role is uncovered (absence the manager could not call cover for, a day
+  off, a vacancy), the manager **fills in** like the owner on "cover": they take the
+  oldest waiting task of the uncovered role at skill 50, and the till falls back to
+  servers (×1.5 time, §6.2). One role at a time.
+- While filling in on the floor the manager still performs prep-time duties (rota,
+  orders, maintenance) — those happen before service.
+- Large outlets (20+ tables, doc 02 §15.9) may hire a cashier as well; the manager then
+  only fills gaps.
+- The owner pays one manager wage per outlet and saves one cashier wage, so the net cost
+  of a manager is roughly 600 (Trainee) to 1,900 (Veteran) a week.
+
+### 15.16 Mastery — what the best managers add
+
+Below Senior level a manager's skill only decides how many mistakes they make. From
+skill 65 upward each sub-skill also **adds** something the outlet would not otherwise
+have. This is what a Veteran's wage buys.
+
+```
+mastery(skill) = clamp((skill − MASTERY_FROM (65)) / (MASTERY_FULL (90) − 65), 0, 1)
+```
+
+| Sub-skill | Mastery effect | At full mastery |
+|---|---|---|
+| **Stock** — supplier negotiation | Unit prices from every supplier × `(1 − 0.08 × mastery)` at that outlet. The manager also finds deals: each Sunday with probability `mastery × 0.25`, one ingredient category is offered at a further −15% for the coming week (auto-used by par-level orders; shown to the owner as "Deal found"). | −8% ingredient cost, a weekly deal one week in four |
+| **Stock** — supplier relations | Relationship with each supplier used at that outlet `+mastery` per week on top of the normal gain; credit terms arrive sooner. | +1 a week |
+| **Upkeep** — preventive care | Equipment wear × `(1 − 0.30 × mastery)`. | Machines last ~40% longer |
+| **People** — staff development | Every 28 days, with probability `mastery`, every staff member at the outlet with skill < 80 gains +1 skill. | Crew improves about a point a month |
+| **People** — retention | `pQuit × (1 − 0.5 × mastery)`; a quitting staff member's `pNoNotice − 0.10 × mastery`. | Half the resignations |
+| **People** — deputy | After 84 days in post at people mastery ≥ 0.6, the manager names a **deputy**: one staff member with skill ≥ 55 becomes promotable to manager at Junior grade with `potential + 10` (instead of Trainee). One deputy per manager per year. | A home-grown manager for the next outlet |
+
+Mastery effects apply whether or not the owner is present (the deals and habits are the
+manager's) and stop the day that manager leaves; negotiated prices lapse after 14 days.
+Each effect emits an attribution event (`managerNegotiatedPrices`, `managerFoundDeal`,
+`managerDevelopedStaff`, `managerNamedDeputy`) so the weekly "Manager's decisions" line
+shows what the manager **earned**, not only what they cost.
+
+Owner-run outlets get none of this: the owner's advantage is being there, not expertise.
+The owner can obtain the negotiation effect only through supplier contracts
+(`inc_supplier_deal`) and relationship levels.

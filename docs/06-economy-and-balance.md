@@ -47,6 +47,12 @@ This is deliberately 3–4× real-world margins (see the realism stance in doc 0
 | **Net cash / week** | **~+4,900** | **~+2,850** | **~+2,270** | **~+1,100** | **~−1,900** |
 
 Groups/day = BASE_FOOTFALL × repFactor (other factors ≈ 1 on average).
+**Status of this table:** hand estimates, not yet corrected. A first prototype run
+(§3a) measured Good-tier revenue about 10% below the figure here at the original
+footfall, because the estimate ignored walk-outs and fading buzz. Average-location
+footfall was raised 50 → 55 to restore the intended ~4,000 a week; the other tiers have
+not been measured. "Operating profit" excludes all loan money (doc 02 §14.2).
+
 These are estimates; the first job of Phase 0 is to measure them (§6) and correct either
 the table or the constants.
 
@@ -59,6 +65,36 @@ the table or the constants.
 | Good | Slightly profitable; two hidden problems bite in weeks 2–4 | Death by several small problems |
 | Bad | Break-even at best; staff churn | Low reputation keeps demand low; must invest cash to climb |
 | Worst | Loses ~2,000/week before hidden problems; 70,000 cash looks like a lot and is not | Supplier debt (week 2–4) + dead equipment + reputation 1.5; must restructure fast |
+
+## 3a. First measurements (economy-loop prototype)
+
+A throwaway day-resolution prototype (`prototype/economy_loop/`) was run for 200 seeds ×
+26 weeks on a Good-tier outlet in an average location. It replaces the per-tick service
+with stand-in aggregates, so treat these as **first evidence, to be re-measured by the
+real balance bot (task 0.21)**. Full output: `prototype/economy_loop/results.txt`.
+History of changes: `docs/balance-log.md`.
+
+Average weekly **net profit** (after the manager's wage and loan interest), by who runs
+the outlet:
+
+| Run by | Owner never markets or visits | Owner markets, never visits | Owner markets + visits weekly |
+|---|---|---|---|
+| Owner, no manager | +2.1k | — | +3.8k |
+| Trainee | −2.2k | −1.4k | −0.2k |
+| Junior | −1.5k | −0.7k | +0.3k |
+| Capable | −0.8k | ≈ 0 | +0.9k |
+| Senior | −0.4k | +0.8k | +1.5k |
+| Veteran | ≈ 0 | +1.4k | +2.0k |
+
+Senior, markets-but-never-visits, over time: +2.0k (weeks 1–4), +1.2k (weeks 9–12).
+Veteran: +2.5k, +1.8k.
+
+What this confirms: grade and owner attention both matter; an experienced manager keeps
+a sound outlet out of loss for months; a cheap one loses money unless the owner is
+there; nobody survives an owner who does nothing.
+
+The test outlet carries the 70,000 starting loan (about 280 a week in interest at the
+start). A second outlet bought from company cash would show slightly better figures.
 
 ## 4. Balance targets (acceptance bands)
 
@@ -80,6 +116,9 @@ General targets (all tiers, competent bot):
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
 | Owner covering the absent role cuts that walk-out rate by | at least half |
 | Incidents per week | 3–6 |
+| Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 |
+| Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |
+| Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.1k to +0.3k) |
 | Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
 | Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
 | Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
@@ -93,11 +132,11 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 |
 | Manager sub-skills all 80: still profitable on average after 12 weeks unvisited | yes |
 | Manager sub-skills all 35: first 4-week period with negative total profit | within weeks 3–8 |
-| Weekly profit gap between the two (after their wage difference) | 1,500 – 4,000 in favour of the experienced manager |
+| Weekly profit gap between the two (after their wage difference) | 1,000 – 2,500 in favour of the experienced manager (the outlet's whole profit is ~4,000, so the earlier 1,500–4,000 band was impossible) |
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +400 to +1,200 per step; never negative |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +530, +600, +620, +500 with mastery, doc 02 §15.16) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 
