@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 2) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 3) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -58,6 +58,7 @@ manager and the crew includes a cashier.
 | Manager sub-skills, grade, profile, wage curve, potential, learning, coaching, rota errors, absence cover, ordering error, maintenance skipping, cheap repairs, early warnings, attribution | doc 02 §15.12, §15.14, doc 11 Part B |
 | Neglect: grace = skill² / 70 | doc 02 §15.5 |
 | Working manager: no cashier in a managed crew; manager fills one gap a day | doc 02 §15.15 |
+| Mastery above skill 65: supplier negotiation, preventive care, crew development, retention | doc 02 §15.16 (weekly deals, supplier relations and deputies are not modelled) |
 | Break-even line | doc 02 §15.13 |
 
 ### Stand-ins (`PROTO_*` and a few others in balance.json)
@@ -88,9 +89,9 @@ Average weekly net profit after the manager's wage:
 | Owner, no manager | +2.1k | — | +3.9k |
 | Trainee | −2.2k | −1.4k | −0.2k |
 | Junior | −1.5k | −0.6k | +0.3k |
-| Capable | −0.8k | ≈ 0 | +0.9k |
-| Senior | −0.5k | +0.6k | +1.3k |
-| Veteran | −0.3k | +1.0k | +1.5k |
+| Capable | −0.8k | ≈ 0 | +1.0k |
+| Senior | −0.4k | +0.8k | +1.6k |
+| Veteran | ≈ 0 | +1.5k | +2.1k |
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).
@@ -111,7 +112,7 @@ The first run found eight problems in the docs. How each was resolved:
 | 4 | 11% daily absence | Divisor 400 → 1,000 |
 | 5 | Default rota leaves roles empty Mon–Thu | Stand-in roles added to doc 02 §6.2 — **not modelled here** |
 | 6 | Unvisited outlets failed at every grade | Neglect grace = skill² / 70; absence adder removed |
-| 7 | Grade steps too flat | Now +560, +630, +360, +200 a week; Senior → Veteran still weak |
+| 7 | Grade steps too flat | Mastery effects for skilled managers (doc 02 §15.16): steps now +500, +730, +600, +500 a week |
 | 8 | Interest in operating profit | Operating vs net profit defined (doc 02 §14.2) |
 | 8 | Manager people skill counted twice in morale | Daily modifier removed |
 | 8 | Hygiene pinned at 100 | Proportional cleaning rule (doc 02 §12) |
@@ -121,6 +122,6 @@ The first run found eight problems in the docs. How each was resolved:
 ## Known limits
 
 - Everything about minute-by-minute service is a stand-in; the real balance bot must re-measure.
-- Scheduled days off and stand-in roles are not modelled (problem 5).
+- Per-person days off (doc 02 §7.7) and stand-in roles are not modelled (problem 5); wages are averaged over a six-day week.
 - One tier, one location class, one outlet.
 - The manager's till work is a flat penalty, not task durations.

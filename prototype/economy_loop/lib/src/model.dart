@@ -126,7 +126,7 @@ class Manager {
 
 class Staff {
   final String role;
-  final double skill;
+  double skill;
   final int wage;
   final double reliability;
   final double loyalty;

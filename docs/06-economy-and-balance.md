@@ -82,12 +82,12 @@ the outlet:
 | Owner, no manager | +2.1k | — | +3.9k |
 | Trainee | −2.2k | −1.4k | −0.2k |
 | Junior | −1.5k | −0.6k | +0.3k |
-| Capable | −0.8k | ≈ 0 | +0.9k |
-| Senior | −0.5k | +0.6k | +1.3k |
-| Veteran | −0.3k | +1.0k | +1.5k |
+| Capable | −0.8k | ≈ 0 | +1.0k |
+| Senior | −0.4k | +0.8k | +1.6k |
+| Veteran | ≈ 0 | +1.5k | +2.1k |
 
-Senior, markets-but-never-visits, over time: +1.9k (weeks 1–4), +1.1k (weeks 9–12),
-−0.2k (weeks 23–26). Veteran: +2.1k, +1.6k, +0.1k.
+Senior, markets-but-never-visits, over time: +2.0k (weeks 1–4), +1.3k (weeks 9–12),
++0.1k (weeks 23–26). Veteran: +2.6k, +2.0k, +0.7k.
 
 What this confirms: grade and owner attention both matter; an experienced manager keeps
 a sound outlet out of loss for months; a cheap one loses money unless the owner is
@@ -133,7 +133,7 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +560, +630, +360, +200; the Senior → Veteran step is the weak one) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +500, +730, +600, +500 with mastery, doc 02 §15.16) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 

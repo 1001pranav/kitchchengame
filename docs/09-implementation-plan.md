@@ -30,7 +30,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 0.15 | Equipment: wear, breakdown, maintenance, repair options, replace, sell; storage capacity effects | 02 §10, §9.1 | Breakdown frequency at condition 30 vs 80 matches formula over 10⁴ rolls |
 | 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loan applications (bank checks, counter-offer, rejection reasons, secured, private lender), credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 (not §14.7) | Scenario: 3 missed instalments → game over; valuation formula test |
 | 0.17 | Incident engine: condition evaluator, effect applier, rolls, cooldowns, forced, follow-ups, countdown/default, subject binding | 05 §2, 02 §11 | Every condition key and effect type has a unit test; unknown key → validator error |
-| 0.18 | `incidents.json`: all 40 MVP incidents + hidden problems wiring | 05 §3–4 | Generic test resolves every option of every incident on a standard state without error; hidden problems fire on their due days |
+| 0.18 | `incidents.json`: all 41 MVP incidents + hidden problems wiring | 05 §3–4 | Generic test resolves every option of every incident on a standard state without error; hidden problems fire on their due days |
 | 0.19 | `beginDay`/`endDay` orchestration in exact doc order; stages 1–2 and objectives; marketing; par-level auto-order | 02 §3, §13, §9.4; 01 §3.3; 04 §8 | Determinism test (28 days, save/load mid-service) passes |
 | 0.19b | Outlet lifecycle: buzz, menu freshness and `ReworkMenu`, equipment age and `maxCondition`, yearly cost creep, competition; competent bot buys ads and reworks menu | 11 Part A | Passive bot shows −10% to −20% demand after 8 weeks; competent bot holds within ±5% |
 | 0.20 | `explain` for demand, reputation change, day profit, satisfaction, dish margin | 08 §4 | Sum of factors equals the value the sim used, in a test for each target |
@@ -49,7 +49,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 1.4 | Prep board | 07 §4.3 | Attention items computed and deep-link; cover-role selection; Rest today; Open doors |
 | 1.5 | Service view (Flame) part 1: room, tables, figures, groups moving through states from events; clock and speed controls | 07 §4.4, 08 §6.2–6.3 | Runs a full service at 1×/2× at 60 fps on a mid device; pausing works |
 | 1.6 | Service view part 2: task markers, patience rings, owner queue and cover bar, kitchen strip, dish meter, popovers, auto-run | 07 §4.4 | Tapping a marker queues it; queue max 3; staff-taken markers dimmed |
-| 1.7 | Incident card overlay + result line + deferred countdown | 07 §4.9, 05 §1 | All 40 incidents render with correct chips; disabled options explain why |
+| 1.7 | Incident card overlay + result line + deferred countdown | 07 §4.9, 05 §1 | All 41 incidents render with correct chips; disabled options explain why |
 | 1.8 | Close report (3 pages) + weekly and monthly statements; ranked causes from day events | 07 §4.5 | "What went wrong" lists the true top causes in three scripted scenarios |
 | 1.9 | Staff tab: list, detail, actions, Rota, Hire | 07 §4.6 | Every staff command reachable; coverage warnings correct |
 | 1.10 | Stock tab: list, Order flow, Suppliers, par levels (stage 2) | 07 §4.7 | Minimum order enforced with message; "Order usual" works |

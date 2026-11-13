@@ -18,7 +18,7 @@ Start with 10, then 01. Implementation follows 09 task by task.
 | [02 Simulation spec](docs/02-simulation-spec.md) | Exact formulas and order of operations |
 | [03 Data schemas](docs/03-data-schemas.md) | Content files, save format, commands, events |
 | [04 Content catalogue](docs/04-content-catalogue.md) | Ingredients, dishes, equipment, suppliers, traits, objectives |
-| [05 Incident catalogue](docs/05-incident-catalogue.md) | Incident grammar and the 40 MVP incidents |
+| [05 Incident catalogue](docs/05-incident-catalogue.md) | Incident grammar and the 41 MVP incidents |
 | [06 Economy and balance](docs/06-economy-and-balance.md) | Targets, estimates, balance bot, tuning method |
 | [07 UI / UX spec](docs/07-ui-ux-spec.md) | Screens, wireframes, visual direction, asset list |
 | [08 Technical architecture](docs/08-technical-architecture.md) | Code structure, sim API, persistence, testing |

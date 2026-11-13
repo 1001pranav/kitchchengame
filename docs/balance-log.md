@@ -2,6 +2,25 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 3 — manager mastery
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).
+
+New rule, doc 02 §15.16: from sub-skill 65 upward (full at 90) a manager adds supplier
+negotiation (up to −8% ingredient cost), preventive care (up to −30% wear), staff
+development (+1 crew skill a month) and retention (up to half the resignations).
+
+| Owner markets + visits weekly | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|
+| Before (entry 2) | −0.2k | +0.3k | +0.9k | +1.3k | +1.5k |
+| After | −0.2k | +0.3k | +1.0k | +1.6k | +2.1k |
+
+Senior → Veteran step: about +200 → about +500 a week. Lower grades unchanged, as intended.
+Also tried: negotiation up to −10% starting at skill 70 — no better (Veteran +2.2k), kept −8% from 65.
+
+Not modelled in the prototype: weekly deals, supplier relationship gain, deputies, and
+the per-person day-off rules of doc 02 §7.7 (wages are still averaged over a six-day week).
+
 ## Entry 2 — prototype reworked to the corrected specs
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).

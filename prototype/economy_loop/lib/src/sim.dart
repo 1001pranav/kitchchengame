@@ -125,6 +125,13 @@ class OutletSim {
     return 1 + math.min(s, b.d('CAMPAIGN_BOOST_CAP'));
   }
 
+  /// 0 below MASTERY_FROM, rising linearly to 1 at MASTERY_FULL (doc 02 §15.16).
+  double mastery(double skill) => clampD(
+      (skill - b.d('MASTERY_FROM')) /
+          (b.d('MASTERY_FULL') - b.d('MASTERY_FROM')),
+      0,
+      1);
+
   double get slack {
     if (ownerPresentToday) return 0;
     final grace = b.d('NEGLECT_GRACE_SQ_DIV') > 0
@@ -448,12 +455,20 @@ class OutletSim {
     final revenue =
         (served * spend * pEff * (1 - menuLoss * lossShare)).round();
     final baseFood = served * spend * b.d('PROTO_FOOD_COST');
+    // Mastery (doc 02 §15.16): a manager strong on stock negotiates supplier prices.
+    final negotiation = ownerRun
+        ? 0.0
+        : mastery(manager.stock) * b.d('MASTERY_NEGOTIATION_MAX');
     final ingredients = (baseFood *
             (1 +
                 b.d('PROTO_BASE_WASTE') +
                 math.max(0, dev) +
-                sl * b.d('PROTO_OVERPORTION_COST')))
+                sl * b.d('PROTO_OVERPORTION_COST')) *
+            (1 - negotiation))
         .round();
+    if (negotiation > 0) {
+      _mgr('managerNegotiatedPrices', (baseFood * negotiation).round());
+    }
     if (dev > 0.02) {
       _mgr('managerOverOrdered', -(baseFood * dev).round());
     } else if (dev < -0.02) {
@@ -508,7 +523,11 @@ class OutletSim {
       e.ageDays++;
       if (e.broken) continue;
       final busy = served > 1.2 * fc ? 1.5 : 1.0;
-      e.condition = math.max(0, e.condition - _eqD(e.type, 'wear') * busy);
+      final care = ownerRun
+          ? 1.0
+          : 1 - mastery(manager.upkeep) * b.d('MASTERY_WEAR_MAX');
+      e.condition =
+          math.max(0, e.condition - _eqD(e.type, 'wear') * busy * care);
       var p = b.d('BREAK_BASE') + math.max(0, 60 - e.condition) / 400;
       final refail = e.refailUntil >= day;
       if (refail) p += b.d('CHEAP_REPAIR_REFAIL') / b.i('PROTO_REFAIL_WINDOW');
@@ -576,7 +595,12 @@ class OutletSim {
     }
     crewMorale = clampD(crewMorale, 0, 100);
     for (final s in crew.where((s) => !s.vacant)) {
-      final pQuit = math.max(0, 30 - crewMorale) / 300 * (1 - s.loyalty / 200);
+      final pQuit = math.max(0, 30 - crewMorale) /
+          300 *
+          (1 - s.loyalty / 200) *
+          (ownerRun
+              ? 1
+              : 1 - mastery(manager.people) * b.d('MASTERY_RETENTION_MAX'));
       if (rng.chance(pQuit)) {
         s.vacant = true;
         notes.add('Your ${s.role} quit.');
@@ -594,6 +618,16 @@ class OutletSim {
     buzz = math.max(0, buzz - b.d('BUZZ_DECAY'));
     freshness = math.max(0, freshness - b.d('FRESHNESS_DECAY'));
     campaigns.removeWhere((c) => c.until < day);
+
+    // Mastery: a manager strong on people develops the crew (doc 02 §15.16).
+    if (!ownerRun &&
+        (day + 1) % b.i('MASTERY_TRAIN_DAYS') == 0 &&
+        rng.chance(mastery(manager.people))) {
+      for (final c in crew
+          .where((c) => !c.vacant && c.skill < b.d('MASTERY_TRAIN_CAP'))) {
+        c.skill += 1;
+      }
+    }
 
     // Manager learns on the job (doc 02 §15.12).
     final inPost = day - manager.hiredDay;

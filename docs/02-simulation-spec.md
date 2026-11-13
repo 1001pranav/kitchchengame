@@ -265,7 +265,7 @@ reputation += (avg − reputation) × k × weight        clamp 0–5
 Base daily wage at skill 50: headChef 220, lineCook 140, prepCook 100, dishwasher 80,
 server 100, cashier 100, cleaner 80, manager 260.
 `expectedWage = round(base × (0.6 + 0.8 × skill/100))`. Staff are paid only for days
-worked; overtime (6th and 7th consecutive day) is paid ×1.5.
+worked; working on their own day off (§7.7) is overtime, paid ×1.5.
 
 ### 7.2 Fatigue (at close)
 
@@ -289,7 +289,7 @@ morale += one-off shocks from incident effects (type `morale`), then clamp 0–1
 |---|---|---|
 | 1 | **Pay** | `clamp((wage − expectedWage) / expectedWage × 100, −20, +10)` |
 | 2 | **Tiredness** | `−0.3 × (fatigue − 50)` if fatigue > 50 (down to −15); `+3` if fatigue < 30 |
-| 3 | **Rest** | `−5` if consecutiveDays ≥ 6; `−5` for 14 days after a refused leave request |
+| 3 | **Rest** | `+3` while their day off is their preferred weekday; `−5` in any week they worked their day off; `−5` for 14 days after a refused day-off or leave request |
 | 4 | **Short-staffed shifts** | `−10 ×` (share of their last 7 worked days that were rush days) |
 | 5 | **Team** | `+3` if a `mentor` works in their role; `−5` if a `toxic` colleague works at the outlet; `−5` for 14 days after a colleague was fired (`+5` instead if that colleague was toxic); `−4` while a role at the outlet has been vacant > 14 days |
 | 6 | **Boss** | Outlet run by a manager: `(manager people skill − 50) / 5` (−10…+10). `+3` in any week the owner was present at the outlet (doc 02 §15.3; always true in a single-restaurant game unless the owner rested all week) |
@@ -357,6 +357,35 @@ but the warning signs are identical.
 - Training: cost `10 × current skill` coins, staff unavailable 2 days, skill `+rng.int(5,10)`,
   cap 95, morale +5. Wage expectation rises accordingly (may trigger a wage demand).
 - Hidden stats reveal: skill exact + reliability after 7 worked days; honesty after 14.
+
+### 7.7 Days off
+
+The restaurant is **open seven days a week** — weekends are the busiest days and are
+never closed. There is no shared weekly holiday. Instead **every staff member has one
+day off a week, on their own weekday**, so the team rests in turns.
+
+- Each staff member has `dayOff` (0–6) and a hidden-until-asked `preferredDayOff`.
+  Preference is generated 25% Saturday, 25% Sunday, 50% uniform over Monday–Friday —
+  people want the days the restaurant can least spare.
+- Who decides the day:
+  - **The owner** sets it with `SetDayOff(staffId, weekday)`; it applies from the next
+    Monday so nobody loses or gains a day mid-week.
+  - **The manager** sets it at outlets the owner is not running (§15.12 People).
+  - **The staff member** can ask: incident `inc_day_off_request` ("Can I have Saturdays
+    instead?" or a one-off "Can I swap to Friday this week?"). Granting gives the Rest
+    bonus or a 14-day `+3`; refusing gives the 14-day `−5`.
+- Default assignment at takeover: days off spread over Monday–Thursday, two staff of the
+  same role never on the same day, single-holder roles on different days from each other.
+- On someone's day off their role is covered by a second holder of the role, a stand-in
+  role (§6.2), the working manager (§15.15) or the owner. The Days-off screen shows, per
+  weekday, which roles have no primary holder.
+- **Asking someone to work their day off:** `WorkDayOff(staffId)` for the coming day —
+  paid ×1.5, fatigue as a normal working day (no −30 rest), Rest factor `−5` that week.
+  They refuse if fatigue > 70 or happiness < 35. Nobody can be asked two weeks running.
+- Fatigue (§7.2) is unchanged: a day off gives `−30`. `consecutiveDays` only grows past 6
+  when a day off is worked.
+- The seven-day rota grid is gone: `rota` is derived as "everyone works except on their
+  `dayOff`", plus per-date overrides for swaps, worked days off and training.
 
 ## 8. Owner
 
@@ -586,7 +615,7 @@ with neither does not open that day.
 
 ### 15.2 Managers at prep
 For each location the owner is not at during prep, the manager applies its policies:
-rota = all available staff respecting max 6 consecutive days; par-level auto-order;
+days off assigned per §7.7 and §15.12; par-level auto-order;
 maintenance when condition < policy threshold. The player may still open any location's
 screens and issue commands remotely (rota, orders, prices) — only floor work and
 "in person" incident options need presence.
@@ -810,8 +839,12 @@ Applied only at locations where the owner is **not** present at the relevant mom
   replace request before it breaks; otherwise the owner hears about it when it fails.
 
 **People**
-- Rota: every day, with probability `(100 − people)/300`, one rostered staff member is
-  wrongly left off (random role) — a self-inflicted short shift.
+- Days off (§7.7): each Sunday the manager may reassign days off. With people ≥ 60 they
+  place days off on the quietest weekdays, keep single-holder roles apart, and grant a
+  staff member's preferred day whenever the role stays covered. Below 60 they leave the
+  defaults and grant requests without checking coverage.
+- Rota mistakes: every day, with probability `(100 − people)/300`, one staff member who
+  should be working is wrongly left off (random role) — a self-inflicted short shift.
 - Absence cover: when someone is absent, with probability `people/100` the manager calls
   in an off-duty staff member of the same role (paid overtime, fatigue +6).
 - Fatigue care: people ≥ 60 gives a day off to anyone with fatigue > 75 if the role
@@ -941,3 +974,32 @@ is a working member of the crew**.
   only fills gaps.
 - The owner pays one manager wage per outlet and saves one cashier wage, so the net cost
   of a manager is roughly 600 (Trainee) to 1,900 (Veteran) a week.
+
+### 15.16 Mastery — what the best managers add
+
+Below Senior level a manager's skill only decides how many mistakes they make. From
+skill 65 upward each sub-skill also **adds** something the outlet would not otherwise
+have. This is what a Veteran's wage buys.
+
+```
+mastery(skill) = clamp((skill − MASTERY_FROM (65)) / (MASTERY_FULL (90) − 65), 0, 1)
+```
+
+| Sub-skill | Mastery effect | At full mastery |
+|---|---|---|
+| **Stock** — supplier negotiation | Unit prices from every supplier × `(1 − 0.08 × mastery)` at that outlet. The manager also finds deals: each Sunday with probability `mastery × 0.25`, one ingredient category is offered at a further −15% for the coming week (auto-used by par-level orders; shown to the owner as "Deal found"). | −8% ingredient cost, a weekly deal one week in four |
+| **Stock** — supplier relations | Relationship with each supplier used at that outlet `+mastery` per week on top of the normal gain; credit terms arrive sooner. | +1 a week |
+| **Upkeep** — preventive care | Equipment wear × `(1 − 0.30 × mastery)`. | Machines last ~40% longer |
+| **People** — staff development | Every 28 days, with probability `mastery`, every staff member at the outlet with skill < 80 gains +1 skill. | Crew improves about a point a month |
+| **People** — retention | `pQuit × (1 − 0.5 × mastery)`; a quitting staff member's `pNoNotice − 0.10 × mastery`. | Half the resignations |
+| **People** — deputy | After 84 days in post at people mastery ≥ 0.6, the manager names a **deputy**: one staff member with skill ≥ 55 becomes promotable to manager at Junior grade with `potential + 10` (instead of Trainee). One deputy per manager per year. | A home-grown manager for the next outlet |
+
+Mastery effects apply whether or not the owner is present (the deals and habits are the
+manager's) and stop the day that manager leaves; negotiated prices lapse after 14 days.
+Each effect emits an attribution event (`managerNegotiatedPrices`, `managerFoundDeal`,
+`managerDevelopedStaff`, `managerNamedDeputy`) so the weekly "Manager's decisions" line
+shows what the manager **earned**, not only what they cost.
+
+Owner-run outlets get none of this: the owner's advantage is being there, not expertise.
+The owner can obtain the negotiation effect only through supplier contracts
+(`inc_supplier_deal`) and relationship levels.

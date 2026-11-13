@@ -1,7 +1,7 @@
 # 05 — Incident Catalogue
 
 Incidents are the game's main source of drama. This file defines the grammar used in
-`incidents.json` and lists the 40 MVP incidents. Engine rules (rolls, cooldowns,
+`incidents.json` and lists the 41 MVP incidents. Engine rules (rolls, cooldowns,
 countdowns) are in `02-simulation-spec.md` §11.
 
 ---
@@ -107,7 +107,7 @@ the roll succeeds; `else` may hold alternative effects.
 }
 ```
 
-## 3. Catalogue (MVP: 40 incidents)
+## 3. Catalogue (MVP: 41 incidents)
 
 Format per incident — **id** · timing · trigger · weight / cooldown days, then options
 `(letter) label — effects`. `*` marks the default option. "S" = the bound subject.
@@ -148,6 +148,11 @@ Percentages after an effect are chances. Amounts are coins.
     (d) Pay double to work — wages ×2 for festival days, morale +4.
 11. **inc_star_employee** · close · S: skill > 75 and morale > 75 · 0.1 / 28
     (a) Bonus — cash −weekWage×0.5, S loyalty +15, all morale +2. (b)* Say thanks — S morale +2.
+12b. **inc_day_off_request** · prep · S: any staff whose `dayOff` ≠ `preferredDayOff`, or a one-off swap · 0.25 / 10
+    "{staff} asks to have {weekday} off." (a) Agree — permanent: `dayOff` changes from next Monday,
+    Rest bonus applies; one-off: swap this week, mood +3 for 14 days. (b) Agree if they cover a
+    busy day in return — 60%: accepted (as a, plus they work one extra peak shift at normal pay);
+    else as (c). (c)* Refuse — mood −5 for 14 days; reveals their preferred day.
 12. **inc_toxic_complaint** · close · hasStaff trait toxic · 0.3 / 14
     (a) Fire S — S fired (others morale +5). (b) Talk to S — 30%: trait removed; else all morale −3.
     (c)* Do nothing — all morale −6; followUp inc_resignation for a random other staff (30%).

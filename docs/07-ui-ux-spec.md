@@ -128,8 +128,10 @@ List grouped by role: portrait, name, skill bar (or range if unknown), happiness
 (with an "unhappy" / "may leave" marker below 40 / 30),
 fatigue dot, wage, today's status. Detail sheet: all stats, traits, **happiness breakdown** (each factor with its score,
 worst first, and a one-tap remedy where one exists: Raise, Day off, Train), history lines,
-actions (Raise, Train, Day off, Warn, Promote, Fire). Sub-tabs: **Rota** (7-column grid,
-tap to toggle; per-day role coverage row at the bottom with warnings) and **Hire**
+actions (Raise, Train, Day off, Warn, Promote, Fire). Sub-tabs: **Days off** (one row per staff member with a weekday picker and a ♥ on
+their preferred day once known; "Ask to work" button on their day off; below, a
+seven-column coverage strip showing for each weekday which roles have no primary holder
+and who would stand in) and **Hire**
 (this week's applicants with asking wage).
 
 ### 4.7 Stock tab
@@ -232,7 +234,10 @@ without explaining it**.
 | walk-out | Walk-out | A party that left because they waited too long | You lose the sale and your rating drops |
 | patience | Patience | How long a party will wait before leaving | Slow service empties your tables |
 | 86 | Sold out / Off the menu | A dish you cannot or will not serve today | Customers who wanted it are disappointed |
-| rota | Schedule | Who works on which day | An empty role means you do that job yourself |
+| rota | Days off | Each person's weekly day off; the restaurant itself never closes | Put days off on quiet days and keep key roles apart |
+| stand-in | Stand-in | Someone doing another role's work on that person's day off | Slower and less skilled than the real thing |
+| negotiation | Negotiated prices | Lower supplier prices won by a skilled manager | Cuts your biggest cost; lost if that manager leaves |
+| deputy | Deputy | A staff member your manager has trained to run a branch | A ready-made manager for your next outlet |
 | cover a role | Fill in | You do the work of a missing staff member | It saves the shift but tires you out |
 | owner energy | Your energy | How tired you are | Exhausted owners make mistakes and lose a day |
 | morale | Happiness | How happy a staff member is at work, from 0 to 100 | Unhappy staff are slower, call in sick and may quit without warning |

@@ -217,8 +217,8 @@ or `trait_hot_headed` member.
 Staff stats: skill uniform in the tier's range; reliability and loyalty = tier morale
 ±20; honesty uniform 30–95 (hidden problems may override one person); wage =
 `expectedWage` × (1.1 for Excellent, 1.0 Best/Good, 0.9 Bad, 0.85 Worst); fatigue 20.
-Default rota: everyone works 6 days, day off assigned round-robin Mon–Thu so no role is
-empty on Fri–Sun where avoidable. On the day a single-holder role is off, its work falls
+Days off (doc 02 §7.7): the restaurant opens all seven days; each staff member has one
+day off a week, assigned at takeover across Mon–Thu so no role is empty on Fri–Sun. On the day a single-holder role is off, its work falls
 to a stand-in role (doc 02 §6.2) or to the owner / working manager.
 
 Starting stock: enough of every menu ingredient for 1.5 forecast days, with `daysLeft`

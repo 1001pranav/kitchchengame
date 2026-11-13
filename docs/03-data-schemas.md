@@ -157,7 +157,9 @@ tables: [{id: int, seats: int, state: "free"|"occupied"|"dirty"}]
 staff: Staff[]        equipment: Equipment[]
 stock: Batch[]        pendingOrders: Order[]
 menu: [{dishId, price: int, enabled: bool}]
-rota: {staffId: bool[7]}          (true = works that weekday)
+rotaOverrides: [{staffId, dayIndex: int, works: bool, reason: "swap"|"workedDayOff"|"training"}]
+                                  (base rota = everyone works except on their own `dayOff`, doc 02 §7.7)
+negotiatedUntilDayIndex?: int   weeklyDeal?: {category: string, untilDayIndex: int}
 campaigns: [{type, daysLeft: int, boost: double}]
 buzz: double   freshness: double   competition: double   lastDishRotationDayIndex: int
 format: string ("neighbourhood" in Phase 1)   badge: "none"|"bronze"|"silver"|"gold"
@@ -182,6 +184,8 @@ daysWorked: int   consecutiveDays: int   hiredDayIndex: int
 managerSkills?: {people: int, upkeep: int, stock: int}   (role = manager only; `skill` = their mean)
 managerSinceDayIndex?: int   managerProfile?: "allRounder"|"people"|"tightShip"|"numbers"
 managerPotential?: int   (grade is derived from the mean of managerSkills, never stored)
+dayOff: int (0–6)   preferredDayOff: int   preferenceKnown: bool   lastWorkedDayOffWeek: int
+isDeputy: bool
 moodModifiers: [{key: string, score: double, untilDayIndex: int}]
 lastGrowthDayIndex: int   lastRefusalDayIndex?: int   rushDaysLast7: int
 status: "active" | "absent" | "late" | "training" | "notice"
@@ -249,7 +253,8 @@ applies it or returns an error code. Commands are the **only** way state changes
 | NewGame | seed, difficulty, themeId | — |
 | BuyDueDiligence | offerIndex | market |
 | BuyRestaurant | offerIndex | market |
-| SetRota | locationId, staffId, weekday, works | prep, close |
+| SetDayOff | staffId, weekday | prep, close (applies from next Monday) |
+| WorkDayOff | staffId | prep, close (for the coming day; may be refused) |
 | PlaceOrder | locationId, supplierId, lines | prep, close |
 | CancelOrder | orderId | same phase as placed |
 | SetPrice | locationId, dishId, price | prep, close |

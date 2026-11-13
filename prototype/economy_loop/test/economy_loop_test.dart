@@ -132,4 +132,30 @@ void main() {
     }
     expect(s.hygiene, inInclusiveRange(55, 95));
   });
+
+  test('mastery starts at 65 and is full at 90 (doc 02 §15.16)', () {
+    final s = OutletSim(load(), 17, managerGrade: Grade.capable);
+    expect(s.mastery(65), 0);
+    expect(s.mastery(77.5), closeTo(0.5, 1e-9));
+    expect(s.mastery(95), 1);
+  });
+
+  test('a veteran pays less for ingredients than a junior on average', () {
+    double foodShare(Grade g) {
+      var ing = 0, rev = 0;
+      for (var seed = 1; seed <= 20; seed++) {
+        final s = OutletSim(load(), seed, managerGrade: g);
+        for (var d = 0; d < 28 && s.gameOver == null; d++) {
+          s.step();
+        }
+        for (final w in s.weeks) {
+          ing += w.ingredients;
+          rev += w.revenue;
+        }
+      }
+      return ing / rev;
+    }
+
+    expect(foodShare(Grade.veteran), lessThan(foodShare(Grade.junior) - 0.02));
+  });
 }

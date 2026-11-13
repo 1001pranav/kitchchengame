@@ -188,7 +188,7 @@ clear policies, and choose where your presence matters most today.
 - **Hidden information:** on hire, skill is shown as a range (±15) and reliability /
   honesty are hidden; they are revealed after 7 worked days (14 for honesty).
 - **Actions:** hire (from 3–5 weekly applicants), fire (severance = 7 days' wage;
-  morale hit to others), raise, train (cost + days; skill +5–10), set weekly rota,
+  morale hit to others), raise, train (cost + days; skill +5–10), set each person's weekly day off (the restaurant is open all seven days; there is no shared closing day),
   give day off, warn, promote (line cook → head chef, server → manager).
 - **Dynamics:** absence, lateness, quitting, wage demands, fatigue from too many
   consecutive days, morale from pay, workload, tips, and how the owner handles incidents.
@@ -353,6 +353,7 @@ just because someone is in charge. A manager has three skills — *people*, *upk
 | Equipment | Services on time, warns before a breakdown, repairs properly | Skips servicing, cheap fixes that fail again |
 | Stock | Orders close to what is needed, rejects bad deliveries | Over-orders (waste) or under-orders (sold-out dishes) |
 | Asking you | Raises problems early | Raises them late or not at all |
+| Extras (Senior and Veteran) | Negotiates supplier prices down and finds deals, makes machines last longer, develops the crew's skills, halves resignations, trains a deputy who can run your next outlet | None |
 | Cost | About twice a Trainee's wage | Cheap |
 
 Between those two extremes there are **five grades** — Trainee, Junior, Capable, Senior
