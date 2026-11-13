@@ -150,6 +150,30 @@ class Equipment {
 }
 
 /// One line in the "Manager's decisions" tally (doc 02 §15.12 attribution).
+/// One campaign and what it brought in (doc 02 §13.2).
+class Campaign {
+  final String name;
+  final int day;
+  final int cost;
+  final double mult;
+  final String outcome;
+  final double boost; // demand boost while it runs, after the outcome roll
+  final int until;
+  double buzzLeft; // share of today's buzz that this campaign put there
+  double extraGroups = 0;
+  double extraProfit = 0; // gross margin on the extra groups
+  double discountGiven =
+      0; // promoDay only: price cut handed to customers who would have come anyway
+  Campaign(this.name, this.day, this.cost, this.mult, this.outcome, this.boost,
+      this.until, this.buzzLeft);
+
+  double get spend => cost + discountGiven;
+  double get netGain => extraProfit - spend;
+
+  /// Coins of extra profit per coin spent; null when nothing was spent.
+  double? get returnOnSpend => spend <= 0 ? null : extraProfit / spend;
+}
+
 class ManagerEvent {
   final String key;
   final int coins; // negative = cost, positive = saving

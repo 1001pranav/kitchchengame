@@ -28,7 +28,7 @@ class OutletSim {
   late Manager manager;
   final List<Staff> crew = [];
   final List<Equipment> equipment = [];
-  final List<({double boost, int until})> campaigns = [];
+  final List<Campaign> campaigns = []; // currently boosting demand
   int promoDay = -1;
   int chefOffDay = -1;
   int closedUntil = -1;
@@ -43,7 +43,7 @@ class OutletSim {
   final Map<String, int> lastCampaignDay = {};
 
   /// Every campaign run: for the ad measures in the bot report.
-  final List<({int day, String name, double mult, int cost})> campaignLog = [];
+  final List<Campaign> campaignLog = [];
   double lastCampaignMult = 1;
 
   List<Manager> applicants = [];
@@ -244,12 +244,19 @@ class OutletSim {
     }
     lastCampaignDay[name] = day;
     lastCampaignMult = mult;
-    campaignLog.add((day: day, name: name, mult: mult, cost: cost));
-    campaigns.add((
-      boost: (c['boost'] as num).toDouble() * mult,
-      until: day + (c['days'] as num).toInt() - 1
-    ));
+    final buzzBefore = buzz;
     buzz = math.min(1, buzz + (c['buzz'] as num).toDouble() * mult);
+    final camp = Campaign(
+        name,
+        day,
+        cost,
+        mult,
+        label,
+        (c['boost'] as num).toDouble() * mult,
+        day + (c['days'] as num).toInt() - 1,
+        buzz - buzzBefore);
+    campaignLog.add(camp);
+    campaigns.add(camp);
     return 'Ran $name (cost $cost): $label. Buzz now ${(buzz * 100).round()}%.';
   }
 
@@ -510,6 +517,43 @@ class OutletSim {
           -(seated * b.d('PROTO_WALKOUT_PER_GAP') * spend * pEff).round());
     }
 
+    // Return on spend (doc 02 §13.2): what each campaign added today, through its
+    // demand boost while running and through the buzz it left behind.
+    if (demand > 0 && seated > 0) {
+      final active = campaigns.where((c) => c.until >= day).toList();
+      final boostSum = active.fold(0.0, (a, c) => a + c.boost);
+      final boostEff = math.min(boostSum, b.d('CAMPAIGN_BOOST_CAP'));
+      final tail = campaignLog.where((c) => c.buzzLeft > 0.0005).toList();
+      final buzzFromAds = tail.fold(0.0, (a, c) => a + c.buzzLeft);
+      final buzzFactorWithout = 0.90 + 0.20 * math.max(0, buzz - buzzFromAds);
+      final lift = (1 + boostEff) * buzzFactor / buzzFactorWithout;
+      final baseDemand = demand / lift;
+      final extraSeated = seated - math.min(baseDemand, cap.toDouble());
+      final weights = <Campaign, double>{};
+      for (final c in active) {
+        if (boostSum > 0) weights[c] = boostEff * c.boost / boostSum;
+      }
+      for (final c in tail) {
+        weights[c] = (weights[c] ?? 0) + 0.20 * c.buzzLeft / buzzFactorWithout;
+      }
+      final wSum = weights.values.fold(0.0, (a, w) => a + w);
+      final marginPerSeated = (revenue - ingredients) / seated;
+      if (wSum > 0 && extraSeated > 0) {
+        weights.forEach((c, w) {
+          c.extraGroups += extraSeated * w / wSum;
+          c.extraProfit += extraSeated * w / wSum * marginPerSeated;
+        });
+      }
+      if (promoDay == day) {
+        // The price cut also went to everyone who would have come anyway.
+        final baseSeated = seated - math.max(0, extraSeated);
+        final cut = 1 / b.d('PROMO_PRICE_MULT') - 1;
+        for (final c in active.where((c) => c.name == 'promoDay')) {
+          c.discountGiven += baseSeated * (revenue / seated) * cut;
+        }
+      }
+    }
+
     // Satisfaction -> stars (doc 02 §6.8 with PROTO_ food/wait inputs).
     final food =
         clampD(b.d('PROTO_FOOD_BASE') + 0.5 * crewKitchenSkill, 0, 100);
@@ -645,7 +689,13 @@ class OutletSim {
     }
 
     // Buzz and freshness decay (doc 11 §A.1, §A.2).
+    final buzzPrev = buzz;
     buzz = math.max(0, buzz - b.d('BUZZ_DECAY'));
+    if (buzzPrev > 0) {
+      for (final c in campaignLog) {
+        c.buzzLeft = math.max(0, c.buzzLeft * buzz / buzzPrev);
+      }
+    }
     freshness = math.max(0, freshness - b.d('FRESHNESS_DECAY'));
     campaigns.removeWhere((c) => c.until < day);
 

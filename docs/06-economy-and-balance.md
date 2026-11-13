@@ -118,6 +118,8 @@ General targets (all tiers, competent bot):
 | Incidents per week | 3–6 |
 | Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 |
 | Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |
+| Average return on spend of a campaign (extra profit ÷ spend) | ×1.5 to ×3; a weak response should roughly break even (measured ×4.3 local ad, ×5.9 flyers — **too high**, see balance-log entry 5) |
+| Marketing as a share of revenue, competent bot | 2–4% (measured 1.8%) |
 | Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.1k to +0.3k) |
 | Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
 | Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |

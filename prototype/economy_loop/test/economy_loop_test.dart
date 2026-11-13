@@ -191,4 +191,43 @@ void main() {
     }
     expect(second, greaterThan(first * 1.5));
   });
+
+  test(
+      'return on spend: a flop returns nothing, a working ad returns something (doc 02 §13.2)',
+      () {
+    var sawFlop = false, sawWorking = false;
+    for (var seed = 1; seed <= 60 && !(sawFlop && sawWorking); seed++) {
+      final s = OutletSim(load(), seed, ownerRun: true);
+      s.runCampaign('localAd');
+      for (var d = 0; d < 60; d++) {
+        s.step();
+      }
+      final c = s.campaignLog.single;
+      final served = s.weeks.fold(0, (a, w) => a + w.served);
+      expect(c.extraGroups,
+          lessThan(served)); // never credited with more than happened
+      expect(c.spend, 1500);
+      if (c.mult == 0) {
+        sawFlop = true;
+        expect(c.extraGroups, 0);
+        expect(c.returnOnSpend, 0);
+        expect(c.netGain, -1500);
+      } else {
+        sawWorking = true;
+        expect(c.extraGroups, greaterThan(0));
+        expect(c.returnOnSpend, greaterThan(0));
+      }
+    }
+    expect(sawFlop && sawWorking, isTrue);
+  });
+
+  test('a promotion day counts the discount given to regulars as spend', () {
+    final s = OutletSim(load(), 4, ownerRun: true);
+    s.runCampaign('promoDay');
+    s.step();
+    final c = s.campaignLog.single;
+    expect(c.cost, 0);
+    expect(c.discountGiven, greaterThan(0));
+    expect(c.spend, c.discountGiven);
+  });
 }

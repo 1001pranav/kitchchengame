@@ -75,6 +75,18 @@ Type "help" for commands, or just press Enter to play the next day.
         stdout.writeln(s.runCampaign('localAd'));
       case 'promo':
         stdout.writeln(s.runCampaign('promoDay'));
+      case 'ads':
+        if (s.campaignLog.isEmpty) stdout.writeln('No campaigns yet.');
+        for (final c in s.campaignLog) {
+          final r = c.returnOnSpend;
+          stdout.writeln(
+              '  day ${c.day + 1} ${c.name.padRight(9)} ${c.outcome.padRight(13)}'
+              ' spent ${money(c.spend.round())}'
+              ' · +${c.extraGroups.toStringAsFixed(0)} groups'
+              ' · extra profit ${money(c.extraProfit.round())}'
+              ' · return ${r == null ? '-' : 'x${r.toStringAsFixed(2)}'}'
+              '${c.buzzLeft > 0.0005 || c.until >= s.day ? ' (still working)' : ''}');
+        }
       case 'rework':
         stdout.writeln(s.reworkMenu());
       case 'visit':
@@ -110,6 +122,7 @@ Type "help" for commands, or just press Enter to play the next day.
   status             where things stand        report    last weekly report ("report all")
   price <60-180>     menu price, % of base     visit     be at the outlet today (max ${b.i('PROTO_OWNER_VISITS_PER_WEEK')}/week)
   flyers (400)       +8% for 3 days, buzz+10   ad (1,500)  +15% for 7 days, buzz+25
+  ads                what each campaign cost and brought back
   promo (prices −25% today) +50% today, buzz+15
   rework (800)       menu freshness to 100%, buzz+10; head chef off the line today
   equipment          condition of each unit    replace <type>   buy new (full price)

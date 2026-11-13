@@ -272,7 +272,9 @@ big — like throwing stones into a lake full of fish. On average it pays the sa
 steady ad would, but no single ad is safe. The odds improve when the ad reaches the kind
 of customers that location actually has, when the menu is fresh and the rating good, and
 they worsen if the same ad is repeated too soon. The game says the next morning how it
-went and why.
+went and why, and keeps a history showing what every campaign cost, how many extra
+customers it brought and its **return** — extra profit per coin spent — so the player
+learns which advertising works at each outlet.
 
 ### 6.8b A good restaurant does not stay good by itself
 

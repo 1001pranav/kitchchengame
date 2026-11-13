@@ -160,6 +160,14 @@ List / Quick sale, incoming offers with expiry.
 Stage 2 adds *Marketing* here: each campaign card shows cost, expected effect, audience
 fit in words (poor / fair / good) and any active modifier before buying; the result card
 the next morning shows the outcome with its reason, and past campaigns keep their outcome badge.
+*Campaign history* (below the campaign cards), newest first, one row each:
+`Local ad · 3 weeks ago · Worked well · spent 1,500 · +212 parties · brought back 7,400 · ×4.9`.
+The return is green at ×1 or more, red below, with "so far" while the campaign is still
+working. Tapping a row shows the split between customers during the campaign and
+customers from the buzz it left, and for a promotion day the discount given to regulars.
+Each campaign card also carries that channel's record at this outlet once two have
+settled: "Local ads here: ×3.8 on average over 5, 1 flopped". Nothing is shown before
+there is a record — the game does not reveal the odds in advance.
 
 ### 4.9 Incident card (overlay)
 
@@ -273,6 +281,7 @@ without explaining it**.
 | potential | Potential | How good a manager can become with experience and coaching | A cheap manager with high potential is worth investing in |
 | manager skills | People / Upkeep / Stock | How well a manager handles staff, equipment and ordering | Weak skills show up as waste, breakdowns and resignations |
 | campaign outcome | How the ad went | Whether a campaign flopped, did as expected or hit big | Ads are a gamble; the right audience and a fresh menu improve the odds |
+| return on spend | Return | Extra profit a campaign brought back for each coin spent on it | Below ×1 the ad lost money; compare channels to see what works here |
 | buzz | Buzz | How much people are talking about your restaurant | It fades unless you advertise or do something new |
 | freshness | Menu freshness | How new your menu feels to regulars | A menu that never changes slowly loses customers |
 | competition | Rivals | Other restaurants competing for your customers | Success attracts them; staying the same lets them win |
