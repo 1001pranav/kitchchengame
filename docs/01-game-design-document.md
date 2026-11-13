@@ -236,7 +236,14 @@ clear policies, and choose where your presence matters most today.
 - Costs: ingredients, wages (weekly), rent (weekly), utilities (monthly), maintenance
   and repairs, marketing, loan instalments (weekly), tax (monthly, 10% of positive
   monthly profit), licences.
-- **Loans:** up to 3 at a time. Credit limit depends on valuation and payment history.
+- **Loans:** up to 3 at a time. The player **applies**; the bank approves, makes a
+  smaller counter-offer, or **rejects with a stated reason** (too many loans, a recent
+  missed payment, low trust, repayments too large for current profit, over the limit).
+  A loan can be secured on an outlet for a lower rate. A private lender always says yes
+  at triple interest.
+- **Selling an outlet** (Stage 3+): list it and wait for offers, or quick-sell at a 30%
+  discount. Price depends on its equipment, recent profit, rating and badge; a loan
+  secured on it is repaid from the proceeds first.
 - **Valuation** drives Stage 5 and the end score.
 
 ### 6.7 Hygiene and compliance

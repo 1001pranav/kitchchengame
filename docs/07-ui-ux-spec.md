@@ -146,7 +146,12 @@ percent and one suggested action.
 yesterday, on/off switch; warning if its station is down) and *Equipment* (condition
 bars, status, Maintain / Repair / Replace / Sell; Buy new).
 **Money:** cash chart (last 28 days), this week so far (P&L lines), upcoming bills
-(wages, rent, loan, utilities with dates), loans (take / repay), valuation, credit score.
+(wages, rent, loan, utilities with dates), loans, valuation, credit score.
+*Loan application:* amount slider, term, optional "secure on outlet", live preview of the
+weekly payment and a checklist of the bank's five checks with pass/fail **before**
+applying; result screen states approved / bank's offer / rejected with the reason and
+"what would change the answer". *Sell outlet* (Stage 3+): estimate with its breakdown,
+List / Quick sale, incoming offers with expiry.
 Stage 2 adds *Marketing* here.
 
 ### 4.9 Incident card (overlay)
@@ -254,6 +259,11 @@ without explaining it**.
 | equipment age | Age | How old a machine is | Old machines break more even when serviced |
 | badge | Badge | Proof that an outlet has paid for itself and runs without you | Gold badges unlock a bonus for the whole chain |
 | format | Type of outlet | The kind of place it is: office, mall, tourist spot… | Each type has its own challenge and adds something new |
+| secured loan | Loan against an outlet | A cheaper loan the bank can recover by taking the outlet's sale money | If you sell that outlet the loan is paid off first |
+| affordability | Can you afford it | The bank compares your weekly repayments with your weekly profit | Low profit means the bank says no, however much you need it |
+| counter-offer | Bank's offer | A smaller loan than you asked for | Take it, or improve your numbers and ask again |
+| private lender | Private lender | Someone who lends without questions at very high interest | A last resort that can sink you |
+| sale estimate | What it would sell for | The likely price for an outlet today | It falls when profit and rating fall |
 | policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
 | neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
 | skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |

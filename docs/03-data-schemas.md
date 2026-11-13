@@ -140,7 +140,9 @@ history: History
 ```
 cash: int
 loans: [{id, principal0: int, outstanding: int, weeklyRate: double, termWeeks: int,
-         weeksPaid: int, missedInRow: int}]
+         weeksPaid: int, missedInRow: int,
+         securedLocationId?: string, lender: "bank"|"private"}]
+bankRefusesUntilDayIndex: int
 creditScore: int      negativeDays: int     investorShare: double (0 or 0.2)
 supplierRelations: {supplierId: int}
 payables: [{supplierId, amount: int, dueDayIndex: int}]
@@ -163,6 +165,7 @@ policies?: Policies   managerId?: string
 lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
 ledger: {invested: int, returned: int, weekContribution: int, contributions: int[] (last 52 weeks)}
 lastCoachingDayIndex: int   managerBonusPct: double
+listing?: {listedDayIndex: int, offersDueDayIndex: int, offers: [{id: int, amount: int, expiresDayIndex: int}]}
 utilitiesAccrued: int
 hiddenProblems: [{incidentId, revealed: bool, dueDayIndex: int}]
 today: DayStats       service?: ServiceState      (service present only during phase "service")
@@ -251,7 +254,8 @@ applies it or returns an error code. Commands are the **only** way state changes
 | Maintain | equipmentId | prep, close |
 | BuyEquipment | locationId, type, secondHand | prep, close |
 | SellEquipment | equipmentId | prep, close |
-| TakeLoan | amount, termWeeks | prep, close |
+| ApplyLoan | amount, termWeeks, securedLocationId?, lender | prep, close — result is approved / counterOffer(amount) / rejected(reason) |
+| AcceptCounterOffer | — | same phase as the application |
 | RepayLoan | loanId, amount | prep, close |
 | StartCampaign | locationId, type | prep, close (stage ≥ 2) |
 | ReworkMenu | locationId | prep, close |
@@ -264,6 +268,7 @@ applies it or returns an error code. Commands are the **only** way state changes
 | EndDay | — | close |
 | (Phase 2) OwnerTravel | toLocationId | prep, service |
 | (Phase 2) SetPolicies, AppointManager, BuyLocation, BuildLocation, CloseLocation, Audit, TransferStaff, Promote, Renovate, SetManagerBonus | | prep, close |
+| (Phase 2) ListOutlet, UnlistOutlet, AcceptSaleOffer(offerId), QuickSale | locationId | prep, close |
 | (Phase 2) AnswerRequest | requestId, answer: approve/deny/cheaper | prep, close |
 
 `GameState.requests: [{id, locationId, kind, subjectId?, cost: int, cheaperCost?: int, reasonKey, raisedDayIndex}]`

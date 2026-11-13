@@ -28,7 +28,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 0.13 | Staff: wages, fatigue, morale, absence, lateness, quitting with notice, applicants, hire/fire/raise/train, stat reveal, traits | 02 §7, 04 §5 | Each formula unit-tested; each trait modifier has a test |
 | 0.14 | Owner: queue, cover roles, walking, energy, mistakes, rest day, forced rest | 02 §8 | Scenario: server absent + owner covers Server → walk-outs at least halve vs not covering (fixed seed set) |
 | 0.15 | Equipment: wear, breakdown, maintenance, repair options, replace, sell; storage capacity effects | 02 §10, §9.1 | Breakdown frequency at condition 30 vs 80 matches formula over 10⁴ rolls |
-| 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loans, credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 | Scenario: 3 missed instalments → game over; valuation formula test |
+| 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loan applications (bank checks, counter-offer, rejection reasons, secured, private lender), credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 (not §14.7) | Scenario: 3 missed instalments → game over; valuation formula test |
 | 0.17 | Incident engine: condition evaluator, effect applier, rolls, cooldowns, forced, follow-ups, countdown/default, subject binding | 05 §2, 02 §11 | Every condition key and effect type has a unit test; unknown key → validator error |
 | 0.18 | `incidents.json`: all 40 MVP incidents + hidden problems wiring | 05 §3–4 | Generic test resolves every option of every incident on a standard state without error; hidden problems fire on their due days |
 | 0.19 | `beginDay`/`endDay` orchestration in exact doc order; stages 1–2 and objectives; marketing; par-level auto-order | 02 §3, §13, §9.4; 01 §3.3; 04 §8 | Determinism test (28 days, save/load mid-service) passes |
@@ -80,6 +80,7 @@ outlet (takeover / new build, reserve check), manager authority and requests, ow
 coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
 2.3d Manager sub-skills and behaviours, attribution events, break-even (doc 02 §15.12–15.13); bot run comparing
 skill-80 and skill-35 managers against doc 06 manager targets ·
+2.3e Selling an outlet: estimate, listing and offers, quick sale, secured-loan settlement (doc 02 §14.7) ·
 2.4 Company tab and per-location reports that name causes · 2.4b Owner-only growth actions, manager suggestions, badges and outlet history (doc 11 B, D) ·
 2.4c Format 2 High street, then format 3 Office district with takeaway/delivery — **playtest gate** before formats 4–8 (doc 11 E) ·
 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,

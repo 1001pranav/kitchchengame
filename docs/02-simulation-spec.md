@@ -438,13 +438,70 @@ creditLimit = max(0, valuation × 0.4 × creditScore/100 − totalOutstanding)
 valuation   = cash + Σ equipment resale + 40 × avgWeeklyOperatingProfit(last 8 weeks, floor 0)
             + 20,000 × Σ location reputation − totalOutstanding
 ```
-New loans: any amount ≤ creditLimit, term 26/52/104 weeks, rate
+New loans: applied for per §14.6, term 26/52/104 weeks, base rate
 `0.004 × difficulty.interest × (1.6 − creditScore/100)`.
 
 ### 14.5 Bankruptcy
 `negativeDays` counts consecutive closes with cash < 0. At 1: lifeline offer incident
 (forced). At 3: game over. Also game over when `missedPayments` reaches 3 in a row
 (reset to 0 by an on-time payment).
+
+### 14.6 Applying for a loan (bank decision)
+
+`ApplyLoan(amount, termWeeks, securedLocationId?)`. The decision is **deterministic**
+(no dice) so the player can learn what a bank looks at. Checks run in this order; the
+first failure is the answer, returned with its reason key:
+
+| # | Check | Result on failure |
+|---|---|---|
+| 1 | Fewer than 3 open loans | Rejected: `tooManyLoans` |
+| 2 | No missed instalment in the last 4 weeks | Rejected: `recentMissedPayment` |
+| 3 | `creditScore ≥ 30` | Rejected: `lowTrust` |
+| 4 | Affordability: `(current weekly instalments + new first instalment) ≤ AFFORD_RATIO × avgWeeklyOperatingProfit(last 8 weeks)`; AFFORD_RATIO = 0.5 unsecured, 0.7 secured | Rejected: `cannotAfford` (the UI shows the largest amount that would pass) |
+| 5 | `amount ≤ creditLimit` (§14.4); if secured also `amount ≤ 0.6 × saleEstimate(location)` (§14.7) | **Counter-offer** at the highest passing amount if that is ≥ 1,000, else rejected: `overLimit` |
+
+- A **secured** loan is tied to one outlet: rate × 0.8; that outlet cannot be closed or
+  sold without the loan being settled from the proceeds (§14.7). One secured loan per outlet.
+  The starting takeover loan is secured on the first restaurant.
+- Approved: cash is credited immediately; first instalment the following Sunday.
+- After a rejection the bank will not consider another application for 7 days.
+- With fewer than 8 weeks of history, the average uses the weeks available; with none
+  (game start) check 4 is skipped for the starting loan only.
+- **Private lender** (always available, also used by the emergency-loan lifeline): up to
+  20,000, no checks, rate × 3, term 26 weeks, one at a time; a missed instalment costs
+  10% penalty instead of 5% and −25 credit score.
+- Early repayment (`RepayLoan`) is always allowed, no fee; fully repaying a loan gives credit score +3.
+
+### 14.7 Selling an outlet (Phase 2)
+
+```
+saleEstimate = Σ equipment resale
+             + SALE_PROFIT_MULT (20) × avgWeeklyOperatingProfit(outlet, last 8 weeks, floor 0)
+             + 10,000 × outlet reputation
+saleEstimate ×= 1 + badgeBonus      (bronze 0.05, silver 0.10, gold 0.20)
+saleEstimate ×= 0.6 if the outlet is in crisis (distress sale)
+```
+Two ways to sell:
+- **List it:** `ListOutlet(locationId)`. After 7–21 days (seeded) 1–3 offers arrive, each
+  `saleEstimate × uniform(0.80, 1.10)` evaluated on the day it arrives (so a listed
+  outlet that deteriorates gets lower offers). Offers expire after 7 days. The outlet
+  keeps trading meanwhile; staff morale −1 per day while listed (they know).
+- **Quick sale:** `QuickSale(locationId)` — immediate, at `0.70 × saleEstimate`. This is
+  the "sell a location" lifeline.
+
+On completion, in order: proceeds credited; the outlet's secured loan (if any) is repaid
+from proceeds automatically — if proceeds are smaller, the remainder stays as an
+unsecured loan at rate × 1.25; pending supplier payables of that outlet are paid;
+staff transfer with the outlet (no severance; the player may transfer out up to 2 staff
+before completion); the outlet is removed; chain perks already earned are kept.
+
+Restrictions: the company's only outlet cannot be sold; an outlet under a lease lock-in
+(`inc_landlord_rent` option c) cannot be sold or listed; an outlet cannot be listed
+while closed by an inspection.
+
+Selling versus closing (§15.7): closing is always possible, pays nothing for the
+business and costs severance and a lease-break fee; selling pays for the business but
+needs a buyer or a 30% discount.
 
 ## 15. Multiple locations (Phase 2)
 
