@@ -78,19 +78,31 @@
       "cost": 400,
       "boost": 0.08,
       "days": 3,
-      "buzz": 0.1
+      "buzz": 0.1,
+      "segments": [
+        "family",
+        "student"
+      ]
     },
     "localAd": {
       "cost": 1500,
       "boost": 0.15,
       "days": 7,
-      "buzz": 0.25
+      "buzz": 0.25,
+      "segments": [
+        "office",
+        "family"
+      ]
     },
     "promoDay": {
       "cost": 0,
       "boost": 0.5,
       "days": 1,
-      "buzz": 0.15
+      "buzz": 0.15,
+      "segments": [
+        "student",
+        "family"
+      ]
     }
   },
   "PROMO_PRICE_MULT": 0.75,
@@ -214,5 +226,38 @@
   "MASTERY_WEAR_MAX": 0,
   "MASTERY_RETENTION_MAX": 0,
   "MASTERY_TRAIN_DAYS": 28,
-  "MASTERY_TRAIN_CAP": 0
+  "MASTERY_TRAIN_CAP": 0,
+  "CAMPAIGN_VARIANCE": 0,
+  "CAMPAIGN_REPEAT_DAYS": 21,
+  "CAMPAIGN_FIT_WEIGHT": 0.2,
+  "CAMPAIGN_FRESH_BONUS": 0.08,
+  "CAMPAIGN_REPEAT_PENALTY": 0.15,
+  "CAMPAIGN_REP_WEIGHT": 0.05,
+  "CAMPAIGN_BANDS": [
+    {
+      "below": 0.15,
+      "mult": 0,
+      "label": "flopped"
+    },
+    {
+      "below": 0.4,
+      "mult": 0.5,
+      "label": "weak response"
+    },
+    {
+      "below": 0.75,
+      "mult": 1,
+      "label": "as expected"
+    },
+    {
+      "below": 0.93,
+      "mult": 1.5,
+      "label": "worked well"
+    },
+    {
+      "below": 99,
+      "mult": 3.5,
+      "label": "BIG HIT"
+    }
+  ]
 }

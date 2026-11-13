@@ -508,7 +508,50 @@ reputation −0.5.
 | promoDay | 0 (all prices −25% that day) | +0.50 | 1 day |
 | blogger | 3,000 | visit within 3 days; if that group's stars ≥ 4: reputation +0.3, else −0.2 | — |
 
-Boosts add up, capped at +0.6 total.
+Boosts add up, capped at +0.6 total. The boost and buzz figures are what a campaign
+does **when it goes as expected**; what it actually does is rolled per §13.1.
+
+### 13.1 Campaign outcomes
+
+Advertising is uncertain: the same money sometimes brings a crowd and sometimes nothing.
+Each time a flyers, localAd or promoDay campaign starts, one outcome is rolled and
+multiplies both its demand boost and its buzz gain (doc 11 §A.1). The cost is paid in
+full whatever happens. (For promoDay the price cut always applies; only the turnout varies.
+The blogger has its own all-or-nothing rule above.)
+
+```
+luck = rng.float()
+     + CAMPAIGN_FIT_WEIGHT (0.20) × (fit − 0.5)
+     + CAMPAIGN_FRESH_BONUS (0.08) if menu freshness ≥ 0.8
+     − CAMPAIGN_REPEAT_PENALTY (0.15) if the same campaign type ran in the last 21 days
+     + CAMPAIGN_REP_WEIGHT (0.05) × (reputation − 3.5)
+```
+
+| luck | Outcome | Multiplier | Chance with no modifiers |
+|---|---|---|---|
+| < 0.15 | Flopped | × 0 | 15% |
+| < 0.40 | Weak response | × 0.5 | 25% |
+| < 0.75 | As expected | × 1 | 35% |
+| < 0.93 | Worked well | × 1.5 | 18% |
+| ≥ 0.93 | Big hit | × 3.5 | 7% |
+
+The average multiplier with no modifiers is 0.99, so advertising is worth the same
+**on average** as before — but any single campaign is a gamble.
+
+`fit` = the share of the location's customers (segment mix, §4) that the campaign type
+reaches: flyers → family + student; localAd → office + family; promoDay → student +
+family. A campaign aimed at people who are not there is more likely to flop.
+
+What the player can do about it, and is told:
+- **Before buying**, the campaign screen shows the fit as words (poor / fair / good) and
+  any active modifier ("You ran flyers 9 days ago — people have seen them").
+- **The outcome is revealed the next morning** with its reason line, e.g. "The local ad
+  flopped. Few office workers around here." A flop is never silent.
+- A different campaign type has no repeat penalty, so after a flop the sensible move is
+  to change channel, not to pay for the same one again.
+- A fresh menu gives ads something to say; a better rating makes people more willing to try.
+
+The outcome is stored on the campaign (`outcome`, `mult`) and exposed through `explain`.
 
 ## 14. Finance
 

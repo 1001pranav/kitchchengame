@@ -40,6 +40,8 @@ class OutletSim {
   int lossWeeks = 0;
   final List<bool> recentGapDays = [];
   int lastSuggestionDay = -999;
+  final Map<String, int> lastCampaignDay = {};
+  double lastCampaignMult = 1;
 
   List<Manager> applicants = [];
   final List<String> requests = []; // things only the owner can decide
@@ -215,12 +217,36 @@ class OutletSim {
     cash -= cost;
     week.marketing += cost;
     if (name == 'promoDay') promoDay = day;
+    // Outcome roll (doc 02 §13.1): an ad can flop or hit big.
+    var mult = 1.0;
+    var label = 'as expected';
+    if (b.d('CAMPAIGN_VARIANCE') > 0) {
+      final mix = b.map('SEGMENT_MIX');
+      final fit = (c['segments'] as List)
+          .fold(0.0, (a, k) => a + (mix[k] as num).toDouble());
+      final repeated =
+          day - (lastCampaignDay[name] ?? -999) < b.i('CAMPAIGN_REPEAT_DAYS');
+      final luck = rng.nextFloat() +
+          b.d('CAMPAIGN_FIT_WEIGHT') * (fit - 0.5) +
+          (freshness >= 0.8 ? b.d('CAMPAIGN_FRESH_BONUS') : 0) -
+          (repeated ? b.d('CAMPAIGN_REPEAT_PENALTY') : 0) +
+          b.d('CAMPAIGN_REP_WEIGHT') * (reputation - 3.5);
+      final bands = b.list('CAMPAIGN_BANDS');
+      for (final band in bands) {
+        final m = (band as Map).cast<String, dynamic>();
+        mult = (m['mult'] as num).toDouble();
+        label = m['label'] as String;
+        if (luck < (m['below'] as num).toDouble()) break;
+      }
+    }
+    lastCampaignDay[name] = day;
+    lastCampaignMult = mult;
     campaigns.add((
-      boost: (c['boost'] as num).toDouble(),
+      boost: (c['boost'] as num).toDouble() * mult,
       until: day + (c['days'] as num).toInt() - 1
     ));
-    buzz = math.min(1, buzz + (c['buzz'] as num).toDouble());
-    return 'Started $name (cost $cost). Buzz now ${(buzz * 100).round()}%.';
+    buzz = math.min(1, buzz + (c['buzz'] as num).toDouble() * mult);
+    return 'Ran $name (cost $cost): $label. Buzz now ${(buzz * 100).round()}%.';
   }
 
   String reworkMenu() {

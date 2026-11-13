@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -48,7 +50,8 @@ void main() {
     }
     expect(s.buzz, 0);
     s.runCampaign('localAd');
-    expect(s.buzz, closeTo(0.25, 1e-9));
+    // The outcome roll scales the gain: 0 (flop) to 3.5× (big hit), capped at 1.
+    expect(s.buzz, closeTo(math.min(1, 0.25 * s.lastCampaignMult), 1e-9));
   });
 
   test('loan instalment matches doc 06 §3 Good tier (~1,630)', () {
@@ -157,5 +160,35 @@ void main() {
     }
 
     expect(foodShare(Grade.veteran), lessThan(foodShare(Grade.junior) - 0.02));
+  });
+
+  test('ad outcomes vary but average out near the listed effect (doc 02 §13.1)',
+      () {
+    final counts = <double, int>{};
+    var sum = 0.0;
+    const n = 4000;
+    for (var seed = 1; seed <= n; seed++) {
+      final s = OutletSim(load(), seed, ownerRun: true);
+      s.runCampaign('localAd');
+      counts[s.lastCampaignMult] = (counts[s.lastCampaignMult] ?? 0) + 1;
+      sum += s.lastCampaignMult;
+    }
+    expect(counts.keys.toSet(), {0.0, 0.5, 1.0, 1.5, 3.5});
+    expect(counts[0.0]! / n,
+        inInclusiveRange(0.08, 0.18)); // flops are real but not common
+    expect(counts[3.5]! / n, inInclusiveRange(0.05, 0.14)); // so are big hits
+    expect(sum / n, inInclusiveRange(0.95, 1.2));
+  });
+
+  test('repeating the same ad too soon makes a flop more likely', () {
+    var first = 0, second = 0;
+    for (var seed = 1; seed <= 3000; seed++) {
+      final s = OutletSim(load(), seed, ownerRun: true);
+      s.runCampaign('flyers');
+      if (s.lastCampaignMult == 0) first++;
+      s.runCampaign('flyers');
+      if (s.lastCampaignMult == 0) second++;
+    }
+    expect(second, greaterThan(first * 1.5));
   });
 }

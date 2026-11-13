@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 3) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 4) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -53,7 +53,7 @@ manager and the crew includes a cashier.
 | Crew wages, reliability, absences, happiness target, quitting | doc 02 §7, doc 04 §6 |
 | Equipment wear, breakdown, maintenance, repairs, ageing | doc 02 §10, doc 04 §3, doc 11 §A.3 |
 | Hygiene (proportional cleaning) and inspections | doc 02 §12 |
-| Campaigns, buzz, menu rework | doc 02 §13, doc 11 §A.1–A.2 |
+| Campaigns with rolled outcomes (flop to big hit), buzz, menu rework | doc 02 §13, §13.1, doc 11 §A.1–A.2 |
 | Rent, payroll, loan instalment, utilities, tax, licence, bankruptcy; operating vs net profit | doc 02 §14 (no lifeline, no new loans) |
 | Manager sub-skills, grade, profile, wage curve, potential, learning, coaching, rota errors, absence cover, ordering error, maintenance skipping, cheap repairs, early warnings, attribution | doc 02 §15.12, §15.14, doc 11 Part B |
 | Neglect: grace = skill² / 70 | doc 02 §15.5 |
@@ -86,12 +86,12 @@ Average weekly net profit after the manager's wage:
 
 | Run by | passive | remote | competent |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +3.9k |
+| Owner, no manager | +2.1k | — | +3.8k |
 | Trainee | −2.2k | −1.4k | −0.2k |
-| Junior | −1.5k | −0.6k | +0.3k |
-| Capable | −0.8k | ≈ 0 | +1.0k |
-| Senior | −0.4k | +0.8k | +1.6k |
-| Veteran | ≈ 0 | +1.5k | +2.1k |
+| Junior | −1.5k | −0.7k | +0.3k |
+| Capable | −0.8k | ≈ 0 | +0.9k |
+| Senior | −0.4k | +0.8k | +1.5k |
+| Veteran | ≈ 0 | +1.4k | +2.0k |
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).
@@ -112,7 +112,7 @@ The first run found eight problems in the docs. How each was resolved:
 | 4 | 11% daily absence | Divisor 400 → 1,000 |
 | 5 | Default rota leaves roles empty Mon–Thu | Stand-in roles added to doc 02 §6.2 — **not modelled here** |
 | 6 | Unvisited outlets failed at every grade | Neglect grace = skill² / 70; absence adder removed |
-| 7 | Grade steps too flat | Mastery effects for skilled managers (doc 02 §15.16): steps now +500, +730, +600, +500 a week |
+| 7 | Grade steps too flat | Mastery effects for skilled managers (doc 02 §15.16): steps now about +500 to +600 a week |
 | 8 | Interest in operating profit | Operating vs net profit defined (doc 02 §14.2) |
 | 8 | Manager people skill counted twice in morale | Daily modifier removed |
 | 8 | Hygiene pinned at 100 | Proportional cleaning rule (doc 02 §12) |

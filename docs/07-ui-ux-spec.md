@@ -157,7 +157,9 @@ weekly payment and a checklist of the bank's five checks with pass/fail **before
 applying; result screen states approved / bank's offer / rejected with the reason and
 "what would change the answer". *Sell outlet* (Stage 3+): estimate with its breakdown,
 List / Quick sale, incoming offers with expiry.
-Stage 2 adds *Marketing* here.
+Stage 2 adds *Marketing* here: each campaign card shows cost, expected effect, audience
+fit in words (poor / fair / good) and any active modifier before buying; the result card
+the next morning shows the outcome with its reason, and past campaigns keep their outcome badge.
 
 ### 4.9 Incident card (overlay)
 
@@ -270,6 +272,7 @@ without explaining it**.
 | manager grade | Grade | A manager's overall level, from Trainee to Veteran | Higher grades need less of your time and cost more |
 | potential | Potential | How good a manager can become with experience and coaching | A cheap manager with high potential is worth investing in |
 | manager skills | People / Upkeep / Stock | How well a manager handles staff, equipment and ordering | Weak skills show up as waste, breakdowns and resignations |
+| campaign outcome | How the ad went | Whether a campaign flopped, did as expected or hit big | Ads are a gamble; the right audience and a fresh menu improve the odds |
 | buzz | Buzz | How much people are talking about your restaurant | It fades unless you advertise or do something new |
 | freshness | Menu freshness | How new your menu feels to regulars | A menu that never changes slowly loses customers |
 | competition | Rivals | Other restaurants competing for your customers | Success attracts them; staying the same lets them win |

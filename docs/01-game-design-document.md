@@ -267,6 +267,13 @@ clear policies, and choose where your presence matters most today.
 Flyers (cheap, small, short), local ads (medium), promotion day (discount, large
 demand spike, low margin), food blogger (expensive, reputation gain if the visit goes well).
 
+**Advertising is a gamble.** Any campaign can flop, do roughly what was expected, or hit
+big — like throwing stones into a lake full of fish. On average it pays the same as a
+steady ad would, but no single ad is safe. The odds improve when the ad reaches the kind
+of customers that location actually has, when the menu is fresh and the rating good, and
+they worsen if the same ad is repeated too soon. The game says the next morning how it
+went and why.
+
 ### 6.8b A good restaurant does not stay good by itself
 
 Five slow forces wear every outlet down: people forget you (**buzz**), regulars tire of

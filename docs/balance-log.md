@@ -2,6 +2,27 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 4 — variable advertising outcomes
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).
+
+New rule, doc 02 §13.1: each campaign rolls flop ×0 / weak ×0.5 / expected ×1 / good ×1.5 /
+big hit ×3.5 (15 / 25 / 35 / 18 / 7% before modifiers; mean 0.99), shifted by audience
+fit, menu freshness, rating and repeating the same campaign within 21 days.
+
+| Owner markets + visits weekly | Owner-run | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|---|
+| Before (entry 3) | +3.9k | −0.2k | +0.3k | +1.0k | +1.6k | +2.1k |
+| After | +3.8k | −0.2k | +0.3k | +0.9k | +1.5k | +2.0k |
+
+Average profit falls about 0.1k (a big hit is partly wasted because buzz caps at 1; a
+flop is a full loss). Demand still holds at −3%. Risk rises: for the one-outlet-with-loan
+test company, Capable survival went 97% → 70%. That is the intended effect — same
+average, less certainty.
+
+The scripted owner buys the same local ad every 28 days regardless of outcome; a player
+who switches channel after a flop should do slightly better. Not measured.
+
 ## Entry 3 — manager mastery
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).

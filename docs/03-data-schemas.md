@@ -160,7 +160,8 @@ menu: [{dishId, price: int, enabled: bool}]
 rotaOverrides: [{staffId, dayIndex: int, works: bool, reason: "swap"|"workedDayOff"|"training"}]
                                   (base rota = everyone works except on their own `dayOff`, doc 02 §7.7)
 negotiatedUntilDayIndex?: int   weeklyDeal?: {category: string, untilDayIndex: int}
-campaigns: [{type, daysLeft: int, boost: double}]
+campaigns: [{type, daysLeft: int, boost: double, outcome: string, mult: double, revealed: bool}]
+lastCampaignDayIndex: {type: int}
 buzz: double   freshness: double   competition: double   lastDishRotationDayIndex: int
 format: string ("neighbourhood" in Phase 1)   badge: "none"|"bronze"|"silver"|"gold"
 policies?: Policies   managerId?: string

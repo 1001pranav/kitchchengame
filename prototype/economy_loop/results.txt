@@ -2,19 +2,19 @@ Good tier, average location, 200 seeds x 26 weeks
 
 owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk
 passive    OWNER-RUN    100%        -     44.1k       2.1k   3.3k    2.1k    1.8k          -12%     3.59          1.6    135%                 0
-competent  OWNER-RUN    100%        -     90.9k       3.9k   4.6k    4.1k    3.6k           -3%     3.54          0.6     77%                 0
+competent  OWNER-RUN    100%        -     89.4k       3.8k   4.6k    3.9k    3.5k           -3%     3.53          0.7     80%                 0
 passive    trainee        0%        9     -5.5k      -2.2k  -1.3k   -2.8k       -          -12%     2.79          5.3    142%             -2.0k
 passive    junior         0%       11     -2.3k      -1.5k   -395   -2.3k       -          -12%     2.98          4.7    240%             -1.6k
 passive    capable        0%       13     -3.6k       -828    290   -1.7k       -          -12%     3.18          4.1   1182%             -1.0k
 passive    senior         1%       17     -4.2k       -388    807    -633    -538          -12%     3.35          3.7   2820%              -332
 passive    veteran        3%       21     -3.6k        -10   1.3k      17    -567          -12%     3.47          3.4   1659%               412
-remote     trainee        0%       12     -3.5k      -1.4k   -541   -1.9k       -           -3%     2.72          4.3    713%             -2.1k
-remote     junior         0%       16     -3.0k       -628    447   -1.2k       -           -3%     2.93          3.6   3773%             -1.6k
-remote     capable       12%       21     -2.7k         40   1.3k       5    -511           -3%     3.13          3.1    908%             -1.1k
-remote     senior        76%       25      7.9k        761   2.0k    1.3k      92           -3%     3.28          2.5    244%              -301
-remote     veteran      100%        -     29.2k       1.5k   2.6k    2.0k     714           -3%     3.41          1.9    147%               492
-competent  trainee        1%       17     -3.8k       -233    242    -211    -532           -3%     3.06          3.6   2222%             -1.7k
-competent  junior        32%       21     -1.8k        273    907     452     390           -3%     3.25          3.1    460%             -1.3k
-competent  capable       97%       21     15.4k       1.0k   1.7k    1.1k     846           -3%     3.41          2.4    196%              -729
-competent  senior       100%        -     31.1k       1.6k   2.2k    1.7k    1.5k           -3%     3.52          1.9    147%                 2
-competent  veteran      100%        -     43.7k       2.1k   2.7k    2.3k    1.9k           -3%     3.58          1.6    120%               656
+remote     trainee        0%       11     -3.9k      -1.4k   -491   -1.8k       -           -3%     2.72          4.4   1080%             -2.1k
+remote     junior         0%       13     -2.7k       -651    436   -1.2k       -           -3%     2.93          3.7   2398%             -1.6k
+remote     capable       17%       20     -2.5k         39   1.2k    -240      59           -3%     3.14          3.1   1029%             -1.0k
+remote     senior        62%       21      8.5k        751   2.0k    1.2k     330           -3%     3.28          2.6    344%              -283
+remote     veteran       92%       25     27.1k       1.4k   2.5k    1.8k     778           -3%     3.39          2.0    168%               504
+competent  trainee        7%       17     -3.1k       -240    225    -312     192           -3%     3.06          3.6   1859%             -1.7k
+competent  junior        32%       21     -1.6k        286    820     350     666           -3%     3.24          3.1    915%             -1.3k
+competent  capable       70%       21     12.9k        881   1.6k    1.0k     922           -3%     3.41          2.6    286%              -746
+competent  senior        94%       25     27.6k       1.5k   2.2k    1.5k    1.4k           -3%     3.51          2.1    177%                -6
+competent  veteran       99%       25     41.4k       2.0k   2.6k    2.1k    1.8k           -3%     3.59          1.7    134%               665

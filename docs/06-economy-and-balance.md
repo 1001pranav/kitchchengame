@@ -79,15 +79,15 @@ the outlet:
 
 | Run by | Owner never markets or visits | Owner markets, never visits | Owner markets + visits weekly |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +3.9k |
+| Owner, no manager | +2.1k | — | +3.8k |
 | Trainee | −2.2k | −1.4k | −0.2k |
-| Junior | −1.5k | −0.6k | +0.3k |
-| Capable | −0.8k | ≈ 0 | +1.0k |
-| Senior | −0.4k | +0.8k | +1.6k |
-| Veteran | ≈ 0 | +1.5k | +2.1k |
+| Junior | −1.5k | −0.7k | +0.3k |
+| Capable | −0.8k | ≈ 0 | +0.9k |
+| Senior | −0.4k | +0.8k | +1.5k |
+| Veteran | ≈ 0 | +1.4k | +2.0k |
 
-Senior, markets-but-never-visits, over time: +2.0k (weeks 1–4), +1.3k (weeks 9–12),
-+0.1k (weeks 23–26). Veteran: +2.6k, +2.0k, +0.7k.
+Senior, markets-but-never-visits, over time: +2.0k (weeks 1–4), +1.2k (weeks 9–12).
+Veteran: +2.5k, +1.8k.
 
 What this confirms: grade and owner attention both matter; an experienced manager keeps
 a sound outlet out of loss for months; a cheap one loses money unless the owner is
@@ -116,6 +116,8 @@ General targets (all tiers, competent bot):
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
 | Owner covering the absent role cuts that walk-out rate by | at least half |
 | Incidents per week | 3–6 |
+| Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 |
+| Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |
 | Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
 | Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
 | Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
@@ -133,7 +135,7 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +500, +730, +600, +500 with mastery, doc 02 §15.16) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +530, +600, +620, +500 with mastery, doc 02 §15.16) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 

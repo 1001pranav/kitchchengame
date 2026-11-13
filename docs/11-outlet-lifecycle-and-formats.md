@@ -39,7 +39,9 @@ buzzFactor = 0.90 + 0.20 × buzz            (multiplies demand, doc 02 §5.1)
 | Renovation | +0.30 |
 | Award or gold badge (Part D) | +0.40 |
 
-Capped at 1. The short-term demand boosts in doc 02 §13 are unchanged and add on top.
+Capped at 1. Gains from flyers, local ads and promotion days are multiplied by the
+campaign's rolled outcome (doc 02 §13.1): a flop adds no buzz at all, a big hit can fill
+the gauge in one go. The short-term demand boosts in doc 02 §13 are unchanged and add on top.
 With no promotion at all, buzz reaches 0 in 50–80 days and demand settles 10% below neutral.
 (Decay was 0.02; at that rate one local ad a month could not keep up — measured −10% demand
 for the competent bot — so it was halved.)
