@@ -123,8 +123,11 @@ Sunday adds the weekly statement; day 28 adds the monthly one. Button: **Next da
 
 ### 4.6 Staff tab
 
-List grouped by role: portrait, name, skill bar (or range if unknown), morale face,
-fatigue dot, wage, today's status. Detail sheet: all stats, traits, history lines,
+Header: outlet **happiness index** with trend arrow (tap for the average of each factor).
+List grouped by role: portrait, name, skill bar (or range if unknown), happiness face
+(with an "unhappy" / "may leave" marker below 40 / 30),
+fatigue dot, wage, today's status. Detail sheet: all stats, traits, **happiness breakdown** (each factor with its score,
+worst first, and a one-tap remedy where one exists: Raise, Day off, Train), history lines,
 actions (Raise, Train, Day off, Warn, Promote, Fire). Sub-tabs: **Rota** (7-column grid,
 tap to toggle; per-day role coverage row at the bottom with warnings) and **Hire**
 (this week's applicants with asking wage).
@@ -226,7 +229,8 @@ without explaining it**.
 | rota | Schedule | Who works on which day | An empty role means you do that job yourself |
 | cover a role | Fill in | You do the work of a missing staff member | It saves the shift but tires you out |
 | owner energy | Your energy | How tired you are | Exhausted owners make mistakes and lose a day |
-| morale | Mood | How happy a staff member is at work | Unhappy staff call in sick and quit |
+| morale | Happiness | How happy a staff member is at work, from 0 to 100 | Unhappy staff are slower, call in sick and may quit without warning |
+| notice | Notice | Days a leaving staff member still works | Without notice you are short-handed tomorrow |
 | fatigue | Tiredness | How worn out a staff member is | Tired staff are slow and get hurt |
 | reliability | Reliability | How often they turn up on time | Unreliable staff leave you short |
 | batch / daysLeft | Use-by | How many days until this stock goes bad | Expired stock is thrown away — money in the bin |

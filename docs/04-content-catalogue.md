@@ -188,7 +188,7 @@ Modifier keys are a fixed list; the sim reads each key where the listed rule app
 | trait_often_late | Often late | `lateMult: 2` | pLate ×2 |
 | trait_perfectionist | Perfectionist | `qualityBonus: 5, durationMult: 1.1` | Better food, slower |
 | trait_ambitious | Ambitious | `raiseExpectWeeks: 8` | Morale −1/day after 8 weeks without raise or promotion |
-| trait_toxic | Toxic | `othersMoraleDaily: -1` | Everyone else working that day −1 morale |
+| trait_toxic | Toxic | `toxic: 1` | Colleagues at the outlet get −5 on the Team happiness factor (doc 02 §7.3) |
 | trait_loyal | Loyal | `quitMult: 0.5` | Half as likely to quit |
 | trait_light_fingered | Light-fingered | `honestyCap: 30` | Honesty never above 30 |
 | trait_fast_learner | Fast learner | `trainingMult: 1.5` | Training gains ×1.5 |

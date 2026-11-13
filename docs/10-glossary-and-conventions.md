@@ -84,6 +84,7 @@ names in doc 07 §5.
 | **FOH / BOH** | Front of house (dining room, till) / back of house (kitchen, dishes, store) |
 | **Forecast** | Expected groups today, without the random term |
 | **Group** | A party of 1–6 customers; the unit the sim tracks |
+| **Happiness index** | Staff `morale` 0–100, computed from factors (doc 02 §7.3); also averaged per outlet and company |
 | **Hidden problem** | A pre-existing issue in a bought restaurant, revealed over time |
 | **Hygiene** | 0–100 cleanliness score per location |
 | **Incident** | A decision card raised by the sim (doc 05) |

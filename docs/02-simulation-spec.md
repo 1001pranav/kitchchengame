@@ -287,7 +287,7 @@ morale += one-off shocks from incident effects (type `morale`), then clamp 0–1
 | 8 | **Job security** | `−10` while the outlet is in crisis; `−8` while it is listed for sale; `−6` for 14 days after an inspection closure |
 | 9 | **Working conditions** | `−4` AC broken (`−8` in summer); `−4` hood broken (kitchen roles only); `−3` if any station they use has condition < 40; `−3` if hygiene < 50 |
 | 10 | **Recognition** | `+min(5, average daily tip share over last 7 days / 20)`; `+5` for 14 days after a bonus or the star-employee incident |
-| 11 | **Personal** | `loyal` trait `+3`; other trait modifiers as listed in doc 04 §5 (`othersMoraleDaily` is replaced by factor 5) |
+| 11 | **Personal** | `loyal` trait `+3`; `ambitious` and `toxic` act through factors 7 and 5 |
 
 Timed entries ("for 14 days after…") are stored on the staff member as
 `moodModifiers: [{key, score, untilDayIndex}]`. `explain(staffHappiness)` returns every
@@ -613,7 +613,7 @@ owner must be present that day) reveals who.
 
 ### 15.7 Location crisis and closure
 - `lossWeeks` counts consecutive weeks with negative operating profit at a location.
-- `lossWeeks ≥ 4` → state `crisis`: all staff morale −1 per day; the weekly report
+- `lossWeeks ≥ 4` → state `crisis`: staff happiness factor 8 (job security) applies; the weekly report
   leads with the three largest negative factors versus the location's best 4-week period
   (demand, wages, waste, repairs, walk-outs, neglect, skimming).
 - `lossWeeks ≥ 8` → forced incident `inc_location_failing`: (a) rescue plan — owner must
