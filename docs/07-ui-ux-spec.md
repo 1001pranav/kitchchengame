@@ -38,7 +38,7 @@ Title ─ New Game ─ Difficulty ─ Theme ─ Takeover Market ─ Offer Detail
                     └───────────────────────────────────────────────────────────┘
 Today tab changes with phase:  Prep board → Service view → Close report
 Global overlays: Incident card · "Why?" sheet · Pause menu · Stage-up screen · Game over
-Stage 3+: a location switcher appears in the top bar; a Company tab replaces Money.
+Stage 3+: a location strip appears above the view (§4.11); a Company tab replaces Money.
 ```
 
 ## 4. Screens
@@ -165,7 +165,73 @@ the actual effects, then **OK**.
 - **Tutorial:** contextual coach marks during the first 3 days (one concept per day:
   day 1 service and floor work, day 2 stock and ordering, day 3 staff and rota). Skippable.
 
-## 5. Visual direction
+### 4.11 Several locations (Stage 3+)
+
+- **Location strip** above the restaurant view: one chip per location with name, a
+  status dot (fine / struggling / crisis), live queue count, and an owner icon on the
+  chip where the owner is (or a moving icon while travelling).
+- Tapping another chip shows that location's live view **read-only** with two buttons:
+  **Go there** (shows travel time and energy cost) and **Back**.
+- **Calls:** an incident elsewhere appears as a phone card naming the location; options
+  needing presence are greyed with "Only in person". A small "Manager will decide in
+  0:12" countdown shows what happens if ignored.
+- **Location report** (Close, one page per location, worst first): profit, then
+  "Why" lines in plain words, always including days since the owner's last visit and
+  its effect when non-zero.
+- **Company tab:** table of locations (profit this week, trend arrow, reputation, days
+  since visit, manager), crisis banner with the rescue/close choice.
+
+## 5. Plain language and term help
+
+The game is meant to teach how a restaurant works, so **no screen may use a trade term
+without explaining it**.
+
+- Player-facing text uses the plain names below, not the internal ones.
+- Any term from the list is shown with a dotted underline wherever it appears; tapping
+  it opens a small card: one-sentence meaning, one-sentence "why it matters", and a
+  link to the full **Handbook** (a searchable list of all terms, in the pause menu).
+- The first time a term appears in play, its card opens by itself once.
+- Term texts live in `strings_<locale>.json` under `term.<id>.name / .meaning / .why`.
+
+| Internal name | Shown to player as | Meaning shown | Why it matters shown |
+|---|---|---|---|
+| reputation | Rating | What customers think of you, from 0 to 5 stars | Higher rating brings more customers every day |
+| group | Party | A set of customers who arrive and sit together | Each party needs a table, a server and a bill |
+| walk-out | Walk-out | A party that left because they waited too long | You lose the sale and your rating drops |
+| patience | Patience | How long a party will wait before leaving | Slow service empties your tables |
+| 86 | Sold out / Off the menu | A dish you cannot or will not serve today | Customers who wanted it are disappointed |
+| rota | Schedule | Who works on which day | An empty role means you do that job yourself |
+| cover a role | Fill in | You do the work of a missing staff member | It saves the shift but tires you out |
+| owner energy | Your energy | How tired you are | Exhausted owners make mistakes and lose a day |
+| morale | Mood | How happy a staff member is at work | Unhappy staff call in sick and quit |
+| fatigue | Tiredness | How worn out a staff member is | Tired staff are slow and get hurt |
+| reliability | Reliability | How often they turn up on time | Unreliable staff leave you short |
+| batch / daysLeft | Use-by | How many days until this stock goes bad | Expired stock is thrown away — money in the bin |
+| waste | Waste | Food bought but never sold | Waste comes straight out of profit |
+| par level | Keep-in-stock level | The amount you always want on the shelf | The game reorders up to this level for you |
+| food cost % | Food cost | Share of a dish's price spent on ingredients | Above about 35% the dish earns too little |
+| margin | Profit per dish | What is left from the price after ingredients | Popular dishes with thin profit can still lose money |
+| station / slot | Cooking station | A place where one kind of dish is cooked | A broken station removes its dishes from the menu |
+| condition | Condition | How worn a machine is, 0 to 100 | Worn machines break down at the worst time |
+| maintenance | Servicing | A small paid check-up of a machine | Much cheaper than a breakdown |
+| hygiene | Cleanliness | How clean the restaurant is, 0 to 100 | Low cleanliness fails inspections and sickens guests |
+| operating profit | Profit | Money in minus the cost of running the place | This is what pays back your loan |
+| cash flow | Cash in hand | Money you can spend right now | You can be profitable and still unable to pay wages |
+| instalment | Loan payment | The weekly amount you repay the bank | Missing three in a row ends the game |
+| credit score | Bank trust | How much the bank trusts you | Decides how much you can borrow and at what cost |
+| valuation | Company value | What your whole business is worth | Unlocks the final stage and is your score |
+| due diligence | Inspect before buying | Paying to look for hidden problems | Shows trouble before it becomes yours |
+| hidden problem | Inherited problem | Trouble the last owner left behind | Shows up in your first weeks |
+| incident | Situation | Something has happened and needs your decision | Ignoring it lets the worst option happen |
+| policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
+| neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
+| skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |
+| crisis | In trouble | A branch that has lost money four weeks running | Fix it or close it before it sinks the company |
+| auto-run | Fast-forward | The shift runs without you | Possible only when every job is filled |
+
+Adding a new player-facing concept requires adding a row here and its three strings.
+
+## 6. Visual direction
 
 - **Style:** clean, flat-shaded 2D with soft shadows and rounded shapes; top-down ¾
   view for the restaurant; warm, appetising palette; one accent colour per theme
@@ -183,7 +249,7 @@ Quality of graphics depends on the art assets, which coding models cannot draw. 
 build uses **placeholder art** (coloured shapes and icon-font glyphs) behind a single
 `AssetCatalog` so real art can be dropped in without code changes.
 
-## 6. Art and audio asset list (MVP)
+## 7. Art and audio asset list (MVP)
 
 | Group | Items | Spec |
 |---|---|---|
@@ -199,7 +265,7 @@ build uses **placeholder art** (coloured shapes and icon-font glyphs) behind a s
 
 Each added cuisine theme needs: room skin, its station sprites, 12 dish icons, name pools.
 
-## 7. Accessibility
+## 8. Accessibility
 
 Screen-reader labels on all controls; contrast ≥ 4.5:1 for text; patience shown by
 shape as well as colour; no information conveyed by sound alone; pausable at any time;

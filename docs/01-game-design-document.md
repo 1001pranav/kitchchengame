@@ -118,7 +118,8 @@ removed (reputation drops 0.5). Details in `05-incident-catalogue.md`.
 
 ## 5. The owner
 
-The owner is a character on the floor during service, present at exactly one location per day.
+The owner is a character on the floor during service. The owner is in **one place at a
+time** but can travel between locations during the day (§5.4).
 
 ### 5.1 Floor work
 
@@ -141,12 +142,39 @@ the kitchen is swamped).
 - **Attention.** While the owner has a task in progress, new incident cards wait with a
   countdown, and "observation" incidents (catching theft, spotting sloppy portioning)
   cannot trigger.
-- **One place at a time.** Other locations run without the owner.
+- **One place at a time.** Other locations run without the owner while the owner is
+  elsewhere or on the road.
 
 ### 5.3 Auto-run
 
 When every role has at least one working staff member, the player may toggle **auto-run**:
 service plays at 4× without owner tasks and pauses only for incidents.
+
+### 5.4 Running several restaurants (Stage 3+)
+
+All locations open at the same time and their services run **simultaneously, tick for
+tick**. The player watches whichever location the owner is at and can look at the others
+through a live summary strip.
+
+- **Travel.** At any moment the owner can leave for another location. Travel takes
+  time (the owner is nowhere for a while and can do nothing) and costs energy. A typical
+  day allows two, at most three, locations — exactly like a real owner driving between outlets.
+- **Phone.** Incidents at other locations reach the owner as a call. The owner can decide
+  by phone, but options that need the owner physically there are unavailable, and
+  outcomes are a little worse than in person. Unanswered calls are decided by the manager.
+- **Standards slip without you.** A location the owner has not visited for a while
+  gradually gets slower, dirtier, more wasteful and easier to steal from. A good manager
+  delays this; nothing prevents it forever. A proper visit resets it.
+- **Any restaurant can fail on its own.** A location that keeps losing money enters
+  *crisis*; left alone it loses staff and reputation until it must be closed, and the
+  losses can drag the whole company into bankruptcy.
+- **The game must teach why.** Every location report names its top causes in plain
+  words ("Not visited for 12 days: service 10% slower", "Manager approved cheap repairs
+  three times: oven failed again"). The player should always be able to answer "why is
+  that branch failing?" from the report alone.
+
+The lesson is the real one: you cannot be everywhere, so you must hire well, set
+clear policies, and choose where your presence matters most today.
 
 ## 6. Systems
 
@@ -236,7 +264,9 @@ option. Full list and rules in `05-incident-catalogue.md`.
 - **Manager:** required for every location the owner is not at. A manager runs prep
   using the location's **policies** and resolves incidents automatically with quality
   depending on manager skill; a dishonest manager skims.
-- **Unattended locations** are simulated with the same service simulation, without rendering.
+- **Unattended locations** run the same service simulation at the same time as the one
+  being watched (§5.4); the owner can travel to them or decide their incidents by phone.
+- **Closing a location:** sell equipment, pay severance and a lease-break fee of 4 weeks' rent.
 - **Policies** per location: par levels, price level, maintenance threshold, wage band,
   overtime allowed, incident stance (frugal / balanced / quality-first).
 - **Stage 4:** central kitchen (prep done centrally: −prep time, +fixed cost), bulk

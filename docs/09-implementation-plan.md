@@ -42,7 +42,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 
 | # | Task | Read | AC |
 |---|---|---|---|
-| 1.1 | App shell: theme, `AssetCatalog` with placeholders, localisation lookup, content loading, `GameController`, save service | 08 §6, 07 §2, §5 | App starts, loads content, creates a game, autosaves and restores after kill |
+| 1.1 | App shell: theme, `AssetCatalog` with placeholders, localisation lookup, content loading, `GameController`, save service | 08 §6, 07 §2, §6 | App starts, loads content, creates a game, autosaves and restores after kill |
 | 1.2 | Title, New Game (difficulty, theme), Takeover Market, Offer Detail | 07 §4.2 | Can buy any tier; due diligence reveals issues; widget tests at both sizes |
 | 1.3 | Main shell: top bar, bottom tabs, "Why?" sheet | 07 §3, §4.1, §4.10 | Cash and reputation open explanations from `sim.explain` |
 | 1.4 | Prep board | 07 §4.3 | Attention items computed and deep-link; cover-role selection; Rest today; Open doors |
@@ -56,8 +56,9 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 1.12 | Money tab: chart, bills, loans, valuation, Marketing (stage 2) | 07 §4.8 | Loan limits and errors shown; upcoming bills match sim |
 | 1.13 | Stage-up, objectives list, game over with timeline, lifelines | 07 §4.10, 01 §3.4 | Bankruptcy path playable end to end |
 | 1.14 | Tutorial coach marks (days 1–3), settings, pause menu, save slots | 07 §4.10 | Tutorial skippable and resettable |
-| 1.15 | Sound, haptics, motion polish, reduced-motion setting | 07 §5 | No audio/vibration when disabled |
-| 1.16 | Accessibility and layout pass | 07 §2, §7 | No overflow at 360×640 with text scale 1.3; labels present |
+| 1.14b | Term help: plain names everywhere, tappable term cards, first-appearance auto-open, Handbook | 07 §5 | Every row of the 07 §5 table has its three strings; a test fails if a screen shows an internal name from that table |
+| 1.15 | Sound, haptics, motion polish, reduced-motion setting | 07 §6 | No audio/vibration when disabled |
+| 1.16 | Accessibility and layout pass | 07 §2, §8 | No overflow at 360×640 with text scale 1.3; labels present |
 | 1.17 | Device test pass + performance budget check + release build without INTERNET permission | 08 §6.6, §8 | Checklist recorded in `docs/release-checklist.md` |
 
 **Gate:** playtest with real people (at least five, 30 minutes each). Record where they
@@ -69,11 +70,12 @@ or bores (doc 00 risks), adjust owner energy / staffing balance here.
 Write `11-phase2-spec.md` first (location market, manager role and applicants, policies,
 unattended runner details, location switcher UI, company screen, chain systems), then:
 
-2.1 `SetOwnerLocation`, location switcher · 2.2 Location market + buy/build ·
-2.3 Managers + policies + unattended runner (doc 02 §15) · 2.4 Company tab and
-per-location comparison · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
-bulk contracts, brand reputation · 2.7 Background isolate for unattended days ·
-2.8 Balance bot for multi-location + tuning.
+2.1 Lockstep ticking of all locations, `OwnerTravel`, location strip (doc 02 §15.1, §15.3; 07 §4.11) ·
+2.2 Location market + buy/build · 2.3 Managers + policies at prep, incidents by phone and
+manager decisions (doc 02 §15.2, §15.4) · 2.3b Neglect, skimming, audit, location crisis and
+closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.4 Company tab and
+per-location reports that name causes · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
+bulk contracts, brand reputation · 2.8 Balance bot for multi-location + tuning.
 
 ## Phase 3 — Group (stage 5)
 

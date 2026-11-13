@@ -86,6 +86,7 @@ subject?: "staff" | "equipment" | "supplier" | "none"   subjectFilter?: Conditio
 options: [{
   id: string   label: string
   requires?: Condition       (option hidden/disabled when false)
+  inPerson?: bool            (Phase 2: unavailable when the owner is not at the location)
   effects: Effect[]
 }]
 defaultOption: string        (applied when ignored)
@@ -157,6 +158,7 @@ menu: [{dishId, price: int, enabled: bool}]
 rota: {staffId: bool[7]}          (true = works that weekday)
 campaigns: [{type, daysLeft: int, boost: double}]
 policies?: Policies   managerId?: string
+lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
 utilitiesAccrued: int
 hiddenProblems: [{incidentId, revealed: bool, dueDayIndex: int}]
 today: DayStats       service?: ServiceState      (service present only during phase "service")
@@ -182,6 +184,8 @@ Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
 
 ### 2.7 `Owner`
 ```
+locationId?: string (null while travelling)   travelToLocationId?: string   arrivesTick?: int
+ticksAtLocationToday: {locationId: int}
 energy: double   exhaustedDays: int   restingToday: bool
 coverRole?: "server" | "till" | "kitchen" | "dishes"
 queue: int[] (task ids, max 3)   currentTaskId?: int   busyUntilTick?: int   idleTicks: int
@@ -251,7 +255,13 @@ applies it or returns an error code. Commands are the **only** way state changes
 | OwnerRest | — | prep |
 | ResolveIncident | instanceId, optionId | any |
 | EndDay | — | close |
-| (Phase 2) SetOwnerLocation, SetPolicies, AppointManager, BuyLocation, … | | |
+| (Phase 2) OwnerTravel | toLocationId | prep, service |
+| (Phase 2) SetPolicies, AppointManager, BuyLocation, CloseLocation, Audit | | prep, close |
+
+`GameState.ownerLocationId` is the location the owner **starts the day at**;
+`owner.locationId` is where the owner is right now. All commands that take a
+`locationId` may be issued for any location regardless of where the owner is, except
+`OwnerQueueTask`, `OwnerSetCover` and `Audit`, which need the owner there.
 
 Error codes are an enum (`notEnoughCash`, `wrongPhase`, `unknownId`, `belowMinimumOrder`,
 `limitReached`, `locked`, `invalidValue`). The UI shows a localised message per code.

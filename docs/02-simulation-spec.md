@@ -443,12 +443,71 @@ New loans: any amount ≤ creditLimit, term 26/52/104 weeks, rate
 (forced). At 3: game over. Also game over when `missedPayments` reaches 3 in a row
 (reset to 0 by an on-time payment).
 
-## 15. Unattended locations (Phase 2)
+## 15. Multiple locations (Phase 2)
 
-For each location without the owner, in id order, `beginDay` → manager applies policies
-(rota = all available staff respecting max 6 consecutive days; auto-order; maintenance
-when condition < policy threshold) → service runs all ticks with no owner → `endDay`.
-Incidents are auto-resolved: option chosen by the policy stance; outcome chances are
-shifted by `(managerSkill − 50)/200`. Manager skimming: if honesty < 40, daily
-`rng.chance((40 − honesty)/100)` → 3% of the day's revenue disappears (shows as
-"unexplained variance" in the weekly report; an audit action reveals it).
+### 15.1 Lockstep
+All locations share one day and one tick counter. `beginDay`, each `tick()` and
+`endDay` process every location in id order. `StartService` opens all of them.
+Every location needs a manager except the one the owner starts the day at; a location
+with neither does not open that day.
+
+### 15.2 Managers at prep
+For each location the owner is not at during prep, the manager applies its policies:
+rota = all available staff respecting max 6 consecutive days; par-level auto-order;
+maintenance when condition < policy threshold. The player may still open any location's
+screens and issue commands remotely (rota, orders, prices) — only floor work and
+"in person" incident options need presence.
+
+### 15.3 Owner travel
+`OwnerTravel(toLocationId)` — valid in prep or service.
+- In prep: instant, free (the owner chooses where to start the day).
+- In service: the owner's queue is cleared, `owner.locationId = null` for
+  `TRAVEL_TICKS = 20` ticks, energy `−TRAVEL_ENERGY = 6`; then the owner arrives.
+  While travelling the owner does no tasks and cannot travel again.
+- The owner is **present** at a location on a day if they spent ≥ `VISIT_MIN_TICKS = 60`
+  service ticks there. Presence sets `location.lastOwnerVisitDayIndex = today`.
+
+### 15.4 Incidents away from the owner
+An incident at a location where the owner is not present is raised as a **call**:
+- Countdown `INCIDENT_COUNTDOWN` applies. Options tagged `inPerson` are disabled.
+- If the player answers: chance-based effects are shifted by `PHONE_PENALTY = −0.10`
+  on their success chance.
+- If the countdown expires (or the owner is travelling and the player does not answer):
+  the manager decides — option chosen by the policy stance (frugal → cheapest cash
+  cost; quality-first → best expected reputation/morale; balanced → middle), success
+  chances shifted by `(managerSkill − 50)/200`.
+- `observation` incidents never trigger at a location without the owner.
+
+### 15.5 Neglect (standards slip)
+```
+graceDays = NEGLECT_GRACE_BASE (2) + managerSkill / 10          (skill 50 → 7 days)
+neglect   = max(0, (today − lastOwnerVisitDayIndex) − graceDays)
+slack     = min(NEGLECT_MAX (0.30), neglect × NEGLECT_PER_DAY (0.02))
+```
+Effects at that location while `slack > 0`:
+- all staff task durations × `(1 + slack)`
+- hygiene gained from cleaners × `(1 − slack)`
+- ingredient consumption per cook task: each recipe line has chance `slack` of using +1 unit (over-portioning)
+- absence chance `+ slack / 5`
+- skimming chance `+ slack` (below)
+
+A visit (§15.3) resets `neglect` to 0 from the next day. `slack` and its inputs are
+exposed through `explain` and listed in the location's daily report.
+
+### 15.6 Skimming
+At close, for the manager if honesty < 40, and for each cashier with honesty < 40:
+`rng.chance((40 − honesty)/100 + slack)` → 3% of the day's revenue disappears. It shows
+as "cash does not match sales" in the weekly report. An **audit** command (cost 500,
+owner must be present that day) reveals who.
+
+### 15.7 Location crisis and closure
+- `lossWeeks` counts consecutive weeks with negative operating profit at a location.
+- `lossWeeks ≥ 4` → state `crisis`: all staff morale −1 per day; the weekly report
+  leads with the three largest negative factors versus the location's best 4-week period
+  (demand, wages, waste, repairs, walk-outs, neglect, skimming).
+- `lossWeeks ≥ 8` → forced incident `inc_location_failing`: (a) rescue plan — owner must
+  be present 4 of the next 7 days, else (c) applies; (b) close the location;
+  (c) do nothing — reputation −0.3 per week, 20% of staff give notice each week.
+- Closing: equipment sold at resale value, severance for all staff, lease-break fee
+  4 × weekly rent, brand reputation −0.1 (Stage 4+).
+- A profitable week resets `lossWeeks` to 0 and ends crisis.

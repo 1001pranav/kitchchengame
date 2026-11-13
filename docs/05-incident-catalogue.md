@@ -263,6 +263,10 @@ list and may act first).
 
 ## 5. Adding incidents later
 
+Phase 2 marks options that need the owner physically there with `inPerson: true`
+(e.g. "Mediate now", "Go and apologise", "Owner steps in", "Owner serves them
+personally", "Stock audit", "Deep clean") and adds `inc_location_failing` (doc 02 §15.7).
+
 Phase 2+ adds manager, multi-location and brand incidents. Every new incident must:
 use only the grammar in §2 (extend §2 first if needed), have a default option, pass the
 catalogue validator, and be covered by the generic incident test (each option resolves
