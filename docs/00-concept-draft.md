@@ -1,5 +1,10 @@
 # Restaurant Chain Tycoon — Concept Draft (v0.2)
 
+> **SUPERSEDED.** This is the discussion draft, kept for its reasoning and risk list.
+> Decisions made after it: engine is Flutter + Flame (not the stack in §10); launch
+> cuisines are Italian, Chinese, Mexican, Indian + Mixed; the owner can cook. The
+> current design is `01-game-design-document.md` onward. Do not implement from this file.
+>
 > **Changes in v0.2 (owner decisions):** mobile platform; five-minute sessions (one
 > session = one game day); owner is hands-on and can do floor work (§3); player picks a
 > cuisine theme, currency is generic (§5.1); takeover tiers use honest pricing plus a
