@@ -73,8 +73,10 @@ unattended runner details, location switcher UI, company screen, chain systems),
 2.1 Lockstep ticking of all locations, `OwnerTravel`, location strip (doc 02 §15.1, §15.3; 07 §4.11) ·
 2.2 Location market + buy/build · 2.3 Managers + policies at prep, incidents by phone and
 manager decisions (doc 02 §15.2, §15.4) · 2.3b Neglect, skimming, audit, location crisis and
-closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.4 Company tab and
-per-location reports that name causes · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
+closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.3c Company cash ledger per outlet, opening an
+outlet (takeover / new build, reserve check), manager authority and requests, owner's desk,
+coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
+2.4 Company tab and per-location reports that name causes · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
 bulk contracts, brand reputation · 2.8 Balance bot for multi-location + tuning.
 
 ## Phase 3 — Group (stage 5)

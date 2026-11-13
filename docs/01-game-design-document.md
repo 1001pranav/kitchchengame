@@ -267,6 +267,49 @@ option. Full list and rules in `05-incident-catalogue.md`.
 - **Unattended locations** run the same service simulation at the same time as the one
   being watched (§5.4); the owner can travel to them or decide their incidents by phone.
 - **Closing a location:** sell equipment, pay severance and a lease-break fee of 4 weeks' rent.
+
+#### How the chain grows and what the owner still does
+
+**Money.** There is one company bank balance. Every outlet's takings go into it and
+every outlet's bills come out of it, so profitable outlets automatically fund weak ones
+and pay for the next opening. The player never taps to "collect" — but the flow is
+always visible: each outlet shows what it **contributed** to (or **drew** from) the
+company each week, what was invested in it in total, and how much of that it has paid back.
+
+**Opening the next outlet** costs a lump sum (purchase or fit-out, equipment, lease
+deposit) plus an opening reserve, and a new outlet usually loses money for its first
+weeks. Expanding too early on the back of one good outlet is the classic way to lose both.
+
+**Investing in existing outlets.** From anywhere, the owner can train and promote staff,
+give raises, replace or add equipment, add tables (renovation) and run marketing at any
+outlet. The owner can also **transfer staff** between outlets — sending a trained head
+chef or a promoted server-turned-manager to open the new place is the strongest way to
+start it well, and it leaves a hole in the old one.
+
+**Managers run the day, the owner runs the business.** A manager handles rota, ordering,
+routine maintenance and small situations within a spending limit. Everything bigger
+comes to the owner as a **request**. The owner alone decides:
+
+| Owner only | Manager (within standing orders) |
+|---|---|
+| Open, buy or close an outlet | Daily schedule |
+| Hire, fire, pay and bonus of managers and head chefs | Ordering stock up to keep-in-stock levels |
+| Menu and price level | Routine servicing of equipment |
+| Spending above the manager's limit (repairs, replacements, hiring, raises) | Small situations below the spending limit |
+| Loans and marketing budgets | Hiring/raises only if the owner allows it in standing orders |
+| Staff transfers and promotions | |
+| Standing orders themselves | |
+
+**The owner's day at chain size** (still about five minutes):
+1. *Owner's desk* in Prep — a short inbox of requests from all outlets (approve / deny /
+   "do it cheaper"), yesterday's one-line result per outlet, and warnings.
+2. Choose where to be today (and whether to travel mid-day).
+3. Service — work or simply be present at the chosen outlet; take calls from the others.
+4. Close — company result, worst outlet first, with reasons.
+
+Being present is never wasted: a visit stops standards slipping, lets the owner catch
+theft and sloppiness, and **coaches the manager** (their skill grows a little per
+visit). An owner who only reads reports gets weaker managers and worse outlets over time.
 - **Policies** per location: par levels, price level, maintenance threshold, wage band,
   overtime allowed, incident stance (frugal / balanced / quality-first).
 - **Stage 4:** central kitchen (prep done centrally: −prep time, +fixed cost), bulk

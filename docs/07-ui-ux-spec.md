@@ -178,6 +178,17 @@ the actual effects, then **OK**.
 - **Location report** (Close, one page per location, worst first): profit, then
   "Why" lines in plain words, always including days since the owner's last visit and
   its effect when non-zero.
+- **Owner's desk** (top of Prep once there are 2+ locations): yesterday's result per
+  outlet in one line each (profit, trend arrow, status dot); then the **requests inbox**
+  — cards like "Branch 2 · Manager Li asks: replace fryer · 3,000 · 'broke twice this
+  month'" with **Approve / Cheaper (1,500) / Deny**; then "Where will you be today?"
+  with a suggestion ("Branch 3 — not visited for 9 days").
+- **Outlet ledger** (in Company tab, per outlet): invested, paid back so far (bar),
+  contribution per week (bar chart, negative weeks red), and a sentence such as
+  "Branch 1 paid for 64% of Branch 3's opening."
+- **Open a new outlet** flow: choose takeover or new build → cost breakdown → "After
+  this you will have X coins, about N weeks of running costs" (red below 4 weeks) →
+  choose opening team (transfer staff / hire) → appoint manager.
 - **Company tab:** table of locations (profit this week, trend arrow, reputation, days
   since visit, manager), crisis banner with the rescue/close choice.
 
@@ -223,6 +234,10 @@ without explaining it**.
 | due diligence | Inspect before buying | Paying to look for hidden problems | Shows trouble before it becomes yours |
 | hidden problem | Inherited problem | Trouble the last owner left behind | Shows up in your first weeks |
 | incident | Situation | Something has happened and needs your decision | Ignoring it lets the worst option happen |
+| request | Request | Your manager asking permission for something beyond their limit | Ignored requests leave problems unsolved |
+| contribution | Contribution | What a branch added to or took from company money this week | Shows which branches carry the others |
+| payback | Paid back | How much of what you spent on a branch it has earned back | Tells you whether opening it was worth it |
+| transfer | Transfer | Moving a staff member to another branch | Strengthens one branch and weakens another |
 | policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
 | neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
 | skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |

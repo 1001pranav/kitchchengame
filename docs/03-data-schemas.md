@@ -159,6 +159,8 @@ rota: {staffId: bool[7]}          (true = works that weekday)
 campaigns: [{type, daysLeft: int, boost: double}]
 policies?: Policies   managerId?: string
 lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
+ledger: {invested: int, returned: int, weekContribution: int, contributions: int[] (last 52 weeks)}
+lastCoachingDayIndex: int   managerBonusPct: double
 utilitiesAccrued: int
 hiddenProblems: [{incidentId, revealed: bool, dueDayIndex: int}]
 today: DayStats       service?: ServiceState      (service present only during phase "service")
@@ -256,7 +258,12 @@ applies it or returns an error code. Commands are the **only** way state changes
 | ResolveIncident | instanceId, optionId | any |
 | EndDay | — | close |
 | (Phase 2) OwnerTravel | toLocationId | prep, service |
-| (Phase 2) SetPolicies, AppointManager, BuyLocation, CloseLocation, Audit | | prep, close |
+| (Phase 2) SetPolicies, AppointManager, BuyLocation, BuildLocation, CloseLocation, Audit, TransferStaff, Promote, Renovate, SetManagerBonus | | prep, close |
+| (Phase 2) AnswerRequest | requestId, answer: approve/deny/cheaper | prep, close |
+
+`GameState.requests: [{id, locationId, kind, subjectId?, cost: int, cheaperCost?: int, reasonKey, raisedDayIndex}]`
+holds open manager requests. `Policies` = `{parLevels, priceLevel, maintenanceThreshold,
+wageBand, overtimeAllowed, incidentStance, spendingLimit, mayHire, mayGiveRaises}`.
 
 `GameState.ownerLocationId` is the location the owner **starts the day at**;
 `owner.locationId` is where the owner is right now. All commands that take a

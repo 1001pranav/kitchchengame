@@ -511,3 +511,59 @@ owner must be present that day) reveals who.
 - Closing: equipment sold at resale value, severance for all staff, lease-break fee
   4 × weekly rent, brand reputation −0.1 (Stage 4+).
 - A profitable week resets `lossWeeks` to 0 and ends crisis.
+
+### 15.8 Company cash and outlet contribution
+There is a single `company.cash`. Each location keeps a ledger:
+```
+weekContribution = location operating profit for the week (may be negative)
+invested        += purchase/fit-out, equipment bought, renovation, training, opening losses funded
+returned        += max(0, weekContribution)
+paybackPct       = returned / invested
+```
+`invested` starts at the acquisition or opening cost. These are reporting values only;
+no cash moves between accounts. They feed `explain` and the Company screen.
+
+### 15.9 Opening an outlet
+- **Takeover:** same generator and pricing as game start (doc 01 §4.3), offers refresh every 28 days.
+- **New build:** cost = fit-out `NEW_BUILD_FITOUT (15,000)` + chosen equipment at new
+  price + deposit of 4 × weekly rent. Opens `NEW_BUILD_DAYS (14)` days later with no
+  staff (hire or transfer), reputation = `3.0` (Stage 4+: brand reputation − 0.5), hygiene 90.
+- The purchase is refused if cash after purchase < `OPENING_RESERVE_WEEKS (2)` × the new
+  outlet's estimated weekly fixed costs (rent + wages); the UI recommends 4 weeks.
+- A manager must be appointed before the first day the owner is not there.
+
+### 15.10 Manager authority and requests
+Policy fields: `spendingLimit` (default 500), `mayHire` (default false), `mayGiveRaises`
+(default false), plus those in doc 01 §6.10.
+- A manager acts alone on: rota, par-level orders, maintenance, and any incident option
+  or purchase whose cash cost ≤ `spendingLimit`.
+- Anything else becomes a **request** `{locationId, kind, subjectId?, cost, reason}` with
+  kind ∈ `hire, raise, repair, replace, training, marketing, extraStaffDay`. Managers
+  raise requests from the same conditions the competent bot uses (doc 06 §6.1): a role
+  uncovered ≥ 2 days in the coming week → hire; morale < 45 with wage below expected →
+  raise; broken equipment above limit → repair/replace; skill below the outlet's dish
+  requirements → training.
+- At most `REQUESTS_PER_DAY_MAX (5)` requests are shown per day across all outlets,
+  ranked by estimated weekly cash impact; the rest wait.
+- Owner answers: **approve**, **deny**, or **cheaper** (where a cheaper variant exists:
+  second-hand, cheap repair, half raise). A request unanswered for 3 days: the problem
+  persists and the manager's morale −2 per further day.
+- Manager quality: when a manager acts alone, success chances shift by
+  `(managerSkill − 50)/200`; a manager with skill < 40 fails to raise a needed request
+  with probability `(40 − skill)/100` (the owner only finds out from results).
+- Manager bonus (owner sets 0–10% of the outlet's positive weekly operating profit):
+  each 1% gives manager loyalty +1 and honesty +1 (effective, not permanent), paid weekly.
+
+### 15.11 Coaching, transfers, upgrades
+- **Coaching:** each day the owner is present (§15.3) at an outlet, its manager gains
+  `+1` skill, at most once per 7 days, cap 90.
+- **Transfer:** `TransferStaff(staffId, toLocationId)` in prep or close. The staff member
+  is unavailable the next day, morale −5 (or +10 if transferred together with a
+  promotion), loses `sameRole` familiarity: skill −5 for 7 days at the new outlet.
+- **Promotion to manager:** a server, cashier or head chef with skill ≥ 60 can be
+  promoted; manager skill starts at `0.6 × current skill + 10`; wage becomes the manager
+  expected wage; loyalty +15.
+- **Renovation:** add 2 tables for `RENOVATION_COST_PER_TABLE (1,500)` each, outlet closed
+  1 day per 4 tables, up to +50% of original tables.
+- All upgrade commands (train, raise, buy equipment, renovate, marketing) can be issued
+  for any outlet from anywhere.
