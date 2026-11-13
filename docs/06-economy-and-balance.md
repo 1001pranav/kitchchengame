@@ -97,6 +97,9 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +400 to +1,200 per step; never negative |
+| Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
+| Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 
 Opening-route targets (Phase 2; competent bot, average location, medium size):
 

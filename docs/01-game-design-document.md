@@ -355,6 +355,13 @@ just because someone is in charge. A manager has three skills — *people*, *upk
 | Asking you | Raises problems early | Raises them late or not at all |
 | Cost | About 50% higher wage | Cheap |
 
+Between those two extremes there are **five grades** — Trainee, Junior, Capable, Senior
+and Veteran — at roughly 190 to 370 coins a day, and **four profiles** (all-rounder,
+people person, tight ship, numbers), so two managers of the same grade can be strong at
+different things. Senior and Veteran managers only join well-rated companies and expect
+a share of the outlet's profit. Every manager has hidden potential: a cheap Trainee you
+coach can grow into a Senior.
+
 A good manager keeps a sound outlet profitable without you for a long time. A cheap one
 slowly turns a sound outlet into a losing one — and the weekly report says which of
 their decisions cost what. But no manager can fix what only the owner controls: a bad

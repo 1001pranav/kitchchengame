@@ -205,8 +205,9 @@ the actual effects, then **OK**.
   with three buttons (New / Second-hand / Lease) and their trade-offs → "After
   this you will have X coins, about N weeks of running costs" (red below 4 weeks) →
   choose opening team (transfer staff / hire) → appoint manager.
-- **Manager card** (hire screen and outlet screen): three skill bars (ranges until
-  known), wage, traits, and — once in post — "This month: decisions cost 1,240, saved
+- **Manager card** (hire screen and outlet screen): grade badge (Trainee / Junior /
+  Capable / Senior / Veteran), three skill bars (ranges until known), wage, expected
+  profit share, reference line, potential stars once known, traits, and — once in post — "This month: decisions cost 1,240, saved
   860" with the list of events behind it. Coaching choice on visit: pick which skill to coach.
 - **Break-even line** on each outlet's daily bar chart of parties served.
 - **Company tab:** table of locations (profit this week, trend arrow, reputation, days
@@ -261,6 +262,8 @@ without explaining it**.
 | transfer | Transfer | Moving a staff member to another branch | Strengthens one branch and weakens another |
 | break-even | Break-even | The number of parties you must serve in a day to cover that day's costs | Below it the day loses money even if the room looked busy |
 | fixed costs | Costs that never stop | Rent, wages and loan payments you owe whether customers come or not | A slow week still costs the same |
+| manager grade | Grade | A manager's overall level, from Trainee to Veteran | Higher grades need less of your time and cost more |
+| potential | Potential | How good a manager can become with experience and coaching | A cheap manager with high potential is worth investing in |
 | manager skills | People / Upkeep / Stock | How well a manager handles staff, equipment and ordering | Weak skills show up as waste, breakdowns and resignations |
 | buzz | Buzz | How much people are talking about your restaurant | It fades unless you advertise or do something new |
 | freshness | Menu freshness | How new your menu feels to regulars | A menu that never changes slowly loses customers |

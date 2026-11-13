@@ -760,8 +760,7 @@ An outlet's income varies every day (§5.1) while rent, wages, loan payments and
 utilities do not stop. Whether an unattended outlet stays in profit depends largely on
 how well its manager handles the avoidable problems. A manager has three sub-skills
 (0–100): **people**, **upkeep**, **stock**. `managerSkill` used elsewhere in this
-document = their mean. Expected wage uses the mean with the manager base wage (§7.1),
-so an experienced manager costs roughly 50% more than a cheap one.
+document = their mean. Grades, profiles, wages and hiring are in §15.14.
 
 Applied only at locations where the owner is **not** present at the relevant moment
 (when the owner is there in prep, the owner's own commands are used instead).
@@ -827,3 +826,69 @@ breakEvenGroups = ceil(fixedPerDay / marginPerGroup)
 ```
 `loan share` = the outlet's `ledger.invested` proportion of total weekly instalments.
 The daily report shows "Served 48 parties · needed 41 to break even".
+
+### 15.14 Manager grades, profiles and hiring
+
+Manager skill is continuous (0–100), but managers are presented in **five grades** so
+the player can read the market at a glance. Grade is derived from the mean of the three
+sub-skills and updates as the manager improves.
+
+| Grade | Mean skill | Typical daily wage | Will only join if | Expects profit bonus |
+|---|---|---|---|---|
+| Trainee | 20–34 | ~190 | — | — |
+| Junior | 35–49 | ~235 | — | — |
+| Capable | 50–64 | ~280 | — | ≥ 1% |
+| Senior | 65–79 | ~330 | company average rating ≥ 3.5 | ≥ 3% |
+| Veteran | 80–92 | ~370 | company average rating ≥ 4.0 | ≥ 5% |
+
+Manager wage curve (replaces §7.1's general formula for the manager role):
+`expectedWage = round(260 × (0.4 + 1.2 × meanSkill / 100))`. A Veteran costs about twice
+a Trainee. If the profit bonus (§15.10) is below what the grade expects, the Boss/Pay
+happiness factors treat the manager as underpaid by 10%.
+
+**Profiles** — how the three sub-skills sit around the mean. Two managers of the same
+grade can be good at different things, so the right hire depends on the outlet's problem.
+
+| Profile | People | Upkeep | Stock | Suits |
+|---|---|---|---|---|
+| All-rounder | ±5 | ±5 | ±5 | Any outlet |
+| People person | +15 | −5 | −10 | High turnover, unhappy team |
+| Tight ship | −10 | +15 | −5 | Old equipment, hygiene trouble |
+| Numbers | −5 | −10 | +15 | High waste, thin margins |
+
+(Offsets are applied to the mean, then each sub-skill gets ±5 noise and is clamped 5–95.)
+
+**Manager traits** (0–1 per manager, doc 04 §5): *by the book* — never exceeds the
+spending limit and raises every request, even trivial ones; *cuts corners* — always the
+cheapest option within authority; *ambitious* — wants a bigger job: leaves after 336
+days unless promoted to a larger outlet or regional manager; *settled* — refuses
+transfers but `quitMult 0.5`; *honest to a fault* — honesty ≥ 85 and reports colleagues'
+skimming; *slippery* — honesty ≤ 35.
+
+**Potential.** Each manager has a hidden `potential` (their maximum mean skill):
+`current mean + rng.int(5, 35)`, cap 95. Learning (§15.12) and coaching stop at
+potential. It is revealed as 1–5 stars after 56 days in post. A cheap Trainee with high
+potential, coached well, becomes a Senior on a Junior's wage history — the best
+long-term deal in the game and a reason for the owner to visit.
+
+**Where managers come from**
+- *Market applicants:* 3 manager applicants every 14 days. Grade is rolled from weights
+  that shift with company average rating `r`:
+  Trainee `30`, Junior `30`, Capable `25`, Senior `max(0, 10 + 10 × (r − 3.5))`,
+  Veteran `max(0, 5 + 10 × (r − 4.0))`. Sub-skills shown as ranges (±15); profile and
+  trait are hinted by one line of reference text ("previous team spoke highly of her"),
+  not stated.
+- *Internal promotion* (§15.11): starts at Trainee or Junior grade depending on skill,
+  with `potential` +10 and loyalty +15 — they already know the business.
+- *Poaching* (Stage 4+): pay a 5,000-coin signing fee to pick the grade and profile;
+  loyalty starts at 30.
+
+**What each grade means in play** (derived from §15.12, for balance checks and UI copy)
+
+| Grade | Unvisited outlet in a sound location | Owner attention it needs |
+|---|---|---|
+| Trainee | Loses money within 2–4 weeks | Visit most days; expect to do the thinking |
+| Junior | Slides into loss within 4–8 weeks | Weekly visit; read the requests carefully |
+| Capable | Roughly break-even to small profit; occasional costly mistake | Visit every 1–2 weeks |
+| Senior | Reliably profitable for 8–12 weeks | Monthly visit; growth decisions only |
+| Veteran | Profitable until buzz and freshness fade (doc 11 Part A) | Growth decisions only |

@@ -196,6 +196,10 @@ Modifier keys are a fixed list; the sim reads each key where the listed rule app
 | trait_clumsy | Clumsy | `mishapChance: 0.01` | 1% per task to add 3 ticks |
 | trait_charming | Charming (server/cashier) | `tipMult: 1.25` | Groups they billed tip 25% more |
 
+Manager-only traits (rules in doc 02 §15.14): `trait_by_the_book`, `trait_cuts_corners`,
+`trait_mgr_ambitious`, `trait_settled`, `trait_honest_to_a_fault`, `trait_slippery`.
+60% of managers have none, 40% have one.
+
 Generation: 50% of staff have 0 traits, 40% have 1, 10% have 2. `trait_toxic` and
 `trait_mentor` never appear together. Worst-tier staff always include one `trait_toxic`
 or `trait_hot_headed` member.
