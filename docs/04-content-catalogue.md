@@ -218,7 +218,8 @@ Staff stats: skill uniform in the tier's range; reliability and loyalty = tier m
 ±20; honesty uniform 30–95 (hidden problems may override one person); wage =
 `expectedWage` × (1.1 for Excellent, 1.0 Best/Good, 0.9 Bad, 0.85 Worst); fatigue 20.
 Default rota: everyone works 6 days, day off assigned round-robin Mon–Thu so no role is
-empty on Fri–Sun where avoidable.
+empty on Fri–Sun where avoidable. On the day a single-holder role is off, its work falls
+to a stand-in role (doc 02 §6.2) or to the owner / working manager.
 
 Starting stock: enough of every menu ingredient for 1.5 forecast days, with `daysLeft`
 uniform between 1 and shelf life. Worst tier: 0.5 days and 30% of chilled batches at 1 day left.

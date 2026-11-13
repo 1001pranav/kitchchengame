@@ -353,7 +353,7 @@ just because someone is in charge. A manager has three skills — *people*, *upk
 | Equipment | Services on time, warns before a breakdown, repairs properly | Skips servicing, cheap fixes that fail again |
 | Stock | Orders close to what is needed, rejects bad deliveries | Over-orders (waste) or under-orders (sold-out dishes) |
 | Asking you | Raises problems early | Raises them late or not at all |
-| Cost | About 50% higher wage | Cheap |
+| Cost | About twice a Trainee's wage | Cheap |
 
 Between those two extremes there are **five grades** — Trainee, Junior, Capable, Senior
 and Veteran — at roughly 190 to 370 coins a day, and **four profiles** (all-rounder,
@@ -361,6 +361,10 @@ people person, tight ship, numbers), so two managers of the same grade can be st
 different things. Senior and Veteran managers only join well-rated companies and expect
 a share of the outlet's profit. Every manager has hidden potential: a cheap Trainee you
 coach can grow into a Senior.
+
+**Managers work the floor.** A manager is not an extra salary sitting in an office: they
+run the till in place of a cashier and fill in wherever the crew is short, as in most
+real small restaurants. That is what makes a manager affordable for one outlet.
 
 A good manager keeps a sound outlet profitable without you for a long time. A cheap one
 slowly turns a sound outlet into a losing one — and the weekly report says which of

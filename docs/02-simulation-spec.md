@@ -76,7 +76,7 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 |---|---|---|---|
 | poor | 30 | 1,800 | 20/40/35/5 |
 | weak | 40 | 2,000 | 25/40/25/10 |
-| average | 50 | 2,800 | 30/35/20/15 |
+| average | 55 | 2,800 | 30/35/20/15 |
 | good | 65 | 3,800 | 35/30/15/20 |
 | prime | 85 | 5,200 | 35/25/10/30 |
 
@@ -146,6 +146,14 @@ Table states: `free → occupied → dirty → free`.
 | bill | group finishes eating (→ waitBill) | cashier, server (×1.5 time) | 2 | payment; satisfaction computed; group → left; table → dirty |
 | clear | table dirty | server, cleaner | 2 | table free; dirtyDishes += group size × 2 |
 | wash | — (continuous, §6.6) | dishwasher | — | — |
+
+**Stand-in roles.** With one person per role and a six-day week, some role is unstaffed
+on most weekdays. When a role has nobody working, its tasks may be taken by a stand-in
+at ×1.5 time and skill −15: wash ← cleaner, prepCook; clean (hygiene at close, at half
+effect) ← dishwasher; cook ← prepCook; bill/seat ← server; takeOrder/deliver/clear ←
+cashier. A stand-in only takes such a task when none of their own role's tasks is
+waiting. The owner (or a working manager, §15.15) covering the role takes priority over
+stand-ins.
 
 `EAT_TICKS = 12 + 3 × groupSize` (max 30). A fitting table is the smallest free table
 with seats ≥ group size; groups of 1 use two-seat tables.
@@ -234,7 +242,9 @@ waitScore  = 100 × (1 − totalWaitTicks / totalPatienceLimitTicks), clamp 0–
 valueScore = clamp(75 − 100 × (billPriceIndex − 1) × segment.priceSensitivity, 0, 100)
 cleanScore = hygiene
 satisfaction = 0.40 food + 0.30 wait + 0.15 value + 0.15 clean − 10 × unavailableCount
-walk-out before food: satisfaction = 10
+walk-out after being seated, before food: satisfaction = 10
+turned away / gave up waiting for a table (never seated): satisfaction = 30, and the group
+  counts as half a group in the day's star average and in `n` below
 stars = clamp(satisfaction / 20, 0, 5)
 ```
 
@@ -307,7 +317,9 @@ index** = mean over all staff. Both are shown with a trend arrow.
 
 ### 7.4 Absence and lateness (at prep, rostered staff)
 
-`pAbsent = (100 − reliability)/400 + (0.05 if fatigue > 80) + (0.05 if morale < 30)`.
+`pAbsent = (100 − reliability)/ABSENCE_DIVISOR (1,000) + (0.05 if fatigue > 80) + (0.05 if morale < 30)`
+(about 4.5% of days for a Good-tier staff member; was /400 ≈ 11%, which the prototype
+showed to be the largest single cost at a managed outlet).
 If not absent: `pLate = (100 − reliability)/300`; late staff start work at tick `rng.int(15, 60)`.
 
 ### 7.5 Quitting, with or without notice (at close)
@@ -477,7 +489,11 @@ as they occur. `utilitiesAccrued += UTILITIES_BASE (80) + 1.2 × groupsServed + 
    If cash is insufficient for an instalment: it is missed → penalty 5% of the payment
    added to outstanding, `missedPayments += 1`, credit score −15. Wages and rent are
    always paid (cash may go negative).
-4. Operating profit of the week = revenue − all costs except loan principal.
+4. **Operating profit** of the week = revenue − all running costs (ingredients, wages,
+   rent, utilities, upkeep, marketing, fines). It contains **no loan money at all**.
+   **Net profit** = operating profit − loan interest paid that week (principal repaid is
+   not a cost). A "profitable week" in stage conditions, badges and `lossWeeks` means
+   net profit > 0; the bank's affordability check and valuation use operating profit.
 
 ### 14.3 Monthly (day 28 close)
 Utilities accrued are paid; tax = 10% of the month's positive profit; licence fee 500.
@@ -591,15 +607,19 @@ An incident at a location where the owner is not present is raised as a **call**
 
 ### 15.5 Neglect (standards slip)
 ```
-graceDays = NEGLECT_GRACE_BASE (2) + managerSkill / 10          (skill 50 → 7 days)
+graceDays = managerSkill² / NEGLECT_GRACE_SQ_DIV (70)
+            (Trainee 27 → 10 days, Junior 42 → 25, Capable 57 → 46, Senior 72 → 74, Veteran 86 → 106)
 neglect   = max(0, (today − lastOwnerVisitDayIndex) − graceDays)
-slack     = min(NEGLECT_MAX (0.30), neglect × NEGLECT_PER_DAY (0.02))
+slack     = min(NEGLECT_MAX (0.20), neglect × NEGLECT_PER_DAY (0.01))
 ```
+The grace period grows steeply with manager skill so that the grade table in §15.14
+holds: a weak manager needs the owner within days, a Senior can be left for about ten
+weeks. (The earlier linear rule let every outlet hit the cap in three to four weeks
+whatever the grade.)
 Effects at that location while `slack > 0`:
 - all staff task durations × `(1 + slack)`
 - hygiene gained from cleaners × `(1 − slack)`
 - ingredient consumption per cook task: each recipe line has chance `slack` of using +1 unit (over-portioning)
-- absence chance `+ slack / 5`
 - skimming chance `+ slack` (below)
 
 A visit (§15.3) resets `neglect` to 0 from the next day. `slack` and its inputs are
@@ -790,7 +810,7 @@ Applied only at locations where the owner is **not** present at the relevant mom
   in an off-duty staff member of the same role (paid overtime, fatigue +6).
 - Fatigue care: people ≥ 60 gives a day off to anyone with fatigue > 75 if the role
   stays covered; below 60 never does (burnout and quitting follow).
-- Daily morale modifier for all staff at the outlet: `clamp((people − 50)/50, −1, +1)`.
+- Staff happiness: through the Boss factor of §7.3 only (no separate daily modifier).
 - Wage demands and resignations within authority: handled with success chance shifted
   by `(people − 50)/200`.
 
@@ -887,8 +907,31 @@ long-term deal in the game and a reason for the owner to visit.
 
 | Grade | Unvisited outlet in a sound location | Owner attention it needs |
 |---|---|---|
-| Trainee | Loses money within 2–4 weeks | Visit most days; expect to do the thinking |
-| Junior | Slides into loss within 4–8 weeks | Weekly visit; read the requests carefully |
-| Capable | Roughly break-even to small profit; occasional costly mistake | Visit every 1–2 weeks |
-| Senior | Reliably profitable for 8–12 weeks | Monthly visit; growth decisions only |
-| Veteran | Profitable until buzz and freshness fade (doc 11 Part A) | Growth decisions only |
+| Trainee | Loses money from the first weeks | Weekly visits only get it to break-even; visit more or coach hard |
+| Junior | Small profit for a month, then slides into loss | Weekly visit keeps it modestly profitable |
+| Capable | Profitable for about two months, then roughly break-even | Visit every 1–2 weeks |
+| Senior | Reliably profitable for about 12 weeks, fading after | Monthly visit; growth decisions only |
+| Veteran | Profitable for half a year if the owner still markets | Growth decisions only |
+
+Prototype measurements behind this table are in doc 06 §3a.
+
+### 15.15 The manager works the floor
+
+A restaurant of this size cannot carry a manager as a pure overhead: the prototype
+showed a manager's wage (1,300–2,600 a week) eating a third to two thirds of a Good-tier
+outlet's profit before a single mistake. So, as in real small restaurants, **the manager
+is a working member of the crew**.
+
+- The manager holds the **cashier** position (till and seating tasks) at skill = the
+  mean of their three sub-skills. A managed outlet therefore needs **no cashier**; an
+  outlet taken over with one can transfer, retrain (as server) or let them go.
+- When another role is uncovered (absence the manager could not call cover for, a day
+  off, a vacancy), the manager **fills in** like the owner on "cover": they take the
+  oldest waiting task of the uncovered role at skill 50, and the till falls back to
+  servers (×1.5 time, §6.2). One role at a time.
+- While filling in on the floor the manager still performs prep-time duties (rota,
+  orders, maintenance) — those happen before service.
+- Large outlets (20+ tables, doc 02 §15.9) may hire a cashier as well; the manager then
+  only fills gaps.
+- The owner pays one manager wage per outlet and saves one cashier wage, so the net cost
+  of a manager is roughly 600 (Trainee) to 1,900 (Veteran) a week.

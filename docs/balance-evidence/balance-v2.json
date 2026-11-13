@@ -1,0 +1,206 @@
+{
+  "_comment": "PROPOSAL, not spec: balance.json with three levers changed (see README 'Proposed tuning'). BASE_FOOTFALL 50->55 (average location), BUZZ_DECAY 0.02->0.01, ABSENCE_DIVISOR 400->1000.",
+  "BASE_FOOTFALL": 55,
+  "WEEKLY_RENT": 2800,
+  "TABLES": 14,
+  "START_CASH": 20000,
+  "START_LOAN": 70000,
+  "START_REPUTATION": 3.5,
+  "START_HYGIENE": 70,
+  "START_CREW_MORALE": 55,
+  "CREW_SKILL_MIN": 40,
+  "CREW_SKILL_MAX": 65,
+  "CREW_ROLES": [
+    "headChef",
+    "lineCook",
+    "prepCook",
+    "dishwasher",
+    "server",
+    "server",
+    "cashier",
+    "cleaner"
+  ],
+  "BASE_WAGE": {
+    "headChef": 220,
+    "lineCook": 140,
+    "prepCook": 100,
+    "dishwasher": 80,
+    "server": 100,
+    "cashier": 100,
+    "cleaner": 80,
+    "manager": 260
+  },
+  "EQUIP_CONDITION_MIN": 55,
+  "EQUIP_CONDITION_MAX": 65,
+  "EQUIP_AGE_DAYS_MIN": 336,
+  "EQUIP_AGE_DAYS_MAX": 1008,
+  "DOW_FACTOR": [
+    0.8,
+    0.85,
+    0.9,
+    1.0,
+    1.25,
+    1.4,
+    1.2
+  ],
+  "SEASON_FACTOR": [
+    1.0,
+    0.95,
+    1.0,
+    1.1
+  ],
+  "DAYS_PER_SEASON": 84,
+  "SEGMENT_MIX": {
+    "office": 0.3,
+    "family": 0.35,
+    "student": 0.2,
+    "tourist": 0.15
+  },
+  "SEGMENT_PRICE_SENSITIVITY": {
+    "office": 1.0,
+    "family": 1.0,
+    "student": 1.5,
+    "tourist": 0.6
+  },
+  "REP_UP": 0.05,
+  "REP_DOWN": 0.1,
+  "HAPPINESS_SPEED": 0.15,
+  "BUZZ_START": 0.5,
+  "BUZZ_DECAY": 0.01,
+  "FRESHNESS_START": 0.6,
+  "FRESHNESS_DECAY": 0.01,
+  "MENU_REWORK_COST": 800,
+  "COMPETITION_UP": 0.01,
+  "COMPETITION_DOWN": 0.005,
+  "COMPETITION_MAX": 0.5,
+  "CAMPAIGNS": {
+    "flyers": {
+      "cost": 400,
+      "boost": 0.08,
+      "days": 3,
+      "buzz": 0.1
+    },
+    "localAd": {
+      "cost": 1500,
+      "boost": 0.15,
+      "days": 7,
+      "buzz": 0.25
+    },
+    "promoDay": {
+      "cost": 0,
+      "boost": 0.5,
+      "days": 1,
+      "buzz": 0.15
+    }
+  },
+  "PROMO_PRICE_MULT": 0.75,
+  "CAMPAIGN_BOOST_CAP": 0.6,
+  "MENU_REWORK_BUZZ": 0.1,
+  "UTILITIES_BASE": 80,
+  "UTILITIES_PER_GROUP": 1.2,
+  "UTILITIES_PER_UNIT": 15,
+  "LICENCE_FEE": 500,
+  "TAX_RATE": 0.1,
+  "LOAN_WEEKLY_RATE": 0.004,
+  "LOAN_TERM_WEEKS": 52,
+  "MISSED_PAYMENT_PENALTY": 0.05,
+  "BREAK_BASE": 0.002,
+  "MAINTENANCE_COST_PCT": 0.02,
+  "MAINTENANCE_GAIN": 15,
+  "MAINTENANCE_THRESHOLD": 65,
+  "CHEAP_REPAIR_PCT": 0.1,
+  "PROPER_REPAIR_PCT": 0.25,
+  "CHEAP_REPAIR_CONDITION": 40,
+  "PROPER_REPAIR_CONDITION": 70,
+  "CHEAP_REPAIR_REFAIL": 0.25,
+  "HYGIENE_PER_GROUP": 0.15,
+  "HYGIENE_PER_CLEANER": 12,
+  "INSPECTION_FINE_WARN": 1500,
+  "INSPECTION_FINE_CLOSE": 5000,
+  "INSPECTION_CLOSE_DAYS": 2,
+  "NEGLECT_GRACE_BASE": 2,
+  "NEGLECT_PER_DAY": 0.01,
+  "NEGLECT_MAX": 0.2,
+  "MANAGER_LEARN_DAYS": 28,
+  "MANAGER_LEARN_CAP": 85,
+  "MANAGER_APPLICANT_DAYS": 14,
+  "MANAGER_GRADE_WEIGHTS": {
+    "trainee": 30,
+    "junior": 30,
+    "capable": 25
+  },
+  "PROTO_SPEND_PER_GROUP": 55,
+  "PROTO_FOOD_COST": 0.325,
+  "PROTO_BASE_WASTE": 0.05,
+  "PROTO_TABLE_TURNS": 6,
+  "PROTO_WALKOUT_BASE": 0.05,
+  "PROTO_WALKOUT_PER_GAP": 0.15,
+  "PROTO_FOOD_BASE": 50,
+  "PROTO_WAIT_BASE": 0.3,
+  "PROTO_WAIT_PER_GAP": 0.12,
+  "PROTO_MENU_LOSS_REVENUE_SHARE": 0.5,
+  "PROTO_UNAVAILABLE_PER_MENU_LOSS": 3,
+  "PROTO_OVERPORTION_COST": 0.25,
+  "PROTO_CREW_WORK_DAYS": 6,
+  "PROTO_OWNER_VISITS_PER_WEEK": 2,
+  "PROTO_MANAGER_SEVERANCE_DAYS": 7,
+  "PROTO_REFAIL_WINDOW": 7,
+  "EQUIPMENT": {
+    "range": {
+      "price": 6000,
+      "wear": 0.5,
+      "menuLoss": 0.4
+    },
+    "oven": {
+      "price": 5000,
+      "wear": 0.4,
+      "menuLoss": 0.3
+    },
+    "fridge": {
+      "price": 4000,
+      "wear": 0.3,
+      "menuLoss": 0.3,
+      "spoilage": 600
+    },
+    "freezer": {
+      "price": 3500,
+      "wear": 0.3,
+      "menuLoss": 0.1
+    },
+    "shelving": {
+      "price": 800,
+      "wear": 0.05
+    },
+    "dishMachine": {
+      "price": 3000,
+      "wear": 0.5,
+      "gap": 1,
+      "hygiene": 5
+    },
+    "hood": {
+      "price": 2500,
+      "wear": 0.3,
+      "hygiene": 5,
+      "morale": 4
+    },
+    "pos": {
+      "price": 1500,
+      "wear": 0.2,
+      "gap": 0.5
+    },
+    "ac": {
+      "price": 3000,
+      "wear": 0.3,
+      "morale": 4
+    }
+  },
+  "ABSENCE_DIVISOR": 1000,
+  "NEGLECT_ABSENCE_DIVISOR": 0,
+  "NEGLECT_GRACE_SQ_DIV": 70,
+  "WORKING_MANAGER": 1,
+  "MANAGER_STEP_IN_GAP": 0.5,
+  "DOUBLE_PEOPLE_MORALE": 0,
+  "MGR_WAGE_A": 0.4,
+  "MGR_WAGE_B": 1.2,
+  "MANAGER_TILL_SKILL_REF": 60
+}
