@@ -178,6 +178,8 @@ loyalty: int   honesty: int   fatigue: double   wage: int   traits: string[]
 daysWorked: int   consecutiveDays: int   hiredDayIndex: int
 managerSkills?: {people: int, upkeep: int, stock: int}   (role = manager only; `skill` = their mean)
 managerSinceDayIndex?: int
+moodModifiers: [{key: string, score: double, untilDayIndex: int}]
+lastGrowthDayIndex: int   lastRefusalDayIndex?: int   rushDaysLast7: int
 status: "active" | "absent" | "late" | "training" | "notice"
 statusUntilDayIndex?: int   lateUntilTick?: int
 ```

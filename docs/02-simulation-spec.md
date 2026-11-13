@@ -177,6 +177,7 @@ preferring the first-listed role, then highest skill, then lowest id.
 duration = max(1, round( baseTicks × roleMult × (1.5 − skill/100) × fatigueMult × envMult ))
 roleMult    = 1.5 when a fallback role does the task where marked, else 1
 fatigueMult = 1 + max(0, fatigue − 60) / 100
+moraleMult  = 1 + (50 − morale) / 500          (staff only; multiply into duration, §7.3)
 ```
 
 Cook tasks additionally require a **free slot on the dish's station** (§10.2). A cook
@@ -261,31 +262,81 @@ worked; overtime (6th and 7th consecutive day) is paid ×1.5.
 Worked today: `+12`; `+6` more if the day was a rush (waiting tasks for their role
 exceeded 5 at any tick); day off: `−30`. Clamp 0–100.
 
-### 7.3 Morale (at close, each staff member)
+### 7.3 Happiness index (stored as `morale`, 0–100)
+
+Each staff member has a happiness index. Internally the field is `morale`; players see
+"Happiness". It is **not** a running total of small bumps: each day a **target** is
+computed from the factors below and happiness moves part of the way toward it, so the
+player can always see what is pulling someone up or down.
 
 ```
-Δ = 0
-Δ += clamp((wage − expectedWage) / expectedWage × 20, −4, +2)
-Δ −= 2 if fatigue > 70
-Δ −= 1 if worked a rush day
-Δ += min(3, tipShare / 20)
-Δ += (60 − morale) × 0.02          (drift toward 60)
-Δ += incident and trait modifiers
-morale = clamp(morale + Δ, 0, 100)
+target  = clamp(50 + Σ factor scores, 0, 100)
+morale += (target − morale) × HAPPINESS_SPEED (0.15)      at close, every day
+morale += one-off shocks from incident effects (type `morale`), then clamp 0–100
 ```
-Firing someone: all others −5 morale (−10 if the fired person had morale > 60; +5 if they
-carried the `toxic` trait).
+
+| # | Factor | Score |
+|---|---|---|
+| 1 | **Pay** | `clamp((wage − expectedWage) / expectedWage × 100, −20, +10)` |
+| 2 | **Tiredness** | `−0.3 × (fatigue − 50)` if fatigue > 50 (down to −15); `+3` if fatigue < 30 |
+| 3 | **Rest** | `−5` if consecutiveDays ≥ 6; `−5` for 14 days after a refused leave request |
+| 4 | **Short-staffed shifts** | `−10 ×` (share of their last 7 worked days that were rush days) |
+| 5 | **Team** | `+3` if a `mentor` works in their role; `−5` if a `toxic` colleague works at the outlet; `−5` for 14 days after a colleague was fired (`+5` instead if that colleague was toxic); `−4` while a role at the outlet has been vacant > 14 days |
+| 6 | **Boss** | Outlet run by a manager: `(manager people skill − 50) / 5` (−10…+10). `+3` in any week the owner was present at the outlet (doc 02 §15.3; always true in a single-restaurant game unless the owner rested all week) |
+| 7 | **Growth** | `+5` for 28 days after training, promotion or raise; `−5` if skill > 60 and none of those in the last 112 days (`ambitious`: 56 days, `−10`) |
+| 8 | **Job security** | `−10` while the outlet is in crisis; `−8` while it is listed for sale; `−6` for 14 days after an inspection closure |
+| 9 | **Working conditions** | `−4` AC broken (`−8` in summer); `−4` hood broken (kitchen roles only); `−3` if any station they use has condition < 40; `−3` if hygiene < 50 |
+| 10 | **Recognition** | `+min(5, average daily tip share over last 7 days / 20)`; `+5` for 14 days after a bonus or the star-employee incident |
+| 11 | **Personal** | `loyal` trait `+3`; other trait modifiers as listed in doc 04 §5 (`othersMoraleDaily` is replaced by factor 5) |
+
+Timed entries ("for 14 days after…") are stored on the staff member as
+`moodModifiers: [{key, score, untilDayIndex}]`. `explain(staffHappiness)` returns every
+non-zero factor with its score; the same function computes the target.
+
+**Outlet happiness index** = mean `morale` of the outlet's staff. **Company happiness
+index** = mean over all staff. Both are shown with a trend arrow.
+
+**What happiness does**
+- Work speed: every task duration × `moraleMult = 1 + (50 − morale) / 500`
+  (happy staff up to 10% faster, miserable staff up to 10% slower), applied in §6.4.
+- Absence: `+0.05` when morale < 30 (§7.4).
+- Quitting and leaving without notice (§7.5).
+- Tips: a group's tip × `(0.8 + outlet happiness index / 250)`.
+- Hiring: applicants' asking wage × `(1.15 − outlet happiness index / 400)` — unhappy
+  workplaces have to pay more to attract people.
 
 ### 7.4 Absence and lateness (at prep, rostered staff)
 
 `pAbsent = (100 − reliability)/400 + (0.05 if fatigue > 80) + (0.05 if morale < 30)`.
 If not absent: `pLate = (100 − reliability)/300`; late staff start work at tick `rng.int(15, 60)`.
 
-### 7.5 Quitting (at close)
+### 7.5 Quitting, with or without notice (at close)
 
-`pQuit = max(0, 30 − morale)/300 × (1 − loyalty/200)`. A quitting staff member gives
-notice (works `rng.int(0, 7)` more days; 0 = walks out). Emits incident `inc_resignation`
-which may allow a counter-offer.
+`pQuit = max(0, 30 − morale)/300 × (1 − loyalty/200) × quitMult(trait)`.
+
+When a staff member decides to quit, roll whether they **leave without notice**:
+
+```
+pNoNotice = clamp( NO_NOTICE_BASE[difficulty]
+                 + (40 − morale) / 100
+                 + (50 − loyalty) / 200
+                 + 0.10 if they have been denied a raise or leave in the last 14 days,
+                 0.02, 0.90 )
+NO_NOTICE_BASE = easy 0.05, normal 0.15, hard 0.30
+```
+
+- **Without notice:** the person is removed immediately. At next prep the player sees
+  "{staff} did not come in and is not answering" — no counter-offer, no severance, their
+  rota slot is empty today, colleagues get the factor-5 vacancy effect if the role stays
+  unfilled. Event `staffWalkedOut` with the top three negative happiness factors, so the
+  report can say why.
+- **With notice:** status `notice` for `rng.int(3, 7)` more days and incident
+  `inc_resignation` is raised (counter-offer possible).
+
+Fairness rule: nobody quits from a happiness the player could not see. Staff with
+morale < 40 show a visible "unhappy" marker in every staff list and on their figure in
+the restaurant view; morale < 30 shows "may leave". On Hard the base chance is higher,
+but the warning signs are identical.
 
 ### 7.6 Hiring and training
 

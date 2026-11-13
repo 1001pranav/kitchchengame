@@ -55,7 +55,8 @@ the roll succeeds; `else` may hold alternative effects.
 | `cash` | `amount` (negative = cost) or `pctOfDayRevenue` | Change cash |
 | `reputation` | `delta` | Location reputation |
 | `hygiene` | `delta` | Location hygiene |
-| `morale` | `target: subject\|all\|role:<role>`, `delta` | Staff morale |
+| `morale` | `target: subject\|all\|role:<role>`, `delta` | One-off shock to happiness (it then drifts back toward its target) |
+| `mood` | `target`, `key`, `score`, `days` | Timed happiness factor (`moodModifiers`), e.g. refused leave, bonus |
 | `staffStat` | `stat`, `delta` | Change a stat of the subject |
 | `staffStatus` | `status`, `days` | absent / training / notice |
 | `staffLeaves` | — | Subject removed (no severance) |
@@ -120,7 +121,7 @@ Percentages after an effect are chances. Amounts are coins.
 2. **inc_wage_demand** · close · S: wage < expectedWage × 0.9 or just trained · 0.3 / 14
    (a) Agree — S wage ×1.15, morale +10. (b) Offer half — wage ×1.07; 50%: morale +3, else −8.
    (c)* Refuse — S morale −15, followUp inc_resignation in 7 days (40%).
-3. **inc_resignation** · close · forced when a staff member rolls quit · — / 0
+3. **inc_resignation** · close · forced when a staff member quits **with notice** (doc 02 §7.5; walk-outs without notice raise no incident) · — / 0
    (a) Counter-offer — S wage ×1.2; 60%: stays, morale = 55; else leaves after notice.
    (b)* Accept — S status notice. (c) Ask them to leave today — S leaves; all morale −3.
 4. **inc_staff_conflict** · service · two staff with morale < 50, or one hot-headed · 0.25 / 10

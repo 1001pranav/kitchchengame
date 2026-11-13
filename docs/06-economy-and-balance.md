@@ -80,7 +80,9 @@ General targets (all tiers, competent bot):
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
 | Owner covering the absent role cuts that walk-out rate by | at least half |
 | Incidents per week | 3–6 |
-| Staff turnover | 1 leaver per 6–10 weeks at morale ≈ 55 |
+| Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
+| Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
+| Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
 | Equipment breakdowns | 1 per 3–5 weeks at condition ≈ 55 with no maintenance; < 1 per 12 weeks with weekly maintenance |
 | Days where cash decision matters (cash < 1 week of costs) | 20–40% of days in the first 8 weeks for Good tier |
 

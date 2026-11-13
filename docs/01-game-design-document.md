@@ -86,6 +86,7 @@ Each stage has 3–5 optional objectives with rewards (listed in `04-content-cat
 | Incident frequency | ×0.75 | ×1.0 | ×1.25 |
 | Customer patience | ×1.15 | ×1.0 | ×0.9 |
 | Ingredient price volatility | ×0.5 | ×1.0 | ×1.5 |
+| Base chance a quitting staff member leaves without notice | 5% | 15% | 30% |
 
 ### 4.2 Cuisine theme
 
@@ -191,6 +192,14 @@ clear policies, and choose where your presence matters most today.
   give day off, warn, promote (line cook → head chef, server → manager).
 - **Dynamics:** absence, lateness, quitting, wage demands, fatigue from too many
   consecutive days, morale from pay, workload, tips, and how the owner handles incidents.
+- **Happiness index:** every staff member has a happiness score built from eleven
+  visible factors — pay, tiredness, rest, short-staffed shifts, team, boss, growth, job
+  security, working conditions, recognition and personality. Outlets and the company show
+  the average. Happy staff work faster, earn better tips and stay; unhappy staff are
+  slower, call in sick, and quit.
+- **Leaving without notice:** a quitting staff member may simply not turn up. The chance
+  rises with unhappiness, low loyalty and a recent refusal, and with difficulty. The
+  game always shows warning markers on unhappy staff first, and the report says why they left.
 - **Traits:** see `04-content-catalogue.md`.
 
 ### 6.2 Inventory and suppliers
