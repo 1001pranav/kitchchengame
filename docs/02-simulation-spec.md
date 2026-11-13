@@ -64,7 +64,8 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 5. Staff: fatigue, morale, quit rolls, reveal hidden stats (§7).
 6. Owner energy recovery (§8.3).
 7. Reputation update (§6.8).
-8. Marketing effects decay (§13).
+8. Marketing effects decay (§13). Buzz, menu freshness, equipment age, competition and
+   yearly cost creep update (doc 11 Part A).
 9. If Sunday: payroll, rent, loan instalments (§14), new applicants, weekly report, stage checks.
 10. If day 28: utilities, tax, monthly report, inspection scheduling.
 11. Bankruptcy check (§14.5). Autosave.
@@ -91,6 +92,7 @@ Best 20, Good 14, Bad 12, Worst 10. Table sizes are assigned 40% two-seat, 45% f
 groups = round( BASE_FOOTFALL
               × repFactor × priceFactor × dowFactor × seasonFactor
               × marketingFactor × themeFactor × eventFactor
+              × buzzFactor × freshnessFactor × competitionFactor     (doc 11 Part A)
               × (0.9 + 0.2 × rng.float()) )
 
 repFactor      = clamp(0.25 + 0.25 × reputation, 0.4, 1.5)
@@ -364,7 +366,8 @@ Each cooking unit provides `slots` concurrent cook tasks at its station type. Th
 slots; dishes whose station has 0 slots are auto-86'd.
 
 ### 10.3 Maintenance, repair, replacement
-- Maintenance: cost 2% of new price, `condition = min(95, condition + 15)`, once per unit
+- Maintenance: cost 2% of new price, `condition = min(maxCondition, condition + 15)`
+  (`maxCondition` falls with age, doc 11 §A.3), once per unit
   per week, unit unavailable for the next service unless done on a closed day (it is
   available if `condition` before maintenance was ≥ 50 — quick service).
 - Repair options (see `inc_breakdown`): cheap (10% of price, ready tomorrow, condition 40,

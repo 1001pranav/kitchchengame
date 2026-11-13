@@ -32,6 +32,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 0.17 | Incident engine: condition evaluator, effect applier, rolls, cooldowns, forced, follow-ups, countdown/default, subject binding | 05 §2, 02 §11 | Every condition key and effect type has a unit test; unknown key → validator error |
 | 0.18 | `incidents.json`: all 40 MVP incidents + hidden problems wiring | 05 §3–4 | Generic test resolves every option of every incident on a standard state without error; hidden problems fire on their due days |
 | 0.19 | `beginDay`/`endDay` orchestration in exact doc order; stages 1–2 and objectives; marketing; par-level auto-order | 02 §3, §13, §9.4; 01 §3.3; 04 §8 | Determinism test (28 days, save/load mid-service) passes |
+| 0.19b | Outlet lifecycle: buzz, menu freshness and `ReworkMenu`, equipment age and `maxCondition`, yearly cost creep, competition; competent bot buys ads and reworks menu | 11 Part A | Passive bot shows −10% to −20% demand after 8 weeks; competent bot holds within ±5% |
 | 0.20 | `explain` for demand, reputation change, day profit, satisfaction, dish margin | 08 §4 | Sum of factors equals the value the sim used, in a test for each target |
 | 0.21 | Balance bot (passive + competent), CSV + band report | 06 §6 | Runs 200 seeds × 26 weeks for one tier in < 2 min; output has all §6.2 columns |
 | 0.22 | **Tuning pass**: adjust `balance.json` until doc 06 §4 bands pass; log changes; update doc 06 §3 | 06 | All bands PASS or each remaining FAIL has a written note in `balance-log.md` |
@@ -53,6 +54,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 1.9 | Staff tab: list, detail, actions, Rota, Hire | 07 §4.6 | Every staff command reachable; coverage warnings correct |
 | 1.10 | Stock tab: list, Order flow, Suppliers, par levels (stage 2) | 07 §4.7 | Minimum order enforced with message; "Order usual" works |
 | 1.11 | Kitchen tab: Menu, Equipment | 07 §4.8 | Price stepper bounds 60–180%; maintain/repair/replace/sell flows |
+| 1.11b | Health card and menu rework flow | 07 §4.8, 11 §A.7 | Gauges match `sim.explain`; suggested actions deep-link |
 | 1.12 | Money tab: chart, bills, loans, valuation, Marketing (stage 2) | 07 §4.8 | Loan limits and errors shown; upcoming bills match sim |
 | 1.13 | Stage-up, objectives list, game over with timeline, lifelines | 07 §4.10, 01 §3.4 | Bankruptcy path playable end to end |
 | 1.14 | Tutorial coach marks (days 1–3), settings, pause menu, save slots | 07 §4.10 | Tutorial skippable and resettable |
@@ -67,8 +69,8 @@ or bores (doc 00 risks), adjust owner energy / staffing balance here.
 
 ## Phase 2 — Multiple locations (stages 3–4)
 
-Write `11-phase2-spec.md` first (location market, manager role and applicants, policies,
-unattended runner details, location switcher UI, company screen, chain systems), then:
+Rules are in doc 02 §15 and doc 11 Parts B–D. Before each task, add any missing exact
+formulas to doc 02 (especially for a new outlet format, doc 11 §C.1), then:
 
 2.1 Lockstep ticking of all locations, `OwnerTravel`, location strip (doc 02 §15.1, §15.3; 07 §4.11) ·
 2.2 Location market + buy/build · 2.3 Managers + policies at prep, incidents by phone and
@@ -78,7 +80,9 @@ outlet (takeover / new build, reserve check), manager authority and requests, ow
 coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
 2.3d Manager sub-skills and behaviours, attribution events, break-even (doc 02 §15.12–15.13); bot run comparing
 skill-80 and skill-35 managers against doc 06 manager targets ·
-2.4 Company tab and per-location reports that name causes · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
+2.4 Company tab and per-location reports that name causes · 2.4b Owner-only growth actions, manager suggestions, badges and outlet history (doc 11 B, D) ·
+2.4c Format 2 High street, then format 3 Office district with takeaway/delivery — **playtest gate** before formats 4–8 (doc 11 E) ·
+2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
 bulk contracts, brand reputation · 2.8 Balance bot for multi-location + tuning.
 
 ## Phase 3 — Group (stage 5)

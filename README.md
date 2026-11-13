@@ -23,4 +23,5 @@ Start with 10, then 01. Implementation follows 09 task by task.
 | [07 UI / UX spec](docs/07-ui-ux-spec.md) | Screens, wireframes, visual direction, asset list |
 | [08 Technical architecture](docs/08-technical-architecture.md) | Code structure, sim API, persistence, testing |
 | [09 Implementation plan](docs/09-implementation-plan.md) | Ordered tasks with acceptance criteria |
+| [11 Outlet lifecycle and formats](docs/11-outlet-lifecycle-and-formats.md) | Why outlets decline, manager vs owner roles, outlet formats, badges |
 | [00 Concept draft](docs/00-concept-draft.md) | Historical: the discussion draft and its risk list |

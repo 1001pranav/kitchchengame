@@ -251,6 +251,14 @@ clear policies, and choose where your presence matters most today.
 Flyers (cheap, small, short), local ads (medium), promotion day (discount, large
 demand spike, low margin), food blogger (expensive, reputation gain if the visit goes well).
 
+### 6.8b A good restaurant does not stay good by itself
+
+Five slow forces wear every outlet down: people forget you (**buzz**), regulars tire of
+the menu (**freshness**), machines age, costs creep up every year, and success attracts
+rivals. Each is visible on the outlet's Health card with its effect and a remedy.
+Running the place well only holds the line; marketing, menu work, reinvestment and
+pricing are what keep it profitable. Rules in `11-outlet-lifecycle-and-formats.md` Part A.
+
 ### 6.9 Incidents
 
 Cards with a situation and 2–4 options. Triggered mostly by state, partly by chance.
@@ -299,6 +307,19 @@ comes to the owner as a **request**. The owner alone decides:
 | Loans and marketing budgets | Hiring/raises only if the owner allows it in standing orders |
 | Staff transfers and promotions | |
 | Standing orders themselves | |
+
+**Manager keeps it running; owner makes it profitable.** Managers never market, rework
+the menu, renovate, replace ageing equipment or change prices — they can only suggest
+it. An outlet left entirely to even an excellent manager holds for a while and then
+slowly declines (§6.8b).
+
+**Every new outlet is a different kind of place.** The expansion market offers sites of
+different **formats** — office district, mall food court, tourist spot, fine dining and
+more. Each has its own difficulty and introduces one new system (takeaway and delivery,
+a central kitchen, seasonal trade, reservations and awards, shifts, catering) that can
+then be switched on at earlier outlets. Outlets earn bronze, silver and gold **badges**;
+gold means "runs well without me" and grants a chain-wide perk. Full list in
+`11-outlet-lifecycle-and-formats.md` Parts C–D.
 
 **Good managers and cheap managers.** An outlet's income changes every day while its
 rent, wages and loan payments never stop, so an outlet is not automatically profitable

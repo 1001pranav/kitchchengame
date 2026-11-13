@@ -157,6 +157,8 @@ stock: Batch[]        pendingOrders: Order[]
 menu: [{dishId, price: int, enabled: bool}]
 rota: {staffId: bool[7]}          (true = works that weekday)
 campaigns: [{type, daysLeft: int, boost: double}]
+buzz: double   freshness: double   competition: double   lastDishRotationDayIndex: int
+format: string ("neighbourhood" in Phase 1)   badge: "none"|"bronze"|"silver"|"gold"
 policies?: Policies   managerId?: string
 lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
 ledger: {invested: int, returned: int, weekContribution: int, contributions: int[] (last 52 weeks)}
@@ -179,7 +181,7 @@ statusUntilDayIndex?: int   lateUntilTick?: int
 
 ### 2.6 `Equipment`, `Batch`, `Order`
 ```
-Equipment: id, type: string, condition: double, broken: bool, availableFromDayIndex: int,
+Equipment: id, type: string, condition: double, ageDays: int, broken: bool, availableFromDayIndex: int,
            lastMaintenanceDayIndex: int, shakyUntilDayIndex?: int
 Batch:     ingredientId, qty: int, quality: double, daysLeft: int
 Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
@@ -252,6 +254,7 @@ applies it or returns an error code. Commands are the **only** way state changes
 | TakeLoan | amount, termWeeks | prep, close |
 | RepayLoan | loanId, amount | prep, close |
 | StartCampaign | locationId, type | prep, close (stage ≥ 2) |
+| ReworkMenu | locationId | prep, close |
 | SetParLevel | locationId, ingredientId, par, supplierId | prep, close (stage ≥ 2) |
 | StartService | — | prep |
 | OwnerQueueTask | taskId | service |

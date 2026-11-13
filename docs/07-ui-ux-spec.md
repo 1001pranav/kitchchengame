@@ -139,6 +139,9 @@ Stage 2: par-level editor.
 
 ### 4.8 Kitchen tab and Money tab
 
+**Health card** (on the Today tab in Close, and the outlet screen): five gauges — Buzz,
+Menu freshness, Equipment age, Cost pressure, Rivals — each with trend arrow, effect in
+percent and one suggested action.
 **Kitchen:** sub-tabs *Menu* (dish rows: price stepper, food cost %, margin, sold
 yesterday, on/off switch; warning if its station is down) and *Equipment* (condition
 bars, status, Maintain / Repair / Replace / Sell; Buy new).
@@ -245,6 +248,12 @@ without explaining it**.
 | break-even | Break-even | The number of parties you must serve in a day to cover that day's costs | Below it the day loses money even if the room looked busy |
 | fixed costs | Costs that never stop | Rent, wages and loan payments you owe whether customers come or not | A slow week still costs the same |
 | manager skills | People / Upkeep / Stock | How well a manager handles staff, equipment and ordering | Weak skills show up as waste, breakdowns and resignations |
+| buzz | Buzz | How much people are talking about your restaurant | It fades unless you advertise or do something new |
+| freshness | Menu freshness | How new your menu feels to regulars | A menu that never changes slowly loses customers |
+| competition | Rivals | Other restaurants competing for your customers | Success attracts them; staying the same lets them win |
+| equipment age | Age | How old a machine is | Old machines break more even when serviced |
+| badge | Badge | Proof that an outlet has paid for itself and runs without you | Gold badges unlock a bonus for the whole chain |
+| format | Type of outlet | The kind of place it is: office, mall, tourist spot… | Each type has its own challenge and adds something new |
 | policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
 | neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
 | skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |
