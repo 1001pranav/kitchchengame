@@ -425,7 +425,7 @@ slots; dishes whose station has 0 slots are auto-86'd.
   25% chance it fails again within 7 days), proper (25% of price, ready in 2 days,
   condition 70), emergency during service (40% of price, 60% chance fixed in 30 ticks, condition 50).
 - Replace: new = full price, condition 100, arrives in 2 days; second-hand = 50% price,
-  condition 55, arrives tomorrow. Selling a unit returns `price × condition/100 × 0.4`.
+  condition 55, age 3 years, arrives tomorrow (hidden-fault rule in §15.9 step 3 from Stage 3). Selling a unit returns `price × condition/100 × 0.4`.
 
 ## 11. Incidents (engine rules)
 
@@ -635,13 +635,90 @@ paybackPct       = returned / invested
 no cash moves between accounts. They feed `explain` and the Company screen.
 
 ### 15.9 Opening an outlet
-- **Takeover:** same generator and pricing as game start (doc 01 §4.3), offers refresh every 28 days.
-- **New build:** cost = fit-out `NEW_BUILD_FITOUT (15,000)` + chosen equipment at new
-  price + deposit of 4 × weekly rent. Opens `NEW_BUILD_DAYS (14)` days later with no
-  staff (hire or transfer), reputation = `3.0` (Stage 4+: brand reputation − 0.5), hygiene 90.
-- The purchase is refused if cash after purchase < `OPENING_RESERVE_WEEKS (2)` × the new
-  outlet's estimated weekly fixed costs (rent + wages); the UI recommends 4 weeks.
-- A manager must be appointed before the first day the owner is not there.
+
+Two routes. Both end with the outlet in `locations`; a manager must be appointed before
+the first day the owner is not there.
+
+**Route A — Buy a running restaurant.** Same generator, tiers and pricing as the start
+of the game (doc 01 §4.3), including hidden problems and due diligence. Offers refresh
+every 28 days. Trading starts the next day.
+
+**Route B — Start from scratch.** The player assembles the outlet in five steps; nothing
+is inherited, so there are no hidden problems, no staff, no customers and no reputation.
+
+*Step 1 — Site and lease.* Choose a site (location class and format, doc 11 Part C), a
+size and a lease term.
+
+| Size | Tables | Rent | Fit-out cost |
+|---|---|---|---|
+| Small | 10 | × 0.8 | × 0.7 |
+| Medium | 14 | × 1.0 | × 1.0 |
+| Large | 20 | × 1.3 | × 1.4 |
+
+| Lease term | Rent | Break fee if closed early | Rent reviews |
+|---|---|---|---|
+| 1 year | × 1.10 | 2 weeks' rent | Yearly, +8% typical |
+| 3 years | × 1.00 | 4 weeks' rent | Fixed for the term |
+| 5 years | × 0.92 | 12 weeks' rent | Fixed for the term |
+
+Deposit: 4 weeks' rent, returned on normal end of lease, lost on early closure.
+**Rent is payable from the day the lease is signed**, including the fit-out period.
+(Lease terms and break fees also replace the flat 4-week fee in §15.7 for outlets
+opened this way; taken-over outlets have a 3-year lease with a random 26–130 weeks left.)
+
+*Step 2 — Fit-out.*
+
+| Level | Base cost | Build time | Starting buzz | Customer patience |
+|---|---|---|---|---|
+| Basic | 8,000 | 7 days | 0.6 | × 0.95 |
+| Standard | 15,000 | 14 days | 0.8 | × 1.00 |
+| Premium | 30,000 | 21 days | 1.0 | × 1.10 |
+
+*Step 3 — Equipment.* For each unit the player chooses how to get it. The theme's
+required stations, one fridge, one freezer, shelving and a till are mandatory; hood,
+dish machine, AC and generator are optional (with the usual consequences of lacking them).
+
+| Way | Cost | Condition / age | Arrives | Notes |
+|---|---|---|---|---|
+| Buy new | 100% of price | 100 / 0 | 2 days | Full resale value |
+| Buy second-hand | 50% of price | 55 / 3 years | 1 day | `SECOND_HAND_FAULT (0.10)` chance of a hidden fault: true condition 35, revealed at first breakdown or after 7 days |
+| Lease | `EQUIP_LEASE_WEEKLY (2.5%)` of price per week | kept ≥ 70 | 2 days | Servicing free; breakdowns fixed free by next day; no resale value; cancel by paying 2 weeks' fee |
+
+Leasing and the second-hand fault rule apply to equipment at **every** outlet from
+Stage 3 (commands `LeaseEquipment`, `ReturnLeasedEquipment`); §10.3's second-hand option
+uses the same rule.
+
+*Step 4 — People.* During the build period the outlet has its own applicant pool
+(refreshes every 7 days; skill centred on `20 + 10 × brand or company average reputation`).
+The player hires and/or transfers staff (§15.11). Hired staff are paid from the opening
+day, not before. Minimum to open: one cook (head chef or line cook), one server, and a
+manager if the owner will not be there. Missing roles are the owner's to fill in.
+
+*Step 5 — Licence, menu, launch.* Opening licence 1,000 coins (granted within the build
+period). Menu and prices chosen as usual. Optional launch campaign 2,000 coins: demand
+× 1.3 for the first 7 days.
+
+*Opening.* The outlet opens on `leaseSignedDay + buildDays`. Reputation starts at 3.0
+(Stage 4+: brand reputation − 0.5, minimum 2.5), hygiene 95, freshness 1.0. For the first
+28 trading days `REP_UP` and `REP_DOWN` are doubled — a new place has few reviews, so
+each early customer counts twice. Opening may be postponed (rent keeps running).
+
+**Reserve check (both routes).** The purchase or lease is refused if cash afterwards
+would be below `OPENING_RESERVE_WEEKS (2)` × the outlet's estimated weekly fixed costs
+(rent + wages + equipment leases); the UI recommends 4 weeks and shows the estimated
+weeks until break-even.
+
+**How the two routes compare**
+
+| | Buy a running restaurant | Start from scratch |
+|---|---|---|
+| Money up front | High (pays for goodwill) | Lower, and adjustable (basic fit-out, second-hand or leased equipment) |
+| Income from | Day 1 | After 1–3 weeks of rent with no sales, then a slow ramp |
+| Staff | Inherited, unknown quality | Chosen by you; nobody knows the place |
+| Customers and rating | Inherited (good or bad) | None; starts at 3.0 and moves fast |
+| Equipment | Inherited age and wear | Your choice of new, second-hand or leased |
+| Surprises | Hidden problems | Second-hand faults; slow start |
+| Lease | Whatever is left on it | Your choice of term |
 
 ### 15.10 Manager authority and requests
 Policy fields: `spendingLimit` (default 500), `mayHire` (default false), `mayGiveRaises`

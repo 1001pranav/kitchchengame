@@ -300,9 +300,14 @@ and pay for the next opening. The player never taps to "collect" — but the flo
 always visible: each outlet shows what it **contributed** to (or **drew** from) the
 company each week, what was invested in it in total, and how much of that it has paid back.
 
-**Opening the next outlet** costs a lump sum (purchase or fit-out, equipment, lease
-deposit) plus an opening reserve, and a new outlet usually loses money for its first
-weeks. Expanding too early on the back of one good outlet is the classic way to lose both.
+**Opening the next outlet** can be done two ways. **Buy a running restaurant**, exactly
+as at the start of the game: staff, customers, equipment and hidden problems included,
+earning from day one. Or **start from scratch**: sign a lease (site, size and a 1, 3 or
+5-year term), pay for a basic, standard or premium fit-out, get each piece of equipment
+new, second-hand or on lease, recruit or transfer a team, then open with no customers
+and no reputation — cheaper up front, but rent runs for weeks before the first sale.
+Either way an opening reserve is required, and a new outlet usually loses money for its
+first weeks. Expanding too early on the back of one good outlet is the classic way to lose both.
 
 **Investing in existing outlets.** From anywhere, the owner can train and promote staff,
 give raises, replace or add equipment, add tables (renovation) and run marketing at any

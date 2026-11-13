@@ -76,7 +76,7 @@ formulas to doc 02 (especially for a new outlet format, doc 11 §C.1), then:
 2.2 Location market + buy/build · 2.3 Managers + policies at prep, incidents by phone and
 manager decisions (doc 02 §15.2, §15.4) · 2.3b Neglect, skimming, audit, location crisis and
 closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.3c Company cash ledger per outlet, opening an
-outlet (takeover / new build, reserve check), manager authority and requests, owner's desk,
+outlet (buy running, or from scratch: lease terms, fit-out, new/second-hand/leased equipment, pre-opening hiring, launch; reserve check), manager authority and requests, owner's desk,
 coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
 2.3d Manager sub-skills and behaviours, attribution events, break-even (doc 02 §15.12–15.13); bot run comparing
 skill-80 and skill-35 managers against doc 06 manager targets ·

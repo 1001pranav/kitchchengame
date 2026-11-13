@@ -163,6 +163,9 @@ buzz: double   freshness: double   competition: double   lastDishRotationDayInde
 format: string ("neighbourhood" in Phase 1)   badge: "none"|"bronze"|"silver"|"gold"
 policies?: Policies   managerId?: string
 lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
+lease: {termWeeks: int, endDayIndex: int, breakFeeWeeks: int, deposit: int, rentFixed: bool}
+fitOut?: "basic"|"standard"|"premium"   patienceMult: double   opensDayIndex: int
+applicants: Applicant[]   launchCampaignUntilDayIndex?: int
 ledger: {invested: int, returned: int, weekContribution: int, contributions: int[] (last 52 weeks)}
 lastCoachingDayIndex: int   managerBonusPct: double
 listing?: {listedDayIndex: int, offersDueDayIndex: int, offers: [{id: int, amount: int, expiresDayIndex: int}]}
@@ -187,6 +190,7 @@ statusUntilDayIndex?: int   lateUntilTick?: int
 ### 2.6 `Equipment`, `Batch`, `Order`
 ```
 Equipment: id, type: string, condition: double, ageDays: int, broken: bool, availableFromDayIndex: int,
+           leased: bool, leaseFeeWeekly: int, hiddenFaultUntilDayIndex?: int,
            lastMaintenanceDayIndex: int, shakyUntilDayIndex?: int
 Batch:     ingredientId, qty: int, quality: double, daysLeft: int
 Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
@@ -271,6 +275,7 @@ applies it or returns an error code. Commands are the **only** way state changes
 | (Phase 2) OwnerTravel | toLocationId | prep, service |
 | (Phase 2) SetPolicies, AppointManager, BuyLocation, BuildLocation, CloseLocation, Audit, TransferStaff, Promote, Renovate, SetManagerBonus | | prep, close |
 | (Phase 2) ListOutlet, UnlistOutlet, AcceptSaleOffer(offerId), QuickSale | locationId | prep, close |
+| (Phase 2) SignLease(siteId, size, termYears, fitOut), LeaseEquipment(locationId, type), ReturnLeasedEquipment(equipmentId), BuyLaunchCampaign(locationId), PostponeOpening(locationId, days) | | prep, close |
 | (Phase 2) AnswerRequest | requestId, answer: approve/deny/cheaper | prep, close |
 
 `GameState.requests: [{id, locationId, kind, subjectId?, cost: int, cheaperCost?: int, reasonKey, raisedDayIndex}]`

@@ -197,7 +197,12 @@ the actual effects, then **OK**.
 - **Outlet ledger** (in Company tab, per outlet): invested, paid back so far (bar),
   contribution per week (bar chart, negative weeks red), and a sentence such as
   "Branch 1 paid for 64% of Branch 3's opening."
-- **Open a new outlet** flow: choose takeover or new build → cost breakdown → "After
+- **Open a new outlet** flow: first screen compares the two routes side by side (doc 02
+  §15.9 table). *Buy running* → the takeover market as at game start. *Start from
+  scratch* → five steps (Site and lease · Fit-out · Equipment · People · Launch) with a
+  **running budget bar** always visible: spent so far, weekly cost once open, cash
+  left, weeks of reserve, estimated weeks to break even. Equipment step lists each unit
+  with three buttons (New / Second-hand / Lease) and their trade-offs → "After
   this you will have X coins, about N weeks of running costs" (red below 4 weeks) →
   choose opening team (transfer staff / hire) → appoint manager.
 - **Manager card** (hire screen and outlet screen): three skill bars (ranges until
@@ -268,6 +273,12 @@ without explaining it**.
 | counter-offer | Bank's offer | A smaller loan than you asked for | Take it, or improve your numbers and ask again |
 | private lender | Private lender | Someone who lends without questions at very high interest | A last resort that can sink you |
 | sale estimate | What it would sell for | The likely price for an outlet today | It falls when profit and rating fall |
+| lease | Lease | Your contract to rent the premises for a set number of years | Longer is cheaper but costly to leave early |
+| break fee | Leaving fee | What you pay to end a lease early | Makes closing a bad outlet expensive |
+| fit-out | Fit-out | Building work to turn empty premises into a restaurant | Rent is due while it is being done |
+| equipment lease | Rented equipment | A machine you pay for weekly and never own | No big payment and free repairs, but it costs more over time |
+| second-hand | Second-hand | Used equipment at half price | Cheaper, older, and sometimes faulty |
+| goodwill | Goodwill | What you pay for a running restaurant's customers and name | Why buying costs more than building |
 | policy | Standing orders | Rules your manager follows when you are away | Good orders keep a branch running without you |
 | neglect / slack | Standards slipping | What happens when you do not visit a branch | Service slows, waste and theft rise |
 | skimming | Missing cash | Sales and cash in the till do not match | Someone may be stealing |

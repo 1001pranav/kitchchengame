@@ -98,6 +98,17 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
 
+Opening-route targets (Phase 2; competent bot, average location, medium size):
+
+| Metric | Buy running (Good tier) | From scratch (standard fit-out, new equipment) | From scratch (basic, second-hand/leased) |
+|---|---|---|---|
+| Cash needed up front | ~150,000 | 45,000–60,000 | 20,000–30,000 |
+| Weeks to first profitable week | 1–3 | 6–10 | 8–14 |
+| Weeks to pay back the investment | 35–50 | 30–45 | 25–45, with wider spread |
+| Chance the outlet is in crisis within 26 weeks | 10–20% | 15–25% | 25–40% |
+
+Neither route should dominate: buying is safer and faster, scratch is cheaper and slower.
+
 Difficulty: Easy should lift every survival figure by roughly 10 points, Hard lower by 10–15.
 
 ## 5. Tuning levers (in order of preference)
