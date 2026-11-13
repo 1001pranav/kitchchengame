@@ -86,6 +86,7 @@ Each stage has 3–5 optional objectives with rewards (listed in `04-content-cat
 | Incident frequency | ×0.75 | ×1.0 | ×1.25 |
 | Customer patience | ×1.15 | ×1.0 | ×0.9 |
 | Ingredient price volatility | ×0.5 | ×1.0 | ×1.5 |
+| Base chance a quitting staff member leaves without notice | 5% | 15% | 30% |
 
 ### 4.2 Cuisine theme
 
@@ -118,7 +119,8 @@ removed (reputation drops 0.5). Details in `05-incident-catalogue.md`.
 
 ## 5. The owner
 
-The owner is a character on the floor during service, present at exactly one location per day.
+The owner is a character on the floor during service. The owner is in **one place at a
+time** but can travel between locations during the day (§5.4).
 
 ### 5.1 Floor work
 
@@ -141,12 +143,39 @@ the kitchen is swamped).
 - **Attention.** While the owner has a task in progress, new incident cards wait with a
   countdown, and "observation" incidents (catching theft, spotting sloppy portioning)
   cannot trigger.
-- **One place at a time.** Other locations run without the owner.
+- **One place at a time.** Other locations run without the owner while the owner is
+  elsewhere or on the road.
 
 ### 5.3 Auto-run
 
 When every role has at least one working staff member, the player may toggle **auto-run**:
 service plays at 4× without owner tasks and pauses only for incidents.
+
+### 5.4 Running several restaurants (Stage 3+)
+
+All locations open at the same time and their services run **simultaneously, tick for
+tick**. The player watches whichever location the owner is at and can look at the others
+through a live summary strip.
+
+- **Travel.** At any moment the owner can leave for another location. Travel takes
+  time (the owner is nowhere for a while and can do nothing) and costs energy. A typical
+  day allows two, at most three, locations — exactly like a real owner driving between outlets.
+- **Phone.** Incidents at other locations reach the owner as a call. The owner can decide
+  by phone, but options that need the owner physically there are unavailable, and
+  outcomes are a little worse than in person. Unanswered calls are decided by the manager.
+- **Standards slip without you.** A location the owner has not visited for a while
+  gradually gets slower, dirtier, more wasteful and easier to steal from. A good manager
+  delays this; nothing prevents it forever. A proper visit resets it.
+- **Any restaurant can fail on its own.** A location that keeps losing money enters
+  *crisis*; left alone it loses staff and reputation until it must be closed, and the
+  losses can drag the whole company into bankruptcy.
+- **The game must teach why.** Every location report names its top causes in plain
+  words ("Not visited for 12 days: service 10% slower", "Manager approved cheap repairs
+  three times: oven failed again"). The player should always be able to answer "why is
+  that branch failing?" from the report alone.
+
+The lesson is the real one: you cannot be everywhere, so you must hire well, set
+clear policies, and choose where your presence matters most today.
 
 ## 6. Systems
 
@@ -163,6 +192,14 @@ service plays at 4× without owner tasks and pauses only for incidents.
   give day off, warn, promote (line cook → head chef, server → manager).
 - **Dynamics:** absence, lateness, quitting, wage demands, fatigue from too many
   consecutive days, morale from pay, workload, tips, and how the owner handles incidents.
+- **Happiness index:** every staff member has a happiness score built from eleven
+  visible factors — pay, tiredness, rest, short-staffed shifts, team, boss, growth, job
+  security, working conditions, recognition and personality. Outlets and the company show
+  the average. Happy staff work faster, earn better tips and stay; unhappy staff are
+  slower, call in sick, and quit.
+- **Leaving without notice:** a quitting staff member may simply not turn up. The chance
+  rises with unhappiness, low loyalty and a recent refusal, and with difficulty. The
+  game always shows warning markers on unhappy staff first, and the report says why they left.
 - **Traits:** see `04-content-catalogue.md`.
 
 ### 6.2 Inventory and suppliers
@@ -208,7 +245,14 @@ service plays at 4× without owner tasks and pauses only for incidents.
 - Costs: ingredients, wages (weekly), rent (weekly), utilities (monthly), maintenance
   and repairs, marketing, loan instalments (weekly), tax (monthly, 10% of positive
   monthly profit), licences.
-- **Loans:** up to 3 at a time. Credit limit depends on valuation and payment history.
+- **Loans:** up to 3 at a time. The player **applies**; the bank approves, makes a
+  smaller counter-offer, or **rejects with a stated reason** (too many loans, a recent
+  missed payment, low trust, repayments too large for current profit, over the limit).
+  A loan can be secured on an outlet for a lower rate. A private lender always says yes
+  at triple interest.
+- **Selling an outlet** (Stage 3+): list it and wait for offers, or quick-sell at a 30%
+  discount. Price depends on its equipment, recent profit, rating and badge; a loan
+  secured on it is repaid from the proceeds first.
 - **Valuation** drives Stage 5 and the end score.
 
 ### 6.7 Hygiene and compliance
@@ -223,6 +267,14 @@ service plays at 4× without owner tasks and pauses only for incidents.
 Flyers (cheap, small, short), local ads (medium), promotion day (discount, large
 demand spike, low margin), food blogger (expensive, reputation gain if the visit goes well).
 
+### 6.8b A good restaurant does not stay good by itself
+
+Five slow forces wear every outlet down: people forget you (**buzz**), regulars tire of
+the menu (**freshness**), machines age, costs creep up every year, and success attracts
+rivals. Each is visible on the outlet's Health card with its effect and a remedy.
+Running the place well only holds the line; marketing, menu work, reinvestment and
+pricing are what keep it profitable. Rules in `11-outlet-lifecycle-and-formats.md` Part A.
+
 ### 6.9 Incidents
 
 Cards with a situation and 2–4 options. Triggered mostly by state, partly by chance.
@@ -236,7 +288,97 @@ option. Full list and rules in `05-incident-catalogue.md`.
 - **Manager:** required for every location the owner is not at. A manager runs prep
   using the location's **policies** and resolves incidents automatically with quality
   depending on manager skill; a dishonest manager skims.
-- **Unattended locations** are simulated with the same service simulation, without rendering.
+- **Unattended locations** run the same service simulation at the same time as the one
+  being watched (§5.4); the owner can travel to them or decide their incidents by phone.
+- **Closing a location:** sell equipment, pay severance and a lease-break fee of 4 weeks' rent.
+
+#### How the chain grows and what the owner still does
+
+**Money.** There is one company bank balance. Every outlet's takings go into it and
+every outlet's bills come out of it, so profitable outlets automatically fund weak ones
+and pay for the next opening. The player never taps to "collect" — but the flow is
+always visible: each outlet shows what it **contributed** to (or **drew** from) the
+company each week, what was invested in it in total, and how much of that it has paid back.
+
+**Opening the next outlet** can be done two ways. **Buy a running restaurant**, exactly
+as at the start of the game: staff, customers, equipment and hidden problems included,
+earning from day one. Or **start from scratch**: sign a lease (site, size and a 1, 3 or
+5-year term), pay for a basic, standard or premium fit-out, get each piece of equipment
+new, second-hand or on lease, recruit or transfer a team, then open with no customers
+and no reputation — cheaper up front, but rent runs for weeks before the first sale.
+Either way an opening reserve is required, and a new outlet usually loses money for its
+first weeks. Expanding too early on the back of one good outlet is the classic way to lose both.
+
+**Investing in existing outlets.** From anywhere, the owner can train and promote staff,
+give raises, replace or add equipment, add tables (renovation) and run marketing at any
+outlet. The owner can also **transfer staff** between outlets — sending a trained head
+chef or a promoted server-turned-manager to open the new place is the strongest way to
+start it well, and it leaves a hole in the old one.
+
+**Managers run the day, the owner runs the business.** A manager handles rota, ordering,
+routine maintenance and small situations within a spending limit. Everything bigger
+comes to the owner as a **request**. The owner alone decides:
+
+| Owner only | Manager (within standing orders) |
+|---|---|
+| Open, buy or close an outlet | Daily schedule |
+| Hire, fire, pay and bonus of managers and head chefs | Ordering stock up to keep-in-stock levels |
+| Menu and price level | Routine servicing of equipment |
+| Spending above the manager's limit (repairs, replacements, hiring, raises) | Small situations below the spending limit |
+| Loans and marketing budgets | Hiring/raises only if the owner allows it in standing orders |
+| Staff transfers and promotions | |
+| Standing orders themselves | |
+
+**Manager keeps it running; owner makes it profitable.** Managers never market, rework
+the menu, renovate, replace ageing equipment or change prices — they can only suggest
+it. An outlet left entirely to even an excellent manager holds for a while and then
+slowly declines (§6.8b).
+
+**Every new outlet is a different kind of place.** The expansion market offers sites of
+different **formats** — office district, mall food court, tourist spot, fine dining and
+more. Each has its own difficulty and introduces one new system (takeaway and delivery,
+a central kitchen, seasonal trade, reservations and awards, shifts, catering) that can
+then be switched on at earlier outlets. Outlets earn bronze, silver and gold **badges**;
+gold means "runs well without me" and grants a chain-wide perk. Full list in
+`11-outlet-lifecycle-and-formats.md` Parts C–D.
+
+**Good managers and cheap managers.** An outlet's income changes every day while its
+rent, wages and loan payments never stop, so an outlet is not automatically profitable
+just because someone is in charge. A manager has three skills — *people*, *upkeep* and
+*stock* — and they show in results:
+
+| | Experienced manager | Inexperienced / cheap manager |
+|---|---|---|
+| Staff | Covers absences, rests tired staff, keeps mood up | Schedule mistakes, burnt-out staff, more resignations |
+| Equipment | Services on time, warns before a breakdown, repairs properly | Skips servicing, cheap fixes that fail again |
+| Stock | Orders close to what is needed, rejects bad deliveries | Over-orders (waste) or under-orders (sold-out dishes) |
+| Asking you | Raises problems early | Raises them late or not at all |
+| Cost | About 50% higher wage | Cheap |
+
+Between those two extremes there are **five grades** — Trainee, Junior, Capable, Senior
+and Veteran — at roughly 190 to 370 coins a day, and **four profiles** (all-rounder,
+people person, tight ship, numbers), so two managers of the same grade can be strong at
+different things. Senior and Veteran managers only join well-rated companies and expect
+a share of the outlet's profit. Every manager has hidden potential: a cheap Trainee you
+coach can grow into a Senior.
+
+A good manager keeps a sound outlet profitable without you for a long time. A cheap one
+slowly turns a sound outlet into a losing one — and the weekly report says which of
+their decisions cost what. But no manager can fix what only the owner controls: a bad
+location, rent too high for the trade, wrong prices, or requests the owner refused.
+Managers learn on the job and from the owner's coaching, so a cheap hire you invest in
+can become a good one.
+
+**The owner's day at chain size** (still about five minutes):
+1. *Owner's desk* in Prep — a short inbox of requests from all outlets (approve / deny /
+   "do it cheaper"), yesterday's one-line result per outlet, and warnings.
+2. Choose where to be today (and whether to travel mid-day).
+3. Service — work or simply be present at the chosen outlet; take calls from the others.
+4. Close — company result, worst outlet first, with reasons.
+
+Being present is never wasted: a visit stops standards slipping, lets the owner catch
+theft and sloppiness, and **coaches the manager** (their skill grows a little per
+visit). An owner who only reads reports gets weaker managers and worse outlets over time.
 - **Policies** per location: par levels, price level, maintenance threshold, wage band,
   overtime allowed, incident stance (frugal / balanced / quality-first).
 - **Stage 4:** central kitchen (prep done centrally: −prep time, +fixed cost), bulk

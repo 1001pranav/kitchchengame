@@ -80,9 +80,37 @@ General targets (all tiers, competent bot):
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
 | Owner covering the absent role cuts that walk-out rate by | at least half |
 | Incidents per week | 3–6 |
-| Staff turnover | 1 leaver per 6–10 weeks at morale ≈ 55 |
+| Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
+| Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
+| Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
 | Equipment breakdowns | 1 per 3–5 weeks at condition ≈ 55 with no maintenance; < 1 per 12 weeks with weekly maintenance |
 | Days where cash decision matters (cash < 1 week of costs) | 20–40% of days in the first 8 weeks for Good tier |
+
+Manager targets (Phase 2; a Good-tier outlet in an average location, owner never visits, default standing orders):
+
+| Metric | Target |
+|---|---|
+| Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 |
+| Manager sub-skills all 80: still profitable on average after 12 weeks unvisited | yes |
+| Manager sub-skills all 35: first 4-week period with negative total profit | within weeks 3–8 |
+| Weekly profit gap between the two (after their wage difference) | 1,500 – 4,000 in favour of the experienced manager |
+| Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
+| Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
+| Excellent manager in a poor location with overpriced rent | still loses money (structural) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +400 to +1,200 per step; never negative |
+| Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
+| Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
+
+Opening-route targets (Phase 2; competent bot, average location, medium size):
+
+| Metric | Buy running (Good tier) | From scratch (standard fit-out, new equipment) | From scratch (basic, second-hand/leased) |
+|---|---|---|---|
+| Cash needed up front | ~150,000 | 45,000–60,000 | 20,000–30,000 |
+| Weeks to first profitable week | 1–3 | 6–10 | 8–14 |
+| Weeks to pay back the investment | 35–50 | 30–45 | 25–45, with wider spread |
+| Chance the outlet is in crisis within 26 weeks | 10–20% | 15–25% | 25–40% |
+
+Neither route should dominate: buying is safer and faster, scratch is cheaper and slower.
 
 Difficulty: Easy should lift every survival figure by roughly 10 points, Hard lower by 10–15.
 

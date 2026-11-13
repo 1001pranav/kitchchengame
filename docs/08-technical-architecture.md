@@ -211,12 +211,15 @@ cd app && flutter analyze && flutter test
 ## 8. Performance budget
 
 - One service tick for one location: < 0.2 ms on a mid-range phone (≤ 60 groups, ≤ 200 tasks).
-- A full unattended location-day: < 100 ms. With > 5 unattended locations, run their
-  days in a background isolate at `beginDay` (Phase 2).
+- Phase 2: all locations tick in lockstep (doc 02 §15.1), so one frame at 2× may run
+  2 ticks × N locations; budget holds up to ~20 locations. Beyond that, lower the
+  auto-run tick cap rather than moving the sim to an isolate.
 - Save file: < 500 KB per location-year; `History` is capped (doc 03 §2.9).
 
 ## 9. Phase 2+ notes (do not build early)
 
-Multi-location only needs: `locations` already being a list, `ownerLocationId`, the
-unattended runner (doc 02 §15) and policy commands. Do **not** add abstractions for
+Multi-location only needs: `locations` already being a list, the per-location tick loop
+called for every location (doc 02 §15), owner travel, manager policies and the neglect
+modifiers. In Phase 0–1 write `service.dart` so it takes a `Location` argument and never
+assumes there is only one. Do **not** add abstractions for
 brands, franchising or central kitchens before Phase 2/3 specs exist.

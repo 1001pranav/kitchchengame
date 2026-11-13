@@ -28,10 +28,11 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 0.13 | Staff: wages, fatigue, morale, absence, lateness, quitting with notice, applicants, hire/fire/raise/train, stat reveal, traits | 02 §7, 04 §5 | Each formula unit-tested; each trait modifier has a test |
 | 0.14 | Owner: queue, cover roles, walking, energy, mistakes, rest day, forced rest | 02 §8 | Scenario: server absent + owner covers Server → walk-outs at least halve vs not covering (fixed seed set) |
 | 0.15 | Equipment: wear, breakdown, maintenance, repair options, replace, sell; storage capacity effects | 02 §10, §9.1 | Breakdown frequency at condition 30 vs 80 matches formula over 10⁴ rolls |
-| 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loans, credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 | Scenario: 3 missed instalments → game over; valuation formula test |
+| 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loan applications (bank checks, counter-offer, rejection reasons, secured, private lender), credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 (not §14.7) | Scenario: 3 missed instalments → game over; valuation formula test |
 | 0.17 | Incident engine: condition evaluator, effect applier, rolls, cooldowns, forced, follow-ups, countdown/default, subject binding | 05 §2, 02 §11 | Every condition key and effect type has a unit test; unknown key → validator error |
 | 0.18 | `incidents.json`: all 40 MVP incidents + hidden problems wiring | 05 §3–4 | Generic test resolves every option of every incident on a standard state without error; hidden problems fire on their due days |
 | 0.19 | `beginDay`/`endDay` orchestration in exact doc order; stages 1–2 and objectives; marketing; par-level auto-order | 02 §3, §13, §9.4; 01 §3.3; 04 §8 | Determinism test (28 days, save/load mid-service) passes |
+| 0.19b | Outlet lifecycle: buzz, menu freshness and `ReworkMenu`, equipment age and `maxCondition`, yearly cost creep, competition; competent bot buys ads and reworks menu | 11 Part A | Passive bot shows −10% to −20% demand after 8 weeks; competent bot holds within ±5% |
 | 0.20 | `explain` for demand, reputation change, day profit, satisfaction, dish margin | 08 §4 | Sum of factors equals the value the sim used, in a test for each target |
 | 0.21 | Balance bot (passive + competent), CSV + band report | 06 §6 | Runs 200 seeds × 26 weeks for one tier in < 2 min; output has all §6.2 columns |
 | 0.22 | **Tuning pass**: adjust `balance.json` until doc 06 §4 bands pass; log changes; update doc 06 §3 | 06 | All bands PASS or each remaining FAIL has a written note in `balance-log.md` |
@@ -42,7 +43,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 
 | # | Task | Read | AC |
 |---|---|---|---|
-| 1.1 | App shell: theme, `AssetCatalog` with placeholders, localisation lookup, content loading, `GameController`, save service | 08 §6, 07 §2, §5 | App starts, loads content, creates a game, autosaves and restores after kill |
+| 1.1 | App shell: theme, `AssetCatalog` with placeholders, localisation lookup, content loading, `GameController`, save service | 08 §6, 07 §2, §6 | App starts, loads content, creates a game, autosaves and restores after kill |
 | 1.2 | Title, New Game (difficulty, theme), Takeover Market, Offer Detail | 07 §4.2 | Can buy any tier; due diligence reveals issues; widget tests at both sizes |
 | 1.3 | Main shell: top bar, bottom tabs, "Why?" sheet | 07 §3, §4.1, §4.10 | Cash and reputation open explanations from `sim.explain` |
 | 1.4 | Prep board | 07 §4.3 | Attention items computed and deep-link; cover-role selection; Rest today; Open doors |
@@ -53,11 +54,13 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 1.9 | Staff tab: list, detail, actions, Rota, Hire | 07 §4.6 | Every staff command reachable; coverage warnings correct |
 | 1.10 | Stock tab: list, Order flow, Suppliers, par levels (stage 2) | 07 §4.7 | Minimum order enforced with message; "Order usual" works |
 | 1.11 | Kitchen tab: Menu, Equipment | 07 §4.8 | Price stepper bounds 60–180%; maintain/repair/replace/sell flows |
+| 1.11b | Health card and menu rework flow | 07 §4.8, 11 §A.7 | Gauges match `sim.explain`; suggested actions deep-link |
 | 1.12 | Money tab: chart, bills, loans, valuation, Marketing (stage 2) | 07 §4.8 | Loan limits and errors shown; upcoming bills match sim |
 | 1.13 | Stage-up, objectives list, game over with timeline, lifelines | 07 §4.10, 01 §3.4 | Bankruptcy path playable end to end |
 | 1.14 | Tutorial coach marks (days 1–3), settings, pause menu, save slots | 07 §4.10 | Tutorial skippable and resettable |
-| 1.15 | Sound, haptics, motion polish, reduced-motion setting | 07 §5 | No audio/vibration when disabled |
-| 1.16 | Accessibility and layout pass | 07 §2, §7 | No overflow at 360×640 with text scale 1.3; labels present |
+| 1.14b | Term help: plain names everywhere, tappable term cards, first-appearance auto-open, Handbook | 07 §5 | Every row of the 07 §5 table has its three strings; a test fails if a screen shows an internal name from that table |
+| 1.15 | Sound, haptics, motion polish, reduced-motion setting | 07 §6 | No audio/vibration when disabled |
+| 1.16 | Accessibility and layout pass | 07 §2, §8 | No overflow at 360×640 with text scale 1.3; labels present |
 | 1.17 | Device test pass + performance budget check + release build without INTERNET permission | 08 §6.6, §8 | Checklist recorded in `docs/release-checklist.md` |
 
 **Gate:** playtest with real people (at least five, 30 minutes each). Record where they
@@ -66,14 +69,22 @@ or bores (doc 00 risks), adjust owner energy / staffing balance here.
 
 ## Phase 2 — Multiple locations (stages 3–4)
 
-Write `11-phase2-spec.md` first (location market, manager role and applicants, policies,
-unattended runner details, location switcher UI, company screen, chain systems), then:
+Rules are in doc 02 §15 and doc 11 Parts B–D. Before each task, add any missing exact
+formulas to doc 02 (especially for a new outlet format, doc 11 §C.1), then:
 
-2.1 `SetOwnerLocation`, location switcher · 2.2 Location market + buy/build ·
-2.3 Managers + policies + unattended runner (doc 02 §15) · 2.4 Company tab and
-per-location comparison · 2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
-bulk contracts, brand reputation · 2.7 Background isolate for unattended days ·
-2.8 Balance bot for multi-location + tuning.
+2.1 Lockstep ticking of all locations, `OwnerTravel`, location strip (doc 02 §15.1, §15.3; 07 §4.11) ·
+2.2 Location market + buy/build · 2.3 Managers + policies at prep, incidents by phone and
+manager decisions (doc 02 §15.2, §15.4) · 2.3b Neglect, skimming, audit, location crisis and
+closure, with `explain` lines for each (doc 02 §15.5–15.7) · 2.3c Company cash ledger per outlet, opening an
+outlet (buy running, or from scratch: lease terms, fit-out, new/second-hand/leased equipment, pre-opening hiring, launch; reserve check), manager authority and requests, owner's desk,
+coaching, transfers, promotion to manager, renovation (doc 02 §15.8–15.11; 07 §4.11) ·
+2.3d Manager sub-skills and behaviours, attribution events, break-even (doc 02 §15.12–15.13); bot run comparing
+skill-80 and skill-35 managers against doc 06 manager targets ·
+2.3e Selling an outlet: estimate, listing and offers, quick sale, secured-loan settlement (doc 02 §14.7) ·
+2.4 Company tab and per-location reports that name causes · 2.4b Owner-only growth actions, manager suggestions, badges and outlet history (doc 11 B, D) ·
+2.4c Format 2 High street, then format 3 Office district with takeaway/delivery — **playtest gate** before formats 4–8 (doc 11 E) ·
+2.5 Stage 3–4 objectives and incidents · 2.6 Central kitchen,
+bulk contracts, brand reputation · 2.8 Balance bot for multi-location + tuning.
 
 ## Phase 3 — Group (stage 5)
 

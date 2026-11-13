@@ -86,6 +86,7 @@ subject?: "staff" | "equipment" | "supplier" | "none"   subjectFilter?: Conditio
 options: [{
   id: string   label: string
   requires?: Condition       (option hidden/disabled when false)
+  inPerson?: bool            (Phase 2: unavailable when the owner is not at the location)
   effects: Effect[]
 }]
 defaultOption: string        (applied when ignored)
@@ -139,7 +140,9 @@ history: History
 ```
 cash: int
 loans: [{id, principal0: int, outstanding: int, weeklyRate: double, termWeeks: int,
-         weeksPaid: int, missedInRow: int}]
+         weeksPaid: int, missedInRow: int,
+         securedLocationId?: string, lender: "bank"|"private"}]
+bankRefusesUntilDayIndex: int
 creditScore: int      negativeDays: int     investorShare: double (0 or 0.2)
 supplierRelations: {supplierId: int}
 payables: [{supplierId, amount: int, dueDayIndex: int}]
@@ -156,7 +159,16 @@ stock: Batch[]        pendingOrders: Order[]
 menu: [{dishId, price: int, enabled: bool}]
 rota: {staffId: bool[7]}          (true = works that weekday)
 campaigns: [{type, daysLeft: int, boost: double}]
+buzz: double   freshness: double   competition: double   lastDishRotationDayIndex: int
+format: string ("neighbourhood" in Phase 1)   badge: "none"|"bronze"|"silver"|"gold"
 policies?: Policies   managerId?: string
+lastOwnerVisitDayIndex: int   lossWeeks: int   crisis: bool
+lease: {termWeeks: int, endDayIndex: int, breakFeeWeeks: int, deposit: int, rentFixed: bool}
+fitOut?: "basic"|"standard"|"premium"   patienceMult: double   opensDayIndex: int
+applicants: Applicant[]   launchCampaignUntilDayIndex?: int
+ledger: {invested: int, returned: int, weekContribution: int, contributions: int[] (last 52 weeks)}
+lastCoachingDayIndex: int   managerBonusPct: double
+listing?: {listedDayIndex: int, offersDueDayIndex: int, offers: [{id: int, amount: int, expiresDayIndex: int}]}
 utilitiesAccrued: int
 hiddenProblems: [{incidentId, revealed: bool, dueDayIndex: int}]
 today: DayStats       service?: ServiceState      (service present only during phase "service")
@@ -167,13 +179,19 @@ today: DayStats       service?: ServiceState      (service present only during p
 id, name: string   role: string   skill: int   reliability: int   morale: double
 loyalty: int   honesty: int   fatigue: double   wage: int   traits: string[]
 daysWorked: int   consecutiveDays: int   hiredDayIndex: int
+managerSkills?: {people: int, upkeep: int, stock: int}   (role = manager only; `skill` = their mean)
+managerSinceDayIndex?: int   managerProfile?: "allRounder"|"people"|"tightShip"|"numbers"
+managerPotential?: int   (grade is derived from the mean of managerSkills, never stored)
+moodModifiers: [{key: string, score: double, untilDayIndex: int}]
+lastGrowthDayIndex: int   lastRefusalDayIndex?: int   rushDaysLast7: int
 status: "active" | "absent" | "late" | "training" | "notice"
 statusUntilDayIndex?: int   lateUntilTick?: int
 ```
 
 ### 2.6 `Equipment`, `Batch`, `Order`
 ```
-Equipment: id, type: string, condition: double, broken: bool, availableFromDayIndex: int,
+Equipment: id, type: string, condition: double, ageDays: int, broken: bool, availableFromDayIndex: int,
+           leased: bool, leaseFeeWeekly: int, hiddenFaultUntilDayIndex?: int,
            lastMaintenanceDayIndex: int, shakyUntilDayIndex?: int
 Batch:     ingredientId, qty: int, quality: double, daysLeft: int
 Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
@@ -182,6 +200,8 @@ Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
 
 ### 2.7 `Owner`
 ```
+locationId?: string (null while travelling)   travelToLocationId?: string   arrivesTick?: int
+ticksAtLocationToday: {locationId: int}
 energy: double   exhaustedDays: int   restingToday: bool
 coverRole?: "server" | "till" | "kitchen" | "dishes"
 queue: int[] (task ids, max 3)   currentTaskId?: int   busyUntilTick?: int   idleTicks: int
@@ -241,9 +261,11 @@ applies it or returns an error code. Commands are the **only** way state changes
 | Maintain | equipmentId | prep, close |
 | BuyEquipment | locationId, type, secondHand | prep, close |
 | SellEquipment | equipmentId | prep, close |
-| TakeLoan | amount, termWeeks | prep, close |
+| ApplyLoan | amount, termWeeks, securedLocationId?, lender | prep, close — result is approved / counterOffer(amount) / rejected(reason) |
+| AcceptCounterOffer | — | same phase as the application |
 | RepayLoan | loanId, amount | prep, close |
 | StartCampaign | locationId, type | prep, close (stage ≥ 2) |
+| ReworkMenu | locationId | prep, close |
 | SetParLevel | locationId, ingredientId, par, supplierId | prep, close (stage ≥ 2) |
 | StartService | — | prep |
 | OwnerQueueTask | taskId | service |
@@ -251,7 +273,20 @@ applies it or returns an error code. Commands are the **only** way state changes
 | OwnerRest | — | prep |
 | ResolveIncident | instanceId, optionId | any |
 | EndDay | — | close |
-| (Phase 2) SetOwnerLocation, SetPolicies, AppointManager, BuyLocation, … | | |
+| (Phase 2) OwnerTravel | toLocationId | prep, service |
+| (Phase 2) SetPolicies, AppointManager, BuyLocation, BuildLocation, CloseLocation, Audit, TransferStaff, Promote, Renovate, SetManagerBonus | | prep, close |
+| (Phase 2) ListOutlet, UnlistOutlet, AcceptSaleOffer(offerId), QuickSale | locationId | prep, close |
+| (Phase 2) SignLease(siteId, size, termYears, fitOut), LeaseEquipment(locationId, type), ReturnLeasedEquipment(equipmentId), BuyLaunchCampaign(locationId), PostponeOpening(locationId, days) | | prep, close |
+| (Phase 2) AnswerRequest | requestId, answer: approve/deny/cheaper | prep, close |
+
+`GameState.requests: [{id, locationId, kind, subjectId?, cost: int, cheaperCost?: int, reasonKey, raisedDayIndex}]`
+holds open manager requests. `Policies` = `{parLevels, priceLevel, maintenanceThreshold,
+wageBand, overtimeAllowed, incidentStance, spendingLimit, mayHire, mayGiveRaises}`.
+
+`GameState.ownerLocationId` is the location the owner **starts the day at**;
+`owner.locationId` is where the owner is right now. All commands that take a
+`locationId` may be issued for any location regardless of where the owner is, except
+`OwnerQueueTask`, `OwnerSetCover` and `Audit`, which need the owner there.
 
 Error codes are an enum (`notEnoughCash`, `wrongPhase`, `unknownId`, `belowMinimumOrder`,
 `limitReached`, `locked`, `invalidValue`). The UI shows a localised message per code.

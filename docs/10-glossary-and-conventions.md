@@ -62,6 +62,9 @@ Read this before any task. It applies to every contributor, human or model.
 
 ## 5. Glossary
 
+These are **internal** terms for specs and code. Text shown to players uses the plain
+names in doc 07 §5.
+
 | Term | Meaning |
 |---|---|
 | **86 / 86'd** | A dish taken off today's menu (disabled), manually or automatically |
@@ -81,11 +84,13 @@ Read this before any task. It applies to every contributor, human or model.
 | **FOH / BOH** | Front of house (dining room, till) / back of house (kitchen, dishes, store) |
 | **Forecast** | Expected groups today, without the random term |
 | **Group** | A party of 1–6 customers; the unit the sim tracks |
+| **Happiness index** | Staff `morale` 0–100, computed from factors (doc 02 §7.3); also averaged per outlet and company |
 | **Hidden problem** | A pre-existing issue in a bought restaurant, revealed over time |
 | **Hygiene** | 0–100 cleanliness score per location |
 | **Incident** | A decision card raised by the sim (doc 05) |
 | **Lifeline** | Emergency option offered when cash is negative |
 | **Location** | One restaurant |
+| **Neglect / slack** | Gradual decline of a location the owner has not visited (doc 02 §15.5) |
 | **Par level** | Stock quantity that auto-ordering tops up to |
 | **Patience** | Ticks a group will wait in a given state before walking out |
 | **Policy** | Standing instructions a manager follows at an unattended location |
@@ -103,6 +108,8 @@ Read this before any task. It applies to every contributor, human or model.
 | **Ticket** | One dish ordered by a group, to be cooked |
 | **Tick** | Smallest unit of service time; 2 game minutes |
 | **Tier** | One of five quality/price levels of takeover offer |
-| **Unattended location** | A location the owner is not at today; run by its manager |
+| **Travel** | Owner moving between locations during service; takes ticks and energy |
+| **Unattended location** | A location the owner is not at right now; run by its manager |
+| **Visit** | Owner present at a location for at least `VISIT_MIN_TICKS` in a day |
 | **Valuation** | Company worth per doc 02 §14.4 |
 | **Walk-out** | A group leaving because patience ran out |
