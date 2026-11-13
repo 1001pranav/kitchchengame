@@ -63,6 +63,9 @@ class OutletSim {
     final wages = b.map('BASE_WAGE');
     for (final r in b.list('CREW_ROLES')) {
       final role = r as String;
+      if (!ownerRun && b.d('WORKING_MANAGER') > 0 && role == 'cashier') {
+        continue;
+      }
       final skill =
           rng.nextInt(b.i('CREW_SKILL_MIN'), b.i('CREW_SKILL_MAX')).toDouble();
       final base = (wages[role] as num).toDouble();
@@ -84,6 +87,8 @@ class OutletSim {
               .toDouble(),
           rng.nextInt(b.i('EQUIP_AGE_DAYS_MIN'), b.i('EQUIP_AGE_DAYS_MAX'))));
     }
+    Manager.wageA = b.d('MGR_WAGE_A');
+    Manager.wageB = b.d('MGR_WAGE_B');
     _refreshApplicants();
     manager = managerGrade != null
         ? Manager.generate(rng, managerGrade, 0)
@@ -122,7 +127,9 @@ class OutletSim {
 
   double get slack {
     if (ownerPresentToday) return 0;
-    final grace = b.d('NEGLECT_GRACE_BASE') + manager.mean / 10;
+    final grace = b.d('NEGLECT_GRACE_SQ_DIV') > 0
+        ? manager.mean * manager.mean / b.d('NEGLECT_GRACE_SQ_DIV')
+        : b.d('NEGLECT_GRACE_BASE') + manager.mean / 10;
     final neglect = math.max(0, (day - lastVisitDay) - grace);
     return math.min(b.d('NEGLECT_MAX'), neglect * b.d('NEGLECT_PER_DAY'));
   }
@@ -345,12 +352,15 @@ class OutletSim {
     var rotaError = false;
     if (!closed) {
       var ownerCover = present ? 1 : 0;
+      var mgrStepped = false;
       for (final s in crew) {
         s.absentToday = false;
         if (s.vacant) continue;
         final p = (100 - s.reliability) / b.d('ABSENCE_DIVISOR') +
             (crewMorale < 30 ? 0.05 : 0) +
-            sl / b.d('NEGLECT_ABSENCE_DIVISOR');
+            (b.d('NEGLECT_ABSENCE_DIVISOR') > 0
+                ? sl / b.d('NEGLECT_ABSENCE_DIVISOR')
+                : 0);
         s.absentToday = rng.chance(p);
       }
       for (final s in crew) {
@@ -380,6 +390,10 @@ class OutletSim {
                   .round());
           notes.add(
               'A ${s.role} was off sick; ${manager.name} called someone in.');
+        } else if (!present && b.d('WORKING_MANAGER') > 0 && !mgrStepped) {
+          mgrStepped = true;
+          gaps += w * b.d('MANAGER_STEP_IN_GAP');
+          notes.add('A ${s.role} was off sick; ${manager.name} filled in.');
         } else {
           gaps += w;
           notes.add('A ${s.role} was off sick and nobody covered.');
@@ -389,6 +403,9 @@ class OutletSim {
         gaps += 1;
         rotaError = true;
         notes.add('${manager.name} left someone off the rota.');
+      }
+      if (!ownerRun && !present && b.d('WORKING_MANAGER') > 0) {
+        gaps += math.max(0, b.d('MANAGER_TILL_SKILL_REF') - manager.mean) / 100;
       }
       if (chefOffDay == day) gaps += 1;
       for (final e in equipment.where((e) => e.broken)) {
@@ -463,10 +480,15 @@ class OutletSim {
             10 * menuLoss * b.d('PROTO_UNAVAILABLE_PER_MENU_LOSS'),
         0,
         100);
+    final nsW = b.d('NEVER_SEATED_WEIGHT');
     final groupsLeft = served + walkouts + turnedAway;
+    final repGroups = served + walkouts + turnedAway * nsW;
     final avgSat = groupsLeft == 0
         ? 0.0
-        : (served * sat + (walkouts + turnedAway) * 10) / groupsLeft;
+        : (served * sat +
+                walkouts * 10 +
+                turnedAway * nsW * b.d('NEVER_SEATED_SAT')) /
+            repGroups;
     final stars = clampD(avgSat / 20, 0, 5);
 
     // Utilities (doc 02 §14.1).
@@ -522,8 +544,12 @@ class OutletSim {
     final cleanMult = present ? 1.0 : (1 - sl) * (0.8 + manager.upkeep / 250);
     hygiene -= served * b.d('HYGIENE_PER_GROUP');
     if (!cleaner.vacant && !closed) {
+      // Proportional rule (doc 02 §12): cleaning recovers a share of the dirt present.
+      final pct = b.d('HYGIENE_CLEAN_PCT');
       hygiene +=
-          b.d('HYGIENE_PER_CLEANER') * (0.5 + cleaner.skill / 100) * cleanMult;
+          (pct > 0 ? pct * (100 - hygiene) : b.d('HYGIENE_PER_CLEANER')) *
+              (0.5 + cleaner.skill / 100) *
+              cleanMult;
     }
     for (final e in equipment.where((e) => e.broken)) {
       hygiene -= _eqD(e.type, 'hygiene');
@@ -545,7 +571,9 @@ class OutletSim {
     target = clampD(target, 0, 100);
     crewMorale += (target - crewMorale) * b.d('HAPPINESS_SPEED');
     // SPEC-GAP: §15.12 also adds a daily people modifier on top of the Boss factor.
-    if (!present) crewMorale += clampD((manager.people - 50) / 50, -1, 1);
+    if (!present && b.d('DOUBLE_PEOPLE_MORALE') > 0) {
+      crewMorale += clampD((manager.people - 50) / 50, -1, 1);
+    }
     crewMorale = clampD(crewMorale, 0, 100);
     for (final s in crew.where((s) => !s.vacant)) {
       final pQuit = math.max(0, 30 - crewMorale) / 300 * (1 - s.loyalty / 200);
@@ -557,7 +585,7 @@ class OutletSim {
 
     // Reputation (doc 02 §6.8).
     if (groupsLeft > 0) {
-      final w = math.min(1.0, groupsLeft / 20);
+      final w = math.min(1.0, repGroups / 20);
       final k = stars > reputation ? b.d('REP_UP') : b.d('REP_DOWN');
       reputation = clampD(reputation + (stars - reputation) * k * w, 0, 5);
     }
@@ -694,7 +722,7 @@ class OutletSim {
         _mgr('managerMissedRequest', -s.wage);
       }
     }
-    final op = week.operatingProfit;
+    final op = week.netProfit;
     monthProfit += op;
     // Competition (doc 11 §A.5).
     competition = op > 0 && reputation >= 4.0

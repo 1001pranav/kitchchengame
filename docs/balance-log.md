@@ -2,12 +2,27 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 2 — prototype reworked to the corrected specs
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).
+
+| Change | Old → new | Reason | Measured effect |
+|---|---|---|---|
+| Hygiene rule (doc 02 §12) | flat `+12` per cleaner → `0.40 × (100 − hygiene)` per cleaner | Hygiene pinned at 100, inspections never mattered; flat `+8` collapsed | Settles near the pass mark; owner-run profit 4.1k → 3.9k (occasional warnings); strengths 0.30 / 0.40 / 0.50 tried, 0.30 cost owner-run 0.6k and was too harsh |
+| Prototype crew | lineCook + prepCook → lineCook × 2 | Match doc 04 §6 Good-tier roster | About −200 a week |
+| Never-seated walk-outs | implemented in the prototype | Doc 02 §6.8 as changed in entry 1 | Small |
+| Profit reported | operating incl. interest → net profit | Doc 02 §14.2 as changed in entry 1 | Labels only |
+
+Result (average weekly net profit, owner markets and visits weekly):
+Trainee −0.2k, Junior +0.3k, Capable +0.9k, Senior +1.3k, Veteran +1.5k; owner with no manager +3.9k.
+Owner markets but never visits: −1.4k, −0.6k, ≈ 0, +0.6k, +1.0k.
+
+Still open: the Senior → Veteran step is only about +200 a week.
+
 ## Entry 1 — after the economy-loop prototype
 
-Source: `prototype/economy_loop` on branch `claude/economy-loop-prototype` (200 seeds ×
-26 weeks, Good tier, average location), re-run with the patch in
-`docs/balance-evidence/economy-loop-v2.patch` and `balance-v2.json`. Full output:
-`docs/balance-evidence/results-v2.txt`.
+Source: `prototype/economy_loop` (200 seeds × 26 weeks, Good tier, average location).
+The pre-change numbers are kept as `data/balance-original.json` / `results-original.txt`.
 
 ### Constants
 
@@ -31,22 +46,23 @@ Source: `prototype/economy_loop` on branch `claude/economy-loop-prototype` (200 
 | Never-seated walk-outs (§6.8) | Satisfaction 30 at half weight (was 10 at full) | Advertising past capacity lowered reputation sharply |
 | Stand-in roles (§6.2) | New | Default rota left single-holder roles empty Mon–Thu |
 
-### Result (average weekly operating profit, owner markets and visits weekly)
+### Result (average weekly net profit, owner markets and visits weekly)
 
-Before, spec numbers: Trainee −2.4k, Junior −2.0k, Capable −1.7k, Senior −1.4k, Veteran −1.1k; 0% survive.
-After: Trainee ≈ 0, Junior +0.6k, Capable +1.3k, Senior +1.7k, Veteran +1.9k.
+Before: Trainee −2.4k, Junior −2.0k, Capable −1.7k, Senior −1.4k, Veteran −1.1k; 0% survive.
+After entry 1: Trainee ≈ 0, Junior +0.6k, Capable +1.3k, Senior +1.7k, Veteran +1.9k.
+(Superseded by entry 2.)
 
 ### Tried and rejected
 
-- `HYGIENE_PER_CLEANER` 12 → 8 (to make inspections a threat at Good tier): hygiene fell
-  without limit, owner-run survival dropped from 100% to 92% and profit halved. Left at 12.
-  Open: hygiene still sits near 100 with one average cleaner.
+- `HYGIENE_PER_CLEANER` 12 → 8: hygiene fell without limit, owner-run survival dropped
+  from 100% to 92% and profit halved. Replaced by the proportional rule in entry 2.
 - Flatter manager wage curve (0.5 + 1.0 × skill) with a harsher till-skill reference:
   no better grade spread. Kept 0.4 + 1.2.
 
 ### Not tested by this prototype (needs the per-tick simulation)
 
-Stand-in roles; the never-seated walk-out rule; anything about other tiers, other
+Stand-in roles and the default rota's empty weekday roles (a day-resolution model can only
+guess their cost); anything about other tiers, other
 location classes, or more than one outlet. The prototype also models the manager's
 till work as a flat penalty below skill 60 rather than as real task durations.
 

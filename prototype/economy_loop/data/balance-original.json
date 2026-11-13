@@ -1,6 +1,6 @@
 {
-  "_comment": "PROPOSAL, not spec: balance.json with three levers changed (see README 'Proposed tuning'). BASE_FOOTFALL 50->55 (average location), BUZZ_DECAY 0.02->0.01, ABSENCE_DIVISOR 400->1000.",
-  "BASE_FOOTFALL": 55,
+  "_comment": "HISTORY: the numbers in the docs before balance-log entry 1. Every managed outlet goes bankrupt with these. Kept for comparison only.",
+  "BASE_FOOTFALL": 50,
   "WEEKLY_RENT": 2800,
   "TABLES": 14,
   "START_CASH": 20000,
@@ -66,7 +66,7 @@
   "REP_DOWN": 0.1,
   "HAPPINESS_SPEED": 0.15,
   "BUZZ_START": 0.5,
-  "BUZZ_DECAY": 0.01,
+  "BUZZ_DECAY": 0.02,
   "FRESHNESS_START": 0.6,
   "FRESHNESS_DECAY": 0.01,
   "MENU_REWORK_COST": 800,
@@ -194,6 +194,18 @@
       "morale": 4
     }
   },
-  "ABSENCE_DIVISOR": 1000,
-  "NEGLECT_ABSENCE_DIVISOR": 5
+  "ABSENCE_DIVISOR": 400,
+  "NEGLECT_ABSENCE_DIVISOR": 5,
+  "NEGLECT_GRACE_SQ_DIV": 0,
+  "WORKING_MANAGER": 0,
+  "MANAGER_STEP_IN_GAP": 0.5,
+  "DOUBLE_PEOPLE_MORALE": 1,
+  "MGR_WAGE_A": 0.4,
+  "MGR_WAGE_B": 1.2,
+  "MANAGER_TILL_SKILL_REF": 0,
+  "PROTO_ROTA_HOLES": 0,
+  "PROTO_STANDIN_GAP": 0.25,
+  "NEVER_SEATED_SAT": 10,
+  "NEVER_SEATED_WEIGHT": 1.0,
+  "HYGIENE_CLEAN_PCT": 0
 }

@@ -37,6 +37,17 @@ class CompetentOwner implements OwnerPolicy {
   }
 }
 
+/// Competent, but never sets foot in the outlet (isolates neglect from marketing).
+class RemoteOwner extends CompetentOwner {
+  @override
+  String get name => 'remote';
+  @override
+  void act(OutletSim s) {
+    super.act(s);
+    s.plannedVisits.clear();
+  }
+}
+
 class RunSummary {
   final bool survived;
   final int? failWeek;
@@ -89,7 +100,7 @@ RunSummary runOne(
     survived: s.gameOver == null,
     failWeek: s.gameOver == null ? null : s.day ~/ 7 + 1,
     finalCash: s.cash,
-    weeklyProfit: s.weeks.map((w) => w.operatingProfit).toList(),
+    weeklyProfit: s.weeks.map((w) => w.netProfit).toList(),
     weeklyServed: s.weeks.map((w) => w.served).toList(),
     health5to8: s.days.length < 56
         ? null

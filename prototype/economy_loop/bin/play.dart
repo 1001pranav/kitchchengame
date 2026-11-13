@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:economy_loop/economy_loop.dart';
 
-/// dart run bin/play.dart [--seed 7] [--balance data/balance-proposal.json]
+/// dart run bin/play.dart [--seed 7] [--balance data/balance-original.json]
 /// You own one Good-tier outlet and are mostly away; a manager runs it day to day.
 const _dows = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -175,7 +175,7 @@ void _weeklyReport(OutletSim s, {bool all = false}) {
   Food    ${money(-w.ingredients).padLeft(8)}   Crew wages ${money(-w.wages)}   Manager ${money(-w.managerWage)}
   Rent    ${money(-w.rent).padLeft(8)}   Utilities ${money(-w.utilities)}   Upkeep ${money(-w.upkeep)}
   Market. ${money(-w.marketing).padLeft(8)}   Other ${money(-w.other)}   Loan interest ${money(-w.interest)}
-  Operating profit ${money(w.operatingProfit)} · loan instalment paid ${money(w.loanPaid)} · losing days ${w.losingDays}/7''');
+  Operating profit ${money(w.operatingProfit)} · net of interest ${money(w.netProfit)} · loan instalment paid ${money(w.loanPaid)} · losing days ${w.losingDays}/7''');
     if (!all) {
       final byKey = <String, (int, int)>{};
       for (final e in w.managerEvents) {

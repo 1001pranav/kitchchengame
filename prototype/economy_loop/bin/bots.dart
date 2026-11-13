@@ -41,7 +41,7 @@ void main(List<String> args) {
   final configs = <(OwnerPolicy, Grade?)>[
     if (!only) (PassiveOwner(), null),
     if (!only) (CompetentOwner(), null),
-    for (final o in [PassiveOwner(), CompetentOwner()])
+    for (final o in [PassiveOwner(), RemoteOwner(), CompetentOwner()])
       for (final g in Grade.values) (o, g),
   ];
   for (final (owner, g) in configs) {

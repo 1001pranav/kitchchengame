@@ -67,7 +67,8 @@ class Manager {
   Grade get grade => gradeOf(mean);
 
   /// Manager wage curve, doc 02 §15.14.
-  int get wage => (260 * (0.4 + 1.2 * mean / 100)).round();
+  static double wageA = 0.4, wageB = 1.2;
+  int get wage => (260 * (wageA + wageB * mean / 100)).round();
 
   /// Raise the lowest sub-skill by 1, bounded by potential and a cap.
   void learn(int cap) {
@@ -207,7 +208,8 @@ class WeekStats {
   int upkeep = 0; // maintenance + repairs + replacements
   int other = 0; // fines, licence, tax, severance
   int loanPaid = 0;
-  int interest = 0; // part of loanPaid; counts as a cost (doc 02 §14.2 step 4)
+  int interest =
+      0; // part of loanPaid; in net profit, not operating profit (doc 02 §14.2)
   int groups = 0;
   int served = 0;
   int walkouts = 0;
@@ -224,6 +226,8 @@ class WeekStats {
       utilities -
       marketing -
       upkeep -
-      other -
-      interest;
+      other;
+
+  /// Operating profit minus loan interest (doc 02 §14.2). "Profitable week" means this > 0.
+  int get netProfit => operatingProfit - interest;
 }

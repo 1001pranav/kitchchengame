@@ -456,10 +456,16 @@ Defined in doc 05. Engine rules:
 
 ```
 hygiene −= groupsServed × 0.15
-hygiene += 12 × workingCleaners × (0.5 + skill/100)      (owner cannot substitute at close)
+hygiene += HYGIENE_CLEAN_PCT (0.40) × (100 − hygiene) × Σ over working cleaners of (0.5 + skill/100)
+                                                       (owner cannot substitute at close)
 hygiene −= 5 if no dishwasher worked;  −5 if hood broken;  −8 if pests flag active
 clamp 0–100
 ```
+Cleaning recovers a share of the dirt present, so hygiene settles at a level set by
+customer numbers and cleaner skill — about 79 for a Good-tier outlet with one average
+cleaner, just under the pass mark — instead of pinning at 100 (the earlier flat `+12`
+rule) or collapsing (a flat `+8`). Both were measured; see `docs/balance-log.md`.
+
 Inspection: when scheduled or triggered, outcome by hygiene: ≥ 80 pass (reputation +0.1);
 50–79 warning, fine 1,500, re-inspection in 7 days; < 50 closure for 2 days, fine 5,000,
 reputation −0.5.
@@ -907,11 +913,11 @@ long-term deal in the game and a reason for the owner to visit.
 
 | Grade | Unvisited outlet in a sound location | Owner attention it needs |
 |---|---|---|
-| Trainee | Loses money from the first weeks | Weekly visits only get it to break-even; visit more or coach hard |
+| Trainee | Loses money from the first weeks | Even weekly visits leave a small loss; visit more or coach hard |
 | Junior | Small profit for a month, then slides into loss | Weekly visit keeps it modestly profitable |
-| Capable | Profitable for about two months, then roughly break-even | Visit every 1–2 weeks |
+| Capable | Profitable for the first month, then roughly break-even | Visit every 1–2 weeks |
 | Senior | Reliably profitable for about 12 weeks, fading after | Monthly visit; growth decisions only |
-| Veteran | Profitable for half a year if the owner still markets | Growth decisions only |
+| Veteran | Profitable for about half a year if the owner still markets, fading to break-even | Growth decisions only |
 
 Prototype measurements behind this table are in doc 06 §3a.
 

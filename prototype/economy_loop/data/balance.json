@@ -1,6 +1,6 @@
 {
-  "_comment": "Values with a doc reference come from the design docs. Keys starting PROTO_ are prototype stand-ins for the per-tick service sim that does not exist yet; each is explained in README.md.",
-  "BASE_FOOTFALL": 50,
+  "_comment": "Current spec values (docs as of balance-log.md, latest entry). Keys starting PROTO_ are stand-ins for the per-tick service sim; see README.md.",
+  "BASE_FOOTFALL": 55,
   "WEEKLY_RENT": 2800,
   "TABLES": 14,
   "START_CASH": 20000,
@@ -13,7 +13,7 @@
   "CREW_ROLES": [
     "headChef",
     "lineCook",
-    "prepCook",
+    "lineCook",
     "dishwasher",
     "server",
     "server",
@@ -66,7 +66,7 @@
   "REP_DOWN": 0.1,
   "HAPPINESS_SPEED": 0.15,
   "BUZZ_START": 0.5,
-  "BUZZ_DECAY": 0.02,
+  "BUZZ_DECAY": 0.01,
   "FRESHNESS_START": 0.6,
   "FRESHNESS_DECAY": 0.01,
   "MENU_REWORK_COST": 800,
@@ -119,8 +119,8 @@
   "INSPECTION_FINE_CLOSE": 5000,
   "INSPECTION_CLOSE_DAYS": 2,
   "NEGLECT_GRACE_BASE": 2,
-  "NEGLECT_PER_DAY": 0.02,
-  "NEGLECT_MAX": 0.3,
+  "NEGLECT_PER_DAY": 0.01,
+  "NEGLECT_MAX": 0.2,
   "MANAGER_LEARN_DAYS": 28,
   "MANAGER_LEARN_CAP": 85,
   "MANAGER_APPLICANT_DAYS": 14,
@@ -194,6 +194,18 @@
       "morale": 4
     }
   },
-  "ABSENCE_DIVISOR": 400,
-  "NEGLECT_ABSENCE_DIVISOR": 5
+  "ABSENCE_DIVISOR": 1000,
+  "NEGLECT_ABSENCE_DIVISOR": 0,
+  "NEGLECT_GRACE_SQ_DIV": 70,
+  "WORKING_MANAGER": 1,
+  "MANAGER_STEP_IN_GAP": 0.5,
+  "DOUBLE_PEOPLE_MORALE": 0,
+  "MGR_WAGE_A": 0.4,
+  "MGR_WAGE_B": 1.2,
+  "MANAGER_TILL_SKILL_REF": 60,
+  "PROTO_ROTA_HOLES": 0,
+  "PROTO_STANDIN_GAP": 0.25,
+  "NEVER_SEATED_SAT": 30,
+  "NEVER_SEATED_WEIGHT": 0.5,
+  "HYGIENE_CLEAN_PCT": 0.4
 }

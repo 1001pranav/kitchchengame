@@ -68,29 +68,33 @@ the table or the constants.
 
 ## 3a. First measurements (economy-loop prototype)
 
-A throwaway day-resolution prototype (branch `claude/economy-loop-prototype`,
-`prototype/economy_loop/`) was run for 200 seeds × 26 weeks on a Good-tier outlet in an
-average location. It replaces the per-tick service with stand-in aggregates, so treat
-these as **first evidence, to be re-measured by the real balance bot (task 0.21)**.
-Configuration and code changes: `docs/balance-evidence/`. History: `docs/balance-log.md`.
+A throwaway day-resolution prototype (`prototype/economy_loop/`) was run for 200 seeds ×
+26 weeks on a Good-tier outlet in an average location. It replaces the per-tick service
+with stand-in aggregates, so treat these as **first evidence, to be re-measured by the
+real balance bot (task 0.21)**. Full output: `prototype/economy_loop/results.txt`.
+History of changes: `docs/balance-log.md`.
 
-Average weekly operating profit after the manager's wage, by who runs the outlet:
+Average weekly **net profit** (after the manager's wage and loan interest), by who runs
+the outlet:
 
 | Run by | Owner never markets or visits | Owner markets, never visits | Owner markets + visits weekly |
 |---|---|---|---|
-| Owner, no manager | +2.5k | — | +4.3k |
-| Trainee | −1.9k | −1.1k | ≈ 0 |
-| Junior | −1.2k | −0.4k | +0.6k |
-| Capable | −0.6k | +0.3k | +1.3k |
-| Senior | −0.3k | +0.9k | +1.7k |
-| Veteran | −0.1k | +1.4k | +1.9k |
+| Owner, no manager | +2.1k | — | +3.9k |
+| Trainee | −2.2k | −1.4k | −0.2k |
+| Junior | −1.5k | −0.6k | +0.3k |
+| Capable | −0.8k | ≈ 0 | +0.9k |
+| Senior | −0.5k | +0.6k | +1.3k |
+| Veteran | −0.3k | +1.0k | +1.5k |
 
-Senior, markets-but-never-visits, over time: +2.1k (weeks 1–4), +1.5k (weeks 9–12),
-+0.2k (weeks 23–26). Veteran: +2.3k, +1.9k, +0.6k.
+Senior, markets-but-never-visits, over time: +1.9k (weeks 1–4), +1.1k (weeks 9–12),
+−0.2k (weeks 23–26). Veteran: +2.1k, +1.6k, +0.1k.
 
 What this confirms: grade and owner attention both matter; an experienced manager keeps
 a sound outlet out of loss for months; a cheap one loses money unless the owner is
 there; nobody survives an owner who does nothing.
+
+The test outlet carries the 70,000 starting loan (about 280 a week in interest at the
+start). A second outlet bought from company cash would show slightly better figures.
 
 ## 4. Balance targets (acceptance bands)
 
@@ -129,7 +133,7 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +600, +650, +400, +200; the Senior → Veteran step is the weak one) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured +560, +630, +360, +200; the Senior → Veteran step is the weak one) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 

@@ -35,14 +35,15 @@ void main() {
   test('forecast at neutral health is footfall × rep × dow (doc 02 §5.1)', () {
     final s = OutletSim(load(), 1);
     // day 0: Monday 0.80, spring 1.00, rep 3.5 -> 1.125, buzz 0.5 & freshness 0.6 -> 1.0
-    expect(s.forecast(), closeTo(50 * 1.125 * 0.8, 1e-9));
+    expect(s.forecast(), closeTo(55 * 1.125 * 0.8, 1e-9));
   });
 
   test(
       'buzz decays to zero without marketing and an ad restores it (doc 11 §A.1)',
       () {
     final s = OutletSim(load(), 2, managerGrade: Grade.veteran);
-    for (var i = 0; i < 30; i++) {
+    // BUZZ_DECAY 0.01 from 0.5: gone after 50 days (balance-log entry 1).
+    for (var i = 0; i < 55; i++) {
       s.step();
     }
     expect(s.buzz, 0);
@@ -68,8 +69,9 @@ void main() {
     expect(run(), run());
   });
 
-  test('a better manager beats a worse one on average (proposal tuning)', () {
-    final b = load('data/balance-proposal.json');
+  test('a better manager beats a worse one on average (current spec values)',
+      () {
+    final b = load();
     double mean(Grade g) {
       var total = 0;
       for (var seed = 1; seed <= 40; seed++) {
@@ -79,5 +81,55 @@ void main() {
     }
 
     expect(mean(Grade.veteran), greaterThan(mean(Grade.trainee)));
+  });
+
+  test('a managed outlet has no cashier; an owner-run one does (doc 02 §15.15)',
+      () {
+    final managed = OutletSim(load(), 5, managerGrade: Grade.capable);
+    final ownerRun = OutletSim(load(), 5, ownerRun: true);
+    expect(managed.crew.any((c) => c.role == 'cashier'), isFalse);
+    expect(ownerRun.crew.any((c) => c.role == 'cashier'), isTrue);
+  });
+
+  test('neglect grace grows with the square of manager skill (doc 02 §15.5)',
+      () {
+    int daysUntilSlack(Grade g) {
+      final s = OutletSim(load(), 9, managerGrade: g);
+      for (var d = 0; d < 200; d++) {
+        if (s.gameOver != null) return -1;
+        if (s.slack > 0) return d;
+        s.step();
+      }
+      return 200;
+    }
+
+    final trainee = daysUntilSlack(Grade.trainee);
+    expect(trainee, inInclusiveRange(5, 20));
+    // A veteran-run outlet is still within grace when a trainee-run one is slipping.
+    final v = OutletSim(load(), 9, managerGrade: Grade.veteran);
+    for (var d = 0; d < trainee + 20 && v.gameOver == null; d++) {
+      v.step();
+    }
+    expect(v.slack, 0);
+  });
+
+  test('net profit is operating profit minus loan interest (doc 02 §14.2)', () {
+    final s = OutletSim(load(), 11, ownerRun: true);
+    for (var d = 0; d < 7; d++) {
+      s.step();
+    }
+    final w = s.weeks.first;
+    expect(w.interest, greaterThan(0));
+    expect(w.netProfit, w.operatingProfit - w.interest);
+  });
+
+  test(
+      'hygiene settles instead of pinning at 100 (doc 02 §12 proportional rule)',
+      () {
+    final s = OutletSim(load(), 13, ownerRun: true);
+    for (var d = 0; d < 84 && s.gameOver == null; d++) {
+      s.step();
+    }
+    expect(s.hygiene, inInclusiveRange(55, 95));
   });
 }
