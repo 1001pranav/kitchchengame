@@ -53,12 +53,16 @@ void main(List<String> args) {
     ])
       for (final g in Grade.values) (o, g),
   ];
+  final adPool = <Campaign>[];
   for (final (owner, g) in configs) {
     {
       final runs = [
         for (var s = 1; s <= seeds; s++)
           runOne(b, s, g ?? Grade.capable, owner, weeks, ownerRun: g == null)
       ];
+      if (owner is CompetentOwner && owner is! RemoteOwner) {
+        adPool.addAll(runs.expand((r) => r.settledCampaigns));
+      }
       final surv = runs.where((r) => r.survived).length / runs.length;
       final fails =
           runs.where((r) => !r.survived).map((r) => r.failWeek!).toList();
@@ -97,6 +101,35 @@ void main(List<String> args) {
         pct(runs.fold(0, (a, r) => a + r.marketingSpend),
             runs.fold(0, (a, r) => a + r.revenue)).padLeft(8),
       ].join(' '));
+    }
+  }
+
+  // Return on spend (doc 02 §13.2), pooled over the competent and adaptive owners.
+  stdout.writeln(
+      '\nAd returns: campaigns at least 8 weeks old, owners who market and visit\n');
+  stdout.writeln(
+      'campaign   outcome         runs   spend  extra groups  extra profit  return  net gain');
+  void row(String name, String outcome, Iterable<Campaign> cs) {
+    if (cs.isEmpty) return;
+    final spend = avg(cs.map((c) => c.spend));
+    final profit = avg(cs.map((c) => c.extraProfit));
+    stdout.writeln([
+      name.padRight(10),
+      outcome.padRight(13),
+      cs.length.toString().padLeft(6),
+      k(spend).padLeft(7),
+      avg(cs.map((c) => c.extraGroups)).toStringAsFixed(1).padLeft(13),
+      k(profit).padLeft(13),
+      (spend <= 0 ? '-' : 'x${(profit / spend).toStringAsFixed(2)}').padLeft(7),
+      k(profit - spend).padLeft(9),
+    ].join(' '));
+  }
+
+  for (final name in ['localAd', 'flyers', 'promoDay']) {
+    final cs = adPool.where((c) => c.name == name).toList();
+    row(name, 'all', cs);
+    for (final o in cs.map((c) => c.outcome).toSet().toList()..sort()) {
+      row('', o, cs.where((c) => c.outcome == o));
     }
   }
 }

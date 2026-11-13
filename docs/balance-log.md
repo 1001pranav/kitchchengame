@@ -2,6 +2,32 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 5 — return on spend measured; advertising is too cheap (OPEN DECISION)
+
+Source: `prototype/economy_loop/results.txt`, "Ad returns" table (campaigns at least 8
+weeks old, about 13,000 of them). New rule doc 02 §13.2 tracks, per campaign, the extra
+customers and extra profit it brought. No constant was changed in this entry.
+
+| Campaign | Spend | Extra groups | Extra profit | Return | Flop | Weak | Expected | Good | Big hit |
+|---|---|---|---|---|---|---|---|---|---|
+| Local ad | 1,500 | 186 | 6,500 | ×4.3 | ×0 | ×2.0 | ×4.3 | ×6.6 | ×11.4 |
+| Flyers | 400 | 68 | 2,400 | ×5.9 | ×0 | ×2.6 | ×5.5 | ×8.6 | ×21.7 |
+
+Finding: about two thirds of an ad's value comes from the buzz it leaves, not the week
+it runs. At these prices advertising is not a gamble — even a weak response doubles the
+money, and only an outright flop loses. Marketing is 1.8% of revenue against a 2–4% target.
+
+Option tested, **not applied**: local ad 1,500 → 3,000, flyers 400 → 900.
+
+| | Return (local ad / flyers) | Weak response | Marketing % of revenue | Owner-run | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|---|---|---|---|
+| Current prices | ×4.3 / ×5.9 | ×2.0 | 1.8% | +3.8k | −0.2k | +0.3k | +0.9k | +1.5k | +2.0k |
+| Doubled prices | ×2.2 / ×2.6 | ×1.0 (breaks even) | 3.4% | +3.4k | −0.5k | ≈ 0 | +0.6k | +1.2k | +1.6k |
+
+Doubling makes each ad a real risk and puts marketing inside its target share, at a cost
+of 0.3–0.4k a week everywhere; a Junior-run outlet then only breaks even. Decision needed
+from the owner of the design before changing the constants.
+
 ## Entry 4 — variable advertising outcomes
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks).

@@ -81,6 +81,9 @@ class RunSummary {
   final int bigHits;
   final int marketingSpend;
   final int revenue;
+
+  /// Campaigns old enough (8 weeks) for their buzz tail to have played out.
+  final List<Campaign> settledCampaigns;
   RunSummary({
     required this.survived,
     required this.failWeek,
@@ -98,6 +101,7 @@ class RunSummary {
     required this.bigHits,
     required this.marketingSpend,
     required this.revenue,
+    required this.settledCampaigns,
   });
 }
 
@@ -149,5 +153,6 @@ RunSummary runOne(
     bigHits: s.campaignLog.where((c) => c.mult > 2).length,
     marketingSpend: s.weeks.fold(0, (a, w) => a + w.marketing),
     revenue: s.weeks.fold(0, (a, w) => a + w.revenue),
+    settledCampaigns: s.campaignLog.where((c) => c.day + 56 <= s.day).toList(),
   );
 }

@@ -553,6 +553,50 @@ What the player can do about it, and is told:
 
 The outcome is stored on the campaign (`outcome`, `mult`) and exposed through `explain`.
 
+### 13.2 Return on spend
+
+Every campaign keeps a running account of what it brought in, so the player can see
+which advertising is worth buying at that outlet. The sim knows the answer exactly
+(it computed the demand), so the figure is the true one, not a noisy estimate.
+
+A campaign adds customers in two ways: its **demand boost** while it runs, and the
+**buzz it left behind** afterwards (doc 11 §A.1), which fades over weeks. Per campaign:
+
+- `buzzLeft` — the part of the outlet's current buzz this campaign put there. Set to the
+  actual buzz gained when it starts (after the outcome multiplier and the cap at 1).
+  Whenever buzz decays from `b₀` to `b₁`, every campaign's `buzzLeft × b₁ / b₀`.
+
+Each service day, at close, with `groups` = groups that arrived and `seated` = groups
+that got a table:
+
+```
+boostEff          = min(Σ active boosts, CAMPAIGN_BOOST_CAP)
+buzzFactorWithout = 0.90 + 0.20 × (buzz − Σ buzzLeft)
+lift              = (1 + boostEff) × buzzFactor / buzzFactorWithout
+baseGroups        = groups / lift                        (who would have come anyway)
+extraSeated       = seated − min(baseGroups, groups the outlet could have seated)
+weight(c)         = boostEff × boost_c / Σ boosts   (while running)
+                  + 0.20 × buzzLeft_c / buzzFactorWithout
+c.extraGroups    += extraSeated × weight(c) / Σ weights
+c.extraProfit    += that × (day's revenue − day's ingredient cost) / seated
+```
+Extra customers who could not be seated earn nothing, so advertising a full restaurant
+shows a poor return. On a promotion day, the campaign is also charged
+`discountGiven += base seated groups × average bill × (1/0.75 − 1)`: the price cut handed
+to people who would have come anyway.
+
+```
+spend         = cost + discountGiven
+returnOnSpend = extraProfit / spend          (coins of extra profit per coin spent; none if spend = 0)
+netGain       = extraProfit − spend
+```
+"Extra profit" is revenue minus ingredients on the extra groups; wages and rent are not
+deducted because they were being paid anyway. A campaign is **settled** when it has
+ended and `buzzLeft < 0.0005`; until then its figures are shown as "so far".
+
+Per outlet the sim also keeps, for each campaign type, the count, total spend and total
+extra profit of settled campaigns, giving a running average return for that channel there.
+
 ## 14. Finance
 
 ### 14.1 Daily
