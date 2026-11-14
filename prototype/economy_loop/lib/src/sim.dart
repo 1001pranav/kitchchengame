@@ -382,6 +382,22 @@ class OutletSim {
     return 'You will spend today at the outlet.';
   }
 
+  /// Send one person in [role] (the least skilled) on a course (doc 02 §7.6): cost
+  /// 10 × skill, away 2 days, skill + 5–10, cap 95. Wage is not raised (prototype).
+  String trainStaff(String role) {
+    final cands = crew.where((s) => s.role == role && !s.vacant).toList()
+      ..sort((a, b) => a.skill.compareTo(b.skill));
+    if (cands.isEmpty) return 'Nobody in $role.';
+    final s = cands.first;
+    final cost = (10 * s.skill).round();
+    if (cash < cost) return 'Not enough cash ($cost needed).';
+    cash -= cost;
+    week.other += cost;
+    s.trainingUntil = day + 2;
+    s.skill = math.min(95, s.skill + rng.nextInt(5, 10));
+    return 'Sent the $role on a course ($cost); back in 2 days, skill now ${s.skill.round()}.';
+  }
+
   String replaceEquipment(String type) {
     final e = equipment.where((x) => x.type == type).firstOrNull;
     if (e == null) return 'No equipment called $type.';
@@ -502,7 +518,7 @@ class OutletSim {
             (b.d('NEGLECT_ABSENCE_DIVISOR') > 0
                 ? sl / b.d('NEGLECT_ABSENCE_DIVISOR')
                 : 0);
-        s.absentToday = rng.chance(p);
+        s.absentToday = day < s.trainingUntil || rng.chance(p);
       }
       for (final s in crew) {
         if (!s.vacant && !s.absentToday) continue;

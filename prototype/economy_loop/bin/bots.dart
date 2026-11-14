@@ -69,7 +69,11 @@ void main(List<String> args) {
     stdout.writeln(
         'owner      manager   route             up-front  1st profit wk  '
         'max tied up  w1-26/wk  w27-52/wk  payback wk  paid by 52  crisis<=26  net wk52  net wk104');
-    for (final owner in [CompetentOwner(), if (!routesOnly) RemoteOwner()]) {
+    for (final owner in [
+      CompetentOwner(),
+      RefitOwner(),
+      if (!routesOnly) RemoteOwner()
+    ]) {
       for (final g in [Grade.capable, Grade.senior, Grade.veteran]) {
         for (final (label, plan) in routes) {
           final paybacks = <int>[], firstProfit = <int>[];

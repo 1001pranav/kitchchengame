@@ -43,6 +43,30 @@ class CompetentOwner implements OwnerPolicy {
   }
 }
 
+/// Competent, and on taking over fixes what a sensible buyer would fix first:
+/// trains the head chef until skill ≥ 50 (below that the menu cannot be reworked,
+/// doc 02 §13) and replaces any unit too old to service (max condition < 75,
+/// doc 11 §A.3). Applies to every route, so a scratch outlet's weak chef is trained too.
+class RefitOwner extends CompetentOwner {
+  @override
+  String get name => 'refit';
+  @override
+  void act(OutletSim s) {
+    super.act(s);
+    if (s.tradingDay < 0) return;
+    if (s.tradingDay == 0) {
+      for (final e
+          in s.equipment.where((e) => !e.leased && e.maxCondition < 75)) {
+        s.replaceEquipment(e.type);
+      }
+    }
+    final chef = s.crew.firstWhere((c) => c.role == 'headChef');
+    if (!chef.vacant && chef.skill < 50 && s.day >= chef.trainingUntil) {
+      s.trainStaff('headChef');
+    }
+  }
+}
+
 /// Competent, but never sets foot in the outlet (isolates neglect from marketing).
 class RemoteOwner extends CompetentOwner {
   @override

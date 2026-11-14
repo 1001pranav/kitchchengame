@@ -1,8 +1,20 @@
 /// xorshift32 exactly as doc 08 §5, so this prototype's seeds stay meaningful later.
 class SimRng {
   int _s;
-  SimRng(int seed)
-      : _s = (seed & 0xFFFFFFFF) == 0 ? 0x9E3779B9 : seed & 0xFFFFFFFF;
+  SimRng(int seed) : _s = _mix(seed);
+
+  /// Seeds are scrambled first (murmur3 fmix32, doc 08 §5). Raw small seeds made the
+  /// first xorshift32 output nearly 0 (seeds 1–200: mean 0.006), so the first thing
+  /// rolled in every run — the head chef's skill — was always the minimum.
+  static int _mix(int seed) {
+    var h = seed & 0xFFFFFFFF;
+    h ^= h >> 16;
+    h = (h * 0x85EBCA6B) & 0xFFFFFFFF;
+    h ^= h >> 13;
+    h = (h * 0xC2B2AE35) & 0xFFFFFFFF;
+    h ^= h >> 16;
+    return h == 0 ? 0x9E3779B9 : h;
+  }
 
   int get state => _s;
 

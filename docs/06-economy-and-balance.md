@@ -79,18 +79,18 @@ the outlet:
 
 | Run by | Owner never markets or visits | Owner markets, never visits | Owner markets + visits weekly |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +3.4k |
-| Trainee | −2.2k | −1.7k | −0.5k |
-| Junior | −1.5k | −0.9k | ≈ 0 |
-| Capable | −0.8k | −0.2k | +0.6k |
-| Senior | −0.4k | +0.5k | +1.2k |
-| Veteran | ≈ 0 | +1.1k | +1.6k |
+| Owner, no manager | +2.1k | — | +4.1k |
+| Trainee | −2.2k | −1.4k | −0.1k |
+| Junior | −1.4k | −0.6k | +0.6k |
+| Capable | −0.8k | +0.3k | +1.2k |
+| Senior | −0.4k | +1.0k | +1.8k |
+| Veteran | ≈ 0 | +1.7k | +2.3k |
 
-(With the advertising prices of balance-log entry 6; marketing owners pay about 0.3–0.4k
-a week more than before.)
+(Balance-log entry 8: re-measured after fixing a seed bug that gave every earlier run a
+skill-40 head chef who could not rework the menu.)
 
-Senior, markets-but-never-visits, over time: +1.6k (weeks 1–4), +0.9k (weeks 9–12).
-Veteran: +2.1k, +1.5k.
+Senior, markets-but-never-visits, over time: +1.7k (weeks 1–4), +1.5k (weeks 9–12).
+Veteran: +2.2k, +2.2k.
 
 What this confirms: grade and owner attention both matter; an experienced manager keeps
 a sound outlet out of loss for months; a cheap one loses money unless the owner is
@@ -129,9 +129,9 @@ General targets (all tiers, competent bot):
 | Incidents per week | 3–6 |
 | Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 |
 | Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |
-| Average return on spend of a campaign (extra profit ÷ spend) | ×1.5 to ×3; a weak response should roughly break even (measured ×2.2 local ad, ×2.6 flyers; weak ×1.0 / ×1.15 — balance-log entry 6) |
-| Marketing as a share of revenue, competent bot | 2–4% (measured 3.4%) |
-| Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.1k to +0.3k) |
+| Average return on spend of a campaign (extra profit ÷ spend) | ×1.5 to ×3; a weak response should roughly break even (measured ×2.3 local ad, ×3.0 flyers; weak ×1.1 / ×1.3 — balance-log entry 8) |
+| Marketing as a share of revenue, competent bot | 2–4% (measured 3.5%) |
+| Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.05k to +0.2k after balance-log entry 8; Trainee is just under) |
 | Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
 | Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
 | Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
@@ -149,7 +149,7 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured about +480, +570, +620, +400 with the entry-6 ad prices; owner never visits: about +820, +690, +660, +630) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured about +600, +650, +600, +500; owner never visits: about +850, +850, +700, +700 — balance-log entry 8) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 
@@ -159,7 +159,7 @@ Opening-route targets (Phase 2; competent bot, average location, medium size):
 |---|---|---|---|
 | Cash needed up front | ~75,000 (doc 02 §15.9 later-market price) | 45,000–60,000 | 20,000–30,000 |
 | Weeks to first profitable week | 1–3 | 6–10 | 8–14 |
-| Weeks to pay back the investment | 35–50 | 30–45 | 25–45, with wider spread |
+| Weeks to pay back the investment | 30–45 (was 35–50; restated in balance-log entry 8) | 30–45 | 25–45, with wider spread |
 | Chance the outlet is in crisis within 26 weeks | 10–20% | 15–25% | 25–40% |
 
 Neither route should dominate: buying is safer and faster, scratch is cheaper and slower.
@@ -167,30 +167,30 @@ Neither route should dominate: buying is safer and faster, scratch is cheaper an
 leasing, whose fee is a running cost): weeks to first profit, most company cash tied up
 (up front + the deepest dip in running profit), net position at week 52 and at week 104.
 
-Measured (prototype, `bots` "Opening routes" table, balance log entry 7; company cash, no
-loan, owner visits weekly; **hidden problems not modelled**):
+Measured (prototype, `bots` "Opening routes" table, balance-log entry 8; company cash, no
+loan, owner visits weekly and fixes a weak head chef and unserviceable kit on day one —
+the `refit` bot; **hidden problems not modelled**):
 
 | Senior manager | Up front | Most cash tied up | First profit wk | Payback wk | Crisis by wk 26 | Net wk 52 | Net wk 104 |
 |---|---|---|---|---|---|---|---|
-| Buy running (75,000) | 75.0k | 75.0k | 1 | 45 | 6.5% | +21.0k | +156k |
-| Standard + new | 58.5k | 79.2k | 9 | 45 | 4.5% | +26.4k | +214k |
-| Basic + second-hand | 36.9k | 60.0k | 9 | 41 | 8.5% | +32.9k | +179k |
-| Basic + leased | 22.2k | 50.4k | 10 | 43 | 30.5% | +26.9k | +188k |
+| Buy running (75,000) | 75.0k | 82.5k | 2 | 33 | 0% | +73.2k | +251k |
+| Standard + new | 58.5k | 78.9k | 8 | 35 | 0% | +65.3k | +251k |
+| Basic + second-hand | 36.9k | 58.6k | 7 | 30 | 0.5% | +74.3k | +222k |
+| Basic + leased | 22.2k | 45.8k | 8 | 27 | 1% | +77.3k | +239k |
 
-Veteran payback 38 / 38 / 35 / 37; Capable 79 / 65 / 61 / 71. Owner never visits:
-Veteran 59 / 48 / 46 / 47, Senior and below mostly never.
+Veteran payback 29 / 31 / 25 / 23; Capable 40 / 42 / 38 / 36. A competent owner who
+does not refit: buy 34, standard + new 37 (Senior).
 
-Status: buying now wins on speed and certainty (income from week 1, no ramp) but still
-loses on money by week 52, because an inherited crew and kit earn about 0.6k a week less
-than a chosen one and the bot never fixes them. **Open** — see balance log entry 7
-"Still open". A price cut does not fix it (tested at 60,000).
+Status: **no route dominates.** Buying gets income about six weeks sooner; basic +
+leased ties up the least cash and is best at week 52; standard + new ties with buying at
+week 104. Crisis is near 0 everywhere, so the "safer" half of "buying is safer" has to
+come from hidden problems, which are not modelled yet. Price × 0.6 was tested: payback
+returns to 35–50 but standard + new then beats buying at both horizons (entry 8).
 
 Other gaps against the bands: up-front cash for basic + second-hand is 36.9k (25.7k
 without the deposit) against 20–30k, so the band only holds if it excludes the 4-week
-deposit (11.2k); basic + leased (22.2k) and standard + new (58.5k, 47.3k without the
-deposit) are inside theirs. Crisis for standard + new is 4.5% against 15–25%, and for a
-Capable-run takeover 28.5% against 10–20%; both are counted after the opening period
-(doc 02 §15.7), and the bands may simply have been guesses.
+deposit (11.2k). Crisis for the scratch routes (0–1% with refit; up to 9.5%, or 22.5% for
+basic + leased with a Capable manager, without) is mostly below 15–40%; those bands were guesses and need the real bot with incidents.
 
 Difficulty: Easy should lift every survival figure by roughly 10 points, Hard lower by 10–15.
 

@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 7) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 8) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -41,6 +41,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 | remote | Markets (local ad every 4 weeks, menu rework every 8, prices 105%) and replaces flagged equipment, but never visits |
 | competent | As remote, plus one visit a week |
 | adaptive | As competent, and when a local ad flops or is weak, runs flyers the next day |
+| refit | As competent, and on taking over trains the head chef to skill ≥ 50 and replaces kit too old to service (max condition < 75). Used in the opening-routes table |
 
 "OWNER-RUN" rows are the Phase-1 reference: the owner is there every day, there is no
 manager and the crew includes a cashier.
@@ -85,25 +86,25 @@ A role with two people counts half a gap when one is missing.
 
 ## Results (200 seeds × 26 weeks, Good tier, average location)
 
-Average weekly net profit after the manager's wage (ad prices from balance-log entry 6):
+Average weekly net profit after the manager's wage (balance-log entry 8, after the seed fix):
 
 | Run by | passive | remote | competent |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +3.4k |
-| Trainee | −2.2k | −1.7k | −0.5k |
-| Junior | −1.5k | −0.9k | ≈ 0 |
-| Capable | −0.8k | −0.2k | +0.6k |
-| Senior | −0.4k | +0.5k | +1.2k |
-| Veteran | ≈ 0 | +1.1k | +1.6k |
+| Owner, no manager | +2.1k | — | +4.1k |
+| Trainee | −2.2k | −1.4k | −0.1k |
+| Junior | −1.4k | −0.6k | +0.6k |
+| Capable | −0.8k | +0.3k | +1.2k |
+| Senior | −0.4k | +1.0k | +1.8k |
+| Veteran | ≈ 0 | +1.7k | +2.3k |
 
-The adaptive owner does +0.1k to +0.3k a week better than the competent one at every
+The adaptive owner does +0.05k to +0.2k a week better than the competent one at every
 grade. The last four report columns are the ad measures: campaigns per run, flop %,
 big-hit % and marketing as a share of revenue.
 
 `bots` ends with an **Ad returns** table: for each campaign type and outcome, average
 spend, extra groups, extra profit and return. In `play`, the `ads` command lists every
-campaign you ran with the same figures. Current result: a local ad returns ×2.2 and
-flyers ×2.6 on average, and a weak response roughly breaks even (balance-log entry 6).
+campaign you ran with the same figures. Current result: a local ad returns ×2.3 and
+flyers ×3.0 on average, and a weak response roughly breaks even (balance-log entry 8).
 
 The **Second outlet** table buys a running Good outlet at the later-market price
 (`TAKEOVER_PRICE_GOOD` × `TAKEOVER_MARKET_PRICE_FACTOR`) from company cash and reports
@@ -113,7 +114,7 @@ modelled, so treat it as a best case.
 The last table, **Opening routes**, opens a later outlet four ways from company cash —
 buy running at the later price, standard fit-out with new kit, basic fit-out with
 second-hand kit, basic fit-out with leased kit (doc 02 §15.9 route B) — for Capable,
-Senior and Veteran managers, competent and remote owners, over 104 weeks. Columns: cash
+Senior and Veteran managers, competent, refit and remote owners, over 104 weeks. Columns: cash
 up front (lease deposit included), weeks to the first profitable week, most cash ever
 tied up, profit a week, payback week (deposit excluded, build weeks included), share
 paid back by week 52, share in crisis by week 26 after the opening period, and net
