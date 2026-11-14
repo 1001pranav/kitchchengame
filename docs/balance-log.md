@@ -2,6 +2,45 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 11 — first per-tick service measurements (FINDINGS, nothing applied)
+
+Source: `prototype/service_feel/` — a tappable test of the service screen whose
+simulation follows doc 02 §6 and §8 tick by tick (200 headless runs per shift). This is
+the first evidence that does not rely on the economy prototype's day-level stand-ins.
+No constant in the docs was changed in this entry.
+
+With doc 02's numbers, a Good-tier Italian outlet:
+
+| Shift | Parties lost | Where |
+|---|---|---|
+| Tuesday, full team | 7.6% | 4.5% waiting for food, 3.5% at the door |
+| Friday, full team | 20.4% | 12.5% at the door, 7.9% waiting for food |
+| Saturday, full team | 25.3% | 17.0% at the door, 8.3% waiting for food |
+| Friday, a server off | 26.6% → 20.7% with the owner filling in | |
+| Saturday, no dishwasher | 77.9% | no clean plates, kitchen stops |
+
+Causes:
+1. **One oven cannot run a pizza menu.** About 60% of Italian mains plus garlic bread need
+   the oven; 3 slots are saturated at lunch even on a quiet day.
+2. **Door patience of 10 ticks (20 minutes) is too short** for 14 tables at Friday and
+   Saturday peaks; the owner can do nothing about it.
+3. **A missing dishwasher is fatal** unless the stand-in rule of §6.2 is implemented.
+4. Doc 06's targets (3–10% lost on a normal day; owner filling in at least halves the
+   loss from a missing role) are **not met** on any shift.
+
+Values that do meet them in the same test (proposal):
+
+| Change | Tuesday full | Friday full | Saturday full | Friday, server off | …with owner filling in |
+|---|---|---|---|---|---|
+| Two ovens (6 slots), door patience 18, cleaner stands in on dishes | 1.9% | 8.0% | 11.7% | 24.0% | 9.7% |
+
+Also seen: served parties rate about 3.2 stars on a quiet, fully staffed day while the
+outlet's reputation starts at 3.5 — reputation may drift down for a well-run outlet; and
+the owner cooking (skill 35, one dish at a time) barely moves the result.
+
+Decision needed before task 0.10: adopt the proposal (and give each theme's Good-tier
+kitchen enough of its main station), or change the menu mix instead.
+
 ## Entry 10 — the handover month, a restated cash target, takeovers at × 0.4
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).

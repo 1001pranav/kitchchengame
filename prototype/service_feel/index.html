@@ -1,0 +1,637 @@
+<title>Kitchen Chain Service Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: one phone screen, top to bottom — clock bar, kitchen strip, dining room (grows), owner controls. */
+:root {
+  --bg: #f3efe8; --surface: #fffdf9; --line: #d9d1c3; --ink: #2a2520; --muted: #766c5f;
+  --accent: #2f6f5e; --accent-ink: #ffffff;
+  --ok: #3f8f5a; --warn: #c98a1b; --bad: #c24a3a;
+  --free: #ece6da; --busy: #fffdf9; --dirty: #d9c7a8; --owner: #7a3fa0; --staff: #3a6ea8;
+  --display: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+  --body: Inter, "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #1b1916; --surface: #26231f; --line: #3d3832; --ink: #f0ebe2; --muted: #a59b8c;
+  --accent: #5fb39c; --accent-ink: #10201b;
+  --ok: #62b77f; --warn: #e0a83c; --bad: #e0705f;
+  --free: #211e1a; --busy: #2e2a25; --dirty: #4a4130; --owner: #b98ad6; --staff: #7fa8d8;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #1b1916; --surface: #26231f; --line: #3d3832; --ink: #f0ebe2; --muted: #a59b8c;
+  --accent: #5fb39c; --accent-ink: #10201b;
+  --ok: #62b77f; --warn: #e0a83c; --bad: #e0705f;
+  --free: #211e1a; --busy: #2e2a25; --dirty: #4a4130; --owner: #b98ad6; --staff: #7fa8d8;
+  color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app { max-width: 520px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; gap: 8px; }
+h1 { font-family: var(--display); font-size: 24px; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-size: 16px; margin: 0; }
+.muted { color: var(--muted); }
+.num { font-family: var(--display); font-variant-numeric: tabular-nums; }
+
+/* Intro and end screens */
+.sheet { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-block: 6px; }
+.sheet p { margin: 0; line-height: 1.5; max-width: 60ch; }
+.scen { display: grid; gap: 8px; }
+.scen button { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
+.scen button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.scen b { font-family: var(--display); font-size: 15px; }
+.primary { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 12px; padding: 14px; font-weight: 600; font-size: 16px; }
+.ghost { background: transparent; border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.how { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
+.how li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; line-height: 1.4; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.stat .num { font-size: 22px; display: block; }
+textarea { width: 100%; min-height: 120px; font: 12px/1.4 ui-monospace, Menlo, monospace; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
+
+/* Play screen */
+.bar { display: flex; align-items: center; gap: 8px; }
+.clock { font-family: var(--display); font-size: 20px; font-variant-numeric: tabular-nums; min-width: 58px; }
+.prog { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; min-width: 30px; }
+.prog i { display: block; height: 100%; background: var(--accent); }
+.cash { font-family: var(--display); font-variant-numeric: tabular-nums; font-size: 16px; }
+.speed { display: flex; gap: 4px; }
+.speed button { min-width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; }
+.speed button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.speed button:disabled { opacity: .35; }
+
+.kitchen { display: grid; grid-template-columns: repeat(3, 1fr) 1.1fr; gap: 6px; }
+.station { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 6px 8px; text-align: left; min-height: 56px; display: grid; gap: 2px; align-content: start; }
+.station.down { border-color: var(--bad); color: var(--bad); }
+.station.q { border-color: var(--warn); }
+.station .nm { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.pips { display: flex; gap: 3px; }
+.pips i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.pips i.on { background: var(--accent); border-color: var(--accent); }
+.station .w { font-size: 12px; }
+.dishes .meter { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.dishes .meter i { display: block; height: 100%; background: var(--ok); }
+.dishes.full .meter i { background: var(--bad); }
+
+.lane { display: flex; align-items: center; gap: 6px; min-height: 50px; overflow-x: auto; }
+.lane .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); flex: none; width: 40px; }
+.room { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+.tables { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 1fr; gap: 6px; }
+.table { position: relative; border: 1px solid var(--line); border-radius: 12px; background: var(--free); padding: 4px 6px; display: flex; flex-direction: column; justify-content: space-between; min-height: 0; overflow: hidden; }
+.table.occ { background: var(--busy); }
+.table.dirty { background: var(--dirty); }
+.table .t { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; }
+.table .s { font-size: 11px; line-height: 1.2; }
+.table .pbar { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.table .pbar i { display: block; height: 100%; }
+
+.mk { flex: none; min-width: 52px; height: 44px; border-radius: 22px; border: 0; padding: 0 10px; font-weight: 600; font-size: 12px; background: var(--surface); color: var(--ink);
+  box-shadow: inset 0 0 0 3px var(--ok); display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+.mk.amber { box-shadow: inset 0 0 0 3px var(--warn); }
+.mk.red { box-shadow: inset 0 0 0 3px var(--bad); }
+.mk.plain { box-shadow: inset 0 0 0 2px var(--line); }
+.mk.taken { opacity: .38; }
+.mk.mine { background: var(--owner); color: #fff; box-shadow: none; }
+.table .mk { position: absolute; right: 4px; bottom: 8px; min-width: 48px; height: 40px; }
+
+.dot { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--staff); border: 2px solid var(--surface); transform: translate(-50%, -50%); transition: left .45s ease, top .45s ease; pointer-events: none; z-index: 3; }
+.dot.owner { background: var(--owner); width: 20px; height: 20px; z-index: 4; }
+@media (prefers-reduced-motion: reduce) { .dot { transition: none; } }
+
+.controls { display: grid; gap: 6px; }
+.row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.row .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); width: 48px; flex: none; }
+.chip { height: 40px; border-radius: 10px; border: 1px dashed var(--line); padding: 0 10px; background: transparent; font-size: 12px; min-width: 70px; }
+.chip.on { border-style: solid; border-color: var(--owner); background: var(--surface); }
+.cover button { height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; font-size: 13px; }
+.cover button[aria-pressed="true"] { background: var(--owner); color: #fff; border-color: var(--owner); }
+.energy { flex: 1; height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; min-width: 60px; }
+.energy i { display: block; height: 100%; background: var(--owner); }
+.energy.low i { background: var(--bad); }
+.status { font-size: 12px; color: var(--muted); min-height: 16px; }
+
+.pill { position: absolute; left: 50%; top: 6px; transform: translateX(-50%); z-index: 6; background: var(--bad); color: #fff; border: 0; border-radius: 22px; height: 44px; padding: 0 16px; font-weight: 600; }
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 20; display: flex; align-items: flex-end; justify-content: center; }
+.card { background: var(--surface); width: 100%; max-width: 520px; border-radius: 18px 18px 0 0; padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 10px; }
+.card p { margin: 0; line-height: 1.45; }
+.card button { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); display: grid; gap: 2px; }
+.card button small { color: var(--muted); }
+</style>
+
+<div class="app" id="app"></div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Simulation: a slice of docs/02-simulation-spec.md §6 and §8, one Good-tier
+// Italian outlet. No DOM in here so it can be run headless.
+// ---------------------------------------------------------------------------
+const TICKS = 360, LAST_SEAT = 330, OVERTIME = 30;
+const DISHES = [
+  { id: 'Bruschetta', c: 'starter', st: 'cold', prep: 2, price: 7, pop: 1 },
+  { id: 'Caprese', c: 'starter', st: 'cold', prep: 2, price: 10, pop: 1 },
+  { id: 'Minestrone', c: 'starter', st: 'stove', prep: 4, price: 9, pop: 1 },
+  { id: 'Margherita', c: 'main', st: 'oven', prep: 6, price: 16, pop: 1.3 },
+  { id: 'Salami pizza', c: 'main', st: 'oven', prep: 6, price: 20, pop: 1.2 },
+  { id: 'Bolognese', c: 'main', st: 'stove', prep: 6, price: 16, pop: 1 },
+  { id: 'Risotto', c: 'main', st: 'stove', prep: 8, price: 15, pop: 1 },
+  { id: 'Baked fish', c: 'main', st: 'oven', prep: 7, price: 14, pop: 0.8 },
+  { id: 'Garlic bread', c: 'side', st: 'oven', prep: 3, price: 6, pop: 1 },
+  { id: 'Salad', c: 'side', st: 'cold', prep: 2, price: 6, pop: 1 },
+  { id: 'Tiramisu', c: 'sweet', st: 'cold', prep: 2, price: 10, pop: 1 },
+  { id: 'Espresso', c: 'sweet', st: 'cold', prep: 1, price: 2, pop: 1 },
+];
+const HOUR_W = [0.4, 1.4, 1.6, 0.8, 0.3, 0.3, 0.5, 1.0, 1.6, 1.8, 1.4, 0.5];
+const PATIENCE = { waitTable: 18, waitOrder: 8, waitFood: 25, waitBill: 8 };
+const BASE_TICKS = { seat: 1, takeOrder: 2, deliver: 1, bill: 2, clear: 2, apologise: 3 };
+const ROLES = { seat: ['cashier', 'server'], takeOrder: ['server'], deliver: ['server'], bill: ['cashier', 'server'], clear: ['server', 'cleaner'] };
+const OWNER_SKILL = { seat: 60, takeOrder: 60, deliver: 60, bill: 60, clear: 50, cook: 35, apologise: 60 };
+const COVER = { server: ['takeOrder', 'deliver', 'seat', 'clear'], till: ['bill', 'seat'], kitchen: ['cook'], dishes: [] };
+const SCENARIOS = [
+  { id: 'quiet', name: 'Quiet Tuesday, full team', blurb: 'Everyone turned up. You may hardly be needed.', dow: 0.85, absent: [] },
+  { id: 'server', name: 'Friday, a server is off sick', blurb: 'One server for a busy night.', dow: 1.25, absent: ['server2'] },
+  { id: 'till', name: 'Saturday, no cashier and no dishwasher', blurb: 'The busiest day with two roles empty.', dow: 1.4, absent: ['cashier', 'dishwasher'] },
+  { id: 'oven', name: 'Friday, a cook is off and the oven is tired', blurb: 'Short in the kitchen, and something may break.', dow: 1.25, absent: ['cook2'], ovenFails: true },
+];
+
+function rngFrom(seed) { let a = seed >>> 0 || 1; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+function makeSim(scenario, seed) {
+  const rnd = rngFrom(seed);
+  const pickW = (items, w) => { let s = 0; for (const x of w) s += x; let r = rnd() * s; for (let i = 0; i < items.length; i++) { r -= w[i]; if (r < 0) return items[i]; } return items[items.length - 1]; };
+  const staffAll = [
+    { id: 'chef', role: 'cook', skill: 60 }, { id: 'cook1', role: 'cook', skill: 50 }, { id: 'cook2', role: 'cook', skill: 48 },
+    { id: 'dishwasher', role: 'dishwasher', skill: 50 }, { id: 'server1', role: 'server', skill: 55 }, { id: 'server2', role: 'server', skill: 48 },
+    { id: 'cashier', role: 'cashier', skill: 52 }, { id: 'cleaner', role: 'cleaner', skill: 50 },
+  ];
+  const staff = staffAll.filter(s => !scenario.absent.includes(s.id)).map(s => ({ ...s, task: null, active: 0 }));
+  const seats = [2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 6, 6];
+  const tables = seats.map((n, i) => ({ id: i + 1, seats: n, state: 'free', group: null }));
+  const total = Math.round(58 * 1.125 * scenario.dow * (0.9 + 0.2 * rnd()));
+  const arrivals = [];
+  for (let i = 0; i < total; i++) {
+    const h = pickW([...HOUR_W.keys()], HOUR_W);
+    arrivals.push({ tick: Math.min(LAST_SEAT, h * 30 + Math.floor(rnd() * 30)), size: pickW([1, 2, 3, 4, 5, 6], [15, 40, 15, 20, 6, 4]), pm: pickW([0.8, 1.0, 1.1, 1.0], [30, 35, 20, 15]) });
+  }
+  arrivals.sort((a, b) => a.tick - b.tick);
+  const S = {
+    scenario, tick: 0, over: false, staff, tables, arrivals, groups: [], tickets: [], tasks: [], nid: 1,
+    slots: { stove: 4, oven: 6, cold: 3 } /* two ovens: one (3 slots) cannot keep up with a pizza menu */, ovenDown: false, ovenFixTick: -1, eightySix: new Set(),
+    dirty: 0, plateCap: 6 * tables.length, cash: 0, tips: 0, events: [],
+    owner: { queue: [], cover: null, task: null, busyUntil: 0, energy: 100, at: 'till', idleTicks: 0 },
+    incident: null, lastComplaint: -999, complaints: 0, ovenFailTick: scenario.ovenFails ? 150 + Math.floor(rnd() * 80) : -1,
+    stat: { arrived: 0, served: 0, walkouts: 0, turnedAway: 0, stars: 0, starN: 0, taps: 0, ownerTasks: 0, ownerBusyTicks: 0, peakWaiting: 0, mistakes: 0, incidents: [], staffTasks: 0, lostAt: {} },
+  };
+  const log = (type, o) => S.events.push({ type, ...o });
+  const addTask = (type, o) => { const t = { id: S.nid++, type, state: 'waiting', worker: null, created: S.tick, ends: 0, reserved: false, ...o }; S.tasks.push(t); return t; };
+  const groupOf = id => S.groups.find(g => g.id === id);
+  const limit = (g, st) => PATIENCE[st] * g.pm + (g.bonus || 0);
+
+  function order(g) {
+    const avail = c => DISHES.filter(d => d.c === c && !S.eightySix.has(d.id));
+    for (let p = 0; p < g.size; p++) {
+      const mains = avail('main');
+      if (!mains.length) { g.unavail++; continue; }
+      const picks = [pickW(mains, mains.map(d => d.pop))];
+      if (rnd() < 0.40 && avail('starter').length) picks.push(pickW(avail('starter'), avail('starter').map(d => d.pop)));
+      if (rnd() < 0.30 && avail('side').length) picks.push(pickW(avail('side'), avail('side').map(d => d.pop)));
+      if (rnd() < 0.35 && avail('sweet').length) picks.push(pickW(avail('sweet'), avail('sweet').map(d => d.pop)));
+      for (const d of picks) { const k = { id: S.nid++, group: g.id, dish: d, state: 'waiting', created: S.tick, ends: 0, q: 0, cook: null }; S.tickets.push(k); g.tickets.push(k.id); }
+    }
+    if (!g.tickets.length) { leave(g, true); return; }
+    g.state = 'waitFood';
+  }
+
+  function leave(g, walkedOut) {
+    const food = g.delivered;
+    let sat;
+    if (walkedOut) S.stat.lostAt[g.state] = (S.stat.lostAt[g.state] || 0) + 1;
+    if (walkedOut && !g.table) { sat = 30; S.stat.turnedAway++; }
+    else if (walkedOut && !food) { sat = 10; S.stat.walkouts++; }
+    else {
+      const ts = g.tickets.map(id => S.tickets.find(k => k.id === id)).filter(k => k.state === 'served');
+      const fq = ts.length ? ts.reduce((a, k) => a + k.q, 0) / ts.length : 0;
+      const wait = Math.max(0, Math.min(100, 100 * (1 - g.waited / Math.max(1, g.patTotal))));
+      sat = Math.max(0, Math.min(100, 0.4 * fq + 0.3 * wait + 0.15 * 75 + 0.15 * 70 - 10 * g.unavail + (g.treat || 0)));
+      if (walkedOut) S.stat.walkouts++; else S.stat.served++;
+    }
+    const w = g.table ? 1 : 0.5;
+    S.stat.stars += w * sat / 20; S.stat.starN += w;
+    for (const k of S.tickets) if (k.group === g.id && (k.state === 'waiting' || k.state === 'cooking')) { k.state = 'cancelled'; if (k.cook) k.cook.active--; }
+    for (const t of S.tasks) if (t.group === g.id && t.state !== 'done') finishTask(t, true);
+    if (g.table) { const tb = S.tables.find(t => t.id === g.table); tb.group = null; if (food || g.state !== 'waitOrder') { tb.state = 'dirty'; addTask('clear', { table: tb.id, size: g.size }); } else tb.state = 'free'; }
+    g.state = walkedOut ? 'walkedOut' : 'left'; g.sat = sat;
+    log(walkedOut ? 'walkout' : 'left', { group: g.id, table: g.table });
+  }
+
+  function pay(g, byOwner) {
+    let amt = g.tickets.map(id => S.tickets.find(k => k.id === id)).filter(k => k.state === 'served').reduce((a, k) => a + k.dish.price, 0);
+    if (byOwner && S.owner.energy < 20 && rnd() < 0.15) { amt = Math.round(amt * 0.9); S.stat.mistakes++; log('mistake', {}); }
+    S.cash += amt; log('paid', { amt, table: g.table });
+    leave(g, false);
+    S.tips += Math.round(amt * Math.max(0, g.sat - 60) / 400);
+  }
+
+  function finishTask(t, cancelled) {
+    t.state = 'done';
+    if (t.worker === 'owner') { if (S.owner.task === t) S.owner.task = null; }
+    else if (t.worker) { const w = S.staff.find(s => s.id === t.worker); if (w) w.task = null; }
+    S.owner.queue = S.owner.queue.filter(x => x !== t.id);
+    if (cancelled) return;
+    const g = t.group ? groupOf(t.group) : null;
+    const own = t.worker === 'owner';
+    const slip = own && S.owner.energy < 20 && rnd() < 0.15;
+    if (own) S.stat.ownerTasks++; else S.stat.staffTasks++;
+    if (t.type === 'seat') { g.state = 'waitOrder'; g.stateTicks = 0; addTask('takeOrder', { group: g.id, table: g.table }); }
+    else if (t.type === 'takeOrder') { g.stateTicks = 0; if (slip) { g.unavail++; S.stat.mistakes++; } order(g); }
+    else if (t.type === 'deliver') { if (slip) { g.unavail++; S.stat.mistakes++; } g.delivered = true; g.state = 'eating'; g.stateTicks = 0; g.eatUntil = S.tick + Math.min(30, 12 + 3 * g.size); for (const id of g.tickets) { const k = S.tickets.find(x => x.id === id); if (k.state === 'ready') k.state = 'served'; } }
+    else if (t.type === 'bill') pay(g, own);
+    else if (t.type === 'clear') { S.tables.find(x => x.id === t.table).state = 'free'; S.dirty += t.size * 2; }
+    else if (t.type === 'apologise') { if (g && g.state === 'waitFood') g.bonus = (g.bonus || 0) + 10; }
+    else if (t.type === 'cook') { const k = t.ticket; if (k.state === 'cooking') { k.state = 'ready'; } }
+  }
+
+  function dur(type, skill, mult) { return Math.max(1, Math.round(BASE_TICKS[type] * mult * (1.5 - skill / 100))); }
+
+  function kitchen() {
+    if (S.ovenFixTick === S.tick) { S.ovenDown = false; for (const d of DISHES) if (d.st === 'oven') S.eightySix.delete(d.id); log('ovenFixed', {}); }
+    for (const k of S.tickets) if (k.state === 'cooking' && k.ends <= S.tick) {
+      k.state = 'ready'; if (k.cook) { k.cook.active--; k.cook = null; }
+      if (k.ownerTask) { finishTask(k.ownerTask); k.ownerTask = null; }
+    }
+    const cooks = S.staff.filter(s => s.role === 'cook');
+    const inUse = { stove: 0, oven: 0, cold: 0 };
+    for (const k of S.tickets) if (k.state === 'cooking') inUse[k.dish.st]++;
+    const waiting = S.tickets.filter(k => k.state === 'waiting');
+    const backlog = waiting.length > 2 * Math.max(1, cooks.length);
+    if (S.dirty <= S.plateCap) for (const k of waiting) {
+      if (k.reserved) continue;
+      const cap = k.dish.st === 'oven' && S.ovenDown ? 0 : S.slots[k.dish.st];
+      if (inUse[k.dish.st] >= cap) continue;
+      const c = cooks.filter(c => c.active < 3).sort((a, b) => a.active - b.active || b.skill - a.skill)[0];
+      if (!c) break;
+      k.state = 'cooking'; k.cook = c; c.active++; inUse[k.dish.st]++;
+      k.ends = S.tick + Math.max(1, Math.round(k.dish.prep * (1.5 - c.skill / 100)));
+      k.q = Math.max(0, Math.min(100, 0.4 * 65 + 0.4 * c.skill + 0.2 * 60 - (backlog ? 10 : 0)));
+    }
+    // a group's food goes to the pass when every ticket is ready (or cancelled)
+    for (const g of S.groups) if (g.state === 'waitFood' && !g.passed) {
+      const ts = g.tickets.map(id => S.tickets.find(k => k.id === id));
+      if (ts.every(k => k.state === 'ready' || k.state === 'cancelled')) {
+        if (ts.some(k => k.state === 'ready')) { g.passed = true; addTask('deliver', { group: g.id, table: g.table }); }
+        else leave(g, true);
+      }
+    }
+    let dw = S.staff.filter(s => s.role === 'dishwasher').reduce((a, s) => a + 0.8 * 2 * (0.5 + s.skill / 100), 0) + (S.owner.cover === 'dishes' ? 0.8 * 2 * 1.0 : 0);
+    // stand-in (doc 02 §6.2): with no dishwasher, an idle cleaner washes at 1.5x time and skill -15
+    if (!S.staff.some(s => s.role === 'dishwasher')) for (const c of S.staff) if (c.role === 'cleaner' && !c.task) dw += 0.8 * 2 * (0.5 + (c.skill - 15) / 100) / 1.5;
+    S.dirty = Math.max(0, S.dirty - dw);
+  }
+
+  function ownerCook(k) {
+    const cap = k.dish.st === 'oven' && S.ovenDown ? 0 : S.slots[k.dish.st];
+    const used = S.tickets.filter(x => x.state === 'cooking' && x.dish.st === k.dish.st).length;
+    if (k.state !== 'waiting' || used >= cap || S.dirty > S.plateCap) return false;
+    k.state = 'cooking'; k.cook = null;
+    k.ends = S.tick + 1 + Math.max(1, Math.round(k.dish.prep * (1.5 - 35 / 100)));
+    k.q = Math.max(0, 0.4 * 65 + 0.4 * 35 + 0.2 * 60 - (S.owner.energy < 20 && rnd() < 0.15 ? 30 : 0));
+    return true;
+  }
+
+  function assign() {
+    // owner first claims what the player queued
+    const o = S.owner;
+    if (!o.task) {
+      let t = null;
+      while (o.queue.length && !t) { const c = S.tasks.find(x => x.id === o.queue[0]); if (c && c.state === 'waiting') t = c; else o.queue.shift(); }
+      if (t) { o.queue.shift(); startOwner(t); }
+    }
+    const order = ['bill', 'deliver', 'takeOrder', 'seat', 'clear'];
+    for (const type of order) {
+      const waiting = S.tasks.filter(t => t.state === 'waiting' && t.type === type && !t.reserved).sort((a, b) => a.created - b.created);
+      for (const t of waiting) {
+        let best = null;
+        for (let ri = 0; ri < ROLES[type].length && !best; ri++) {
+          const role = ROLES[type][ri];
+          best = S.staff.filter(s => s.role === role && !s.task).sort((a, b) => b.skill - a.skill)[0];
+          if (best) { const mult = type === 'bill' && role === 'server' ? 1.5 : 1; t.state = 'active'; t.worker = best.id; best.task = t; t.ends = S.tick + dur(type, best.skill, mult); }
+        }
+      }
+    }
+    // owner covering a role takes the oldest task nobody on staff took
+    if (!o.task && o.cover && o.cover !== 'dishes') {
+      if (o.cover === 'kitchen') {
+        const k = S.tickets.filter(k => k.state === 'waiting' && !k.reserved).sort((a, b) => a.created - b.created).find(k => { const cap = k.dish.st === 'oven' && S.ovenDown ? 0 : S.slots[k.dish.st]; return S.tickets.filter(x => x.state === 'cooking' && x.dish.st === k.dish.st).length < cap; });
+        if (k) startOwner(addTask('cook', { ticket: k, group: k.group }));
+      } else {
+        const t = S.tasks.filter(t => t.state === 'waiting' && !t.reserved && COVER[o.cover].includes(t.type)).sort((a, b) => a.created - b.created)[0];
+        if (t) startOwner(t);
+      }
+    }
+  }
+
+  function startOwner(t) {
+    const o = S.owner;
+    if (t.type === 'cook') { if (!ownerCook(t.ticket)) { t.state = 'done'; return; } t.ticket.ownerTask = t; t.ticket.reserved = false; t.state = 'active'; t.worker = 'owner'; t.ends = t.ticket.ends; }
+    else { t.state = 'active'; t.worker = 'owner'; t.ends = S.tick + 1 + dur(t.type, OWNER_SKILL[t.type], 1); }
+    o.task = t; o.at = t.type === 'cook' ? 'kitchen' : t.type === 'deliver' || t.type === 'takeOrder' || t.type === 'clear' || t.type === 'apologise' ? 'table' + t.table : t.type === 'bill' ? 'table' + t.table : 'door';
+  }
+
+  function step() {
+    if (S.over || S.incident && S.incident.open) return;
+    const t = S.tick;
+    while (S.arrivals.length && S.arrivals[0].tick <= t) {
+      const a = S.arrivals.shift();
+      S.groups.push({ id: S.nid++, size: a.size, pm: a.pm, state: 'waitTable', stateTicks: 0, table: null, tickets: [], waited: 0, patTotal: 0, unavail: 0, delivered: false, passed: false, seatTask: null });
+      S.stat.arrived++;
+    }
+    // seat tasks: a waiting group gets one when a fitting table is free
+    for (const g of S.groups) if (g.state === 'waitTable' && !g.seatTask) {
+      const tb = S.tables.filter(x => x.state === 'free' && x.seats >= g.size).sort((a, b) => a.seats - b.seats)[0];
+      if (tb) { tb.state = 'occupied'; tb.group = g.id; g.table = tb.id; g.seatTask = addTask('seat', { group: g.id, table: tb.id }); }
+    }
+    for (const g of S.groups) {
+      if (g.state === 'eating') { if (g.eatUntil <= t) { g.state = 'waitBill'; g.stateTicks = 0; addTask('bill', { group: g.id, table: g.table }); } continue; }
+      if (!PATIENCE[g.state]) continue;
+      g.stateTicks++; g.waited++;
+      if (g.stateTicks > limit(g, g.state)) {
+        if (g.state === 'waitBill') { g.patTotal += limit(g, 'waitBill'); g.waited = g.patTotal; pay(g, false); }
+        else leave(g, true);
+      }
+    }
+    for (const x of S.tasks) if (x.state === 'active' && x.type !== 'cook' && x.ends <= t) {
+      const g = x.group ? groupOf(x.group) : null;
+      if (g && PATIENCE[g.state]) g.patTotal += limit(g, g.state);
+      finishTask(x);
+    }
+    kitchen();
+    assign();
+    // incidents
+    if (!S.incident) {
+      if (S.ovenFailTick === t && !S.ovenDown) raise({ kind: 'oven' });
+      else if (S.complaints < 3 && t - S.lastComplaint > 60) {
+        const g = S.groups.find(g => g.state === 'waitFood' && g.stateTicks > 0.7 * limit(g, 'waitFood') && !g.complained);
+        if (g) { g.complained = true; S.lastComplaint = t; S.complaints++; raise({ kind: 'complaint', group: g.id, table: g.table }); }
+      }
+    } else if (!S.incident.open && --S.incident.left <= 0) resolve(S.incident.def);
+    // owner energy and bookkeeping
+    const o = S.owner;
+    const working = !!o.task || o.cover === 'dishes';
+    if (working) { o.energy = Math.max(0, o.energy - 0.4 * (o.task && o.task.type === 'cook' ? 1.5 : 1)); S.stat.ownerBusyTicks++; o.idleTicks = 0; } else o.idleTicks++;
+    const waitingNow = S.tasks.filter(x => x.state === 'waiting').length;
+    if (waitingNow > S.stat.peakWaiting) S.stat.peakWaiting = waitingNow;
+    S.tick++;
+    const anyone = S.groups.some(g => !['left', 'walkedOut'].includes(g.state));
+    if (S.tick >= TICKS + OVERTIME || (S.tick >= TICKS && !anyone && !S.arrivals.length)) {
+      for (const g of S.groups) if (!['left', 'walkedOut'].includes(g.state)) { if (g.delivered) pay(g, false); else leave(g, true); }
+      S.over = true;
+    }
+  }
+
+  function raise(inc) {
+    const defs = {
+      complaint: { title: 'Table ' + inc.table + ' is getting restless', text: 'They ordered a while ago and keep looking at the kitchen. One of them is waving.', def: 'leave',
+        options: [{ id: 'apologise', label: 'Go and apologise', note: 'You walk over. They wait a bit longer.' }, { id: 'dessert', label: 'Send a free dessert', note: 'Costs 10. They forgive more.' }, { id: 'leave', label: 'Leave it to the team', note: 'Nothing happens.' }] },
+      oven: { title: 'The oven has died', text: 'Pizzas, garlic bread and the fish all need it. Orders are already on the board.', def: 'pull',
+        options: [{ id: 'tech', label: 'Call the emergency technician', note: 'Costs 2,000. Likely fixed within the hour.' }, { id: 'diy', label: 'Let a cook try to fix it', note: 'Free. Risky.' }, { id: 'pull', label: 'Take oven dishes off the menu tonight', note: 'Lose those sales.' }] },
+    };
+    S.incident = { ...inc, ...defs[inc.kind], left: 40, open: false };
+    if (inc.kind === 'oven') { S.ovenDown = true; for (const d of DISHES) if (d.st === 'oven') S.eightySix.add(d.id); }
+    log('incident', { kind: inc.kind });
+  }
+
+  function resolve(choice) {
+    const inc = S.incident; if (!inc) return;
+    S.stat.incidents.push(inc.kind + ':' + choice);
+    if (inc.kind === 'complaint') {
+      const g = groupOf(inc.group);
+      if (choice === 'apologise' && g) { const t = addTask('apologise', { group: g.id, table: g.table }); t.reserved = true; S.owner.queue.unshift(t.id); }
+      if (choice === 'dessert' && g) { S.cash -= 10; g.treat = 10; }
+    } else if (inc.kind === 'oven') {
+      const cancelOven = () => { for (const k of S.tickets) if (k.dish.st === 'oven' && (k.state === 'waiting' || k.state === 'cooking')) { if (k.cook) { k.cook.active--; k.cook = null; } k.state = 'cancelled'; const g = groupOf(k.group); if (g) g.unavail++; } };
+      if (choice === 'tech') { S.cash -= 2000; if (rnd() < 0.6) S.ovenFixTick = S.tick + 30; else cancelOven(); inc.result = S.ovenFixTick > 0 ? 'The technician is on the way.' : 'The technician cannot fix it tonight.'; }
+      else if (choice === 'diy') { if (rnd() < 0.3) S.ovenFixTick = S.tick + 10; else cancelOven(); }
+      else cancelOven();
+      for (const k of S.tickets) if (k.dish.st === 'oven' && k.state === 'cooking' && S.ovenFixTick > 0) { k.state = 'waiting'; if (k.cook) { k.cook.active--; k.cook = null; } }
+    }
+    S.incident = null;
+  }
+
+  // player actions
+  S.step = step; S.resolve = resolve;
+  S.queueTask = id => { const o = S.owner; const t = S.tasks.find(x => x.id === id); if (!t || t.state !== 'waiting' || o.queue.includes(id) || o.queue.length >= 3) return false; t.reserved = true; o.queue.push(id); S.stat.taps++; return true; };
+  S.queueCook = st => { const o = S.owner; if (o.queue.length >= 3) return false; const k = S.tickets.filter(k => k.state === 'waiting' && k.dish.st === st && !k.reserved).sort((a, b) => a.created - b.created)[0]; if (!k) return false; k.reserved = true; const t = addTask('cook', { ticket: k, group: k.group }); t.reserved = true; o.queue.push(t.id); S.stat.taps++; return true; };
+  S.unqueue = id => { const t = S.tasks.find(x => x.id === id); if (t) { t.reserved = false; if (t.type === 'cook') { t.ticket.reserved = false; t.state = 'done'; } } S.owner.queue = S.owner.queue.filter(x => x !== id); };
+  S.setCover = r => { S.owner.cover = S.owner.cover === r ? null : r; S.stat.taps++; };
+  S.rolesCovered = () => ['cook', 'server', 'cashier', 'dishwasher'].every(r => S.staff.some(s => s.role === r));
+  S.limit = limit;
+  return S;
+}
+if (typeof module !== 'undefined') module.exports = { makeSim, SCENARIOS };
+</script>
+
+<script>
+// ---------------------------------------------------------------------------
+// Screen
+// ---------------------------------------------------------------------------
+(function () {
+  if (typeof document === 'undefined') return;
+  const app = document.getElementById('app');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let S = null, speed = 1, paused = false, timer = null, acc = 0, last = 0, scen = SCENARIOS[1], status = '';
+  const LABEL = { seat: 'Seat', takeOrder: 'Order', deliver: 'Serve', bill: 'Bill', clear: 'Clear', cook: 'Cook', apologise: 'Sorry' };
+  const clock = t => { const m = 11 * 60 + t * 2; return String(Math.floor(m / 60) % 24).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); };
+
+  function intro() {
+    stop();
+    app.innerHTML = `<div class="sheet">
+      <h1>Is three minutes of this fun?</h1>
+      <p>This is a rough test of one thing: working the floor as the owner during a dinner service. Grey boxes, no art, no real game around it. One shift takes about three minutes.</p>
+      <ul class="how">
+        <li><b>Your staff work by themselves.</b> Blue dots. They seat, take orders, serve, bill and clear.</li>
+        <li><b>You are the purple dot.</b> Tap any marker to do that job yourself. You can line up three jobs.</li>
+        <li><b>Or fill in for a role</b> with the buttons at the bottom, and you take whatever that role has waiting.</li>
+        <li><b>A ring turning red</b> means those customers are about to walk out.</li>
+        <li><b>Working drains your energy.</b> Below a fifth you start making mistakes.</li>
+      </ul>
+      <h2>Pick a shift</h2>
+      <div class="scen">${SCENARIOS.map(s => `<button data-scen="${s.id}" aria-pressed="${s.id === scen.id}"><b>${esc(s.name)}</b><span class="muted">${esc(s.blurb)}</span></button>`).join('')}</div>
+      <button class="primary" data-act="start">Open the doors</button>
+    </div>`;
+  }
+
+  function start() {
+    S = makeSim(scen, (Math.random() * 1e9) | 0);
+    speed = 1; paused = false; status = 'Doors open at 11:00.';
+    app.innerHTML = `
+      <div class="bar"><span class="clock" id="clock"></span><div class="prog"><i id="prog"></i></div><span class="cash" id="cash"></span>
+        <div class="speed"><button data-act="pause" id="bPause" aria-label="Pause">II</button><button data-speed="1" id="b1">1×</button><button data-speed="2" id="b2">2×</button><button data-speed="8" id="b8" aria-label="Fast-forward">»</button></div></div>
+      <div class="kitchen" id="kitchen"></div>
+      <div class="lane"><span class="lbl">Pass</span><span id="pass" style="display:contents"></span></div>
+      <div class="room" id="room"><div class="tables" id="tables"></div>
+        <div class="lane"><span class="lbl">Door</span><span id="door" style="display:contents"></span><span id="till" class="muted" style="margin-left:auto;font-size:11px;text-transform:uppercase;letter-spacing:.06em">Till</span></div>
+        <div id="dots"></div><div id="pillSlot"></div></div>
+      <div class="controls">
+        <div class="row"><span class="lbl">Next</span><span id="queue" style="display:contents"></span></div>
+        <div class="row cover"><span class="lbl">Fill in</span>${['server', 'till', 'kitchen', 'dishes'].map(r => `<button data-cover="${r}" id="cv_${r}">${r[0].toUpperCase() + r.slice(1)}</button>`).join('')}</div>
+        <div class="row"><span class="lbl">Energy</span><div class="energy" id="energy"><i></i></div><span class="num" id="energyN"></span></div>
+        <div class="status" id="status"></div>
+      </div>`;
+    render(); last = performance.now(); acc = 0; timer = requestAnimationFrame(loop);
+  }
+  function stop() { if (timer) cancelAnimationFrame(timer); timer = null; }
+
+  function loop(now) {
+    timer = requestAnimationFrame(loop);
+    const dt = Math.min(250, now - last); last = now;
+    if (paused || !S || S.over || (S.incident && S.incident.open)) return;
+    acc += dt * 2 * speed / 1000;
+    let n = 0;
+    while (acc >= 1 && n < 8) { S.step(); acc -= 1; n++; consume(); if (S.over) break; }
+    if (n) render();
+    if (S.over) { stop(); end(); }
+  }
+  function consume() {
+    for (const e of S.events) {
+      if (e.type === 'walkout') status = 'A party walked out' + (e.table ? ' from table ' + e.table : ' at the door') + '.';
+      else if (e.type === 'paid') status = 'Table ' + e.table + ' paid ' + e.amt + '.';
+      else if (e.type === 'mistake') status = 'You are exhausted and made a mistake.';
+      else if (e.type === 'ovenFixed') status = 'The oven is working again.';
+    }
+    S.events.length = 0;
+  }
+
+  function ringOf(g, state) { if (!g) return 'plain'; const lim = S.limit(g, state); const left = 1 - g.stateTicks / lim; return left < 0.3 ? 'red' : left < 0.6 ? 'amber' : ''; }
+  function marker(t, label) {
+    const g = t.group ? S.groups.find(x => x.id === t.group) : null;
+    const mine = S.owner.queue.includes(t.id) || (t.worker === 'owner' && t.state === 'active');
+    const cls = mine ? 'mine' : t.state === 'active' ? 'taken ' + (g ? ringOf(g, g.state) : 'plain') : t.type === 'clear' ? 'plain' : ringOf(g, g ? g.state : '');
+    return `<button class="mk ${cls}" data-task="${t.id}" aria-label="${LABEL[t.type]} table ${t.table || ''}">${label}</button>`;
+  }
+
+  function render() {
+    const $ = id => document.getElementById(id);
+    if (!$('clock')) return;
+    $('clock').textContent = clock(Math.min(S.tick, TICKS));
+    $('prog').style.width = Math.min(100, S.tick / TICKS * 100) + '%';
+    $('cash').textContent = S.cash.toLocaleString() + ' c';
+    $('bPause').setAttribute('aria-pressed', paused);
+    for (const sp of [1, 2, 8]) $('b' + sp).setAttribute('aria-pressed', !paused && speed === sp);
+    $('b8').disabled = !S.rolesCovered();
+    // kitchen
+    const st = ['stove', 'oven', 'cold'].map(name => {
+      const used = S.tickets.filter(k => k.state === 'cooking' && k.dish.st === name).length;
+      const wait = S.tickets.filter(k => k.state === 'waiting' && k.dish.st === name).length;
+      const cap = name === 'oven' && S.ovenDown ? 0 : S.slots[name];
+      const pips = Array.from({ length: S.slots[name] }, (_, i) => `<i class="${i < used ? 'on' : ''}"></i>`).join('');
+      return `<button class="station ${cap === 0 ? 'down' : wait > 2 ? 'q' : ''}" data-station="${name}"><span class="nm">${name}</span><span class="pips">${pips}</span><span class="w">${cap === 0 ? 'broken' : wait ? wait + ' waiting' : 'clear'}</span></button>`;
+    }).join('');
+    const full = S.dirty > S.plateCap;
+    $('kitchen').innerHTML = st + `<div class="station dishes ${full ? 'full' : ''}"><span class="nm">Dishes</span><div class="meter"><i style="width:${Math.min(100, S.dirty / S.plateCap * 100)}%"></i></div><span class="w">${full ? 'no clean plates' : Math.round(S.dirty) + ' dirty'}</span></div>`;
+    // pass and door
+    const active = S.tasks.filter(t => t.state !== 'done');
+    $('pass').innerHTML = active.filter(t => t.type === 'deliver').map(t => marker(t, 'T' + t.table)).join('') || '<span class="muted" style="font-size:12px">nothing ready</span>';
+    const doorGroups = S.groups.filter(g => g.state === 'waitTable');
+    $('door').innerHTML = doorGroups.map(g => g.seatTask && g.seatTask.state !== 'done' ? marker(g.seatTask, g.size + ' → T' + g.table) : `<span class="mk ${ringOf(g, 'waitTable')}" style="opacity:.6">${g.size} waiting</span>`).join('') || '<span class="muted" style="font-size:12px">nobody waiting</span>';
+    // tables
+    $('tables').innerHTML = S.tables.map(tb => {
+      const g = tb.group ? S.groups.find(x => x.id === tb.group) : null;
+      const t = active.find(x => x.table === tb.id && ['takeOrder', 'bill', 'clear', 'apologise'].includes(x.type));
+      let s = '', bar = '';
+      if (g) {
+        s = { waitTable: 'being seated', waitOrder: 'ready to order', waitFood: g.passed ? 'food at the pass' : 'waiting for food', eating: 'eating', waitBill: 'wants the bill' }[g.state] || '';
+        if (g.state !== 'eating' && g.state !== 'waitTable') { const left = Math.max(0, 1 - g.stateTicks / S.limit(g, g.state)); bar = `<div class="pbar"><i style="width:${left * 100}%;background:var(--${left < 0.3 ? 'bad' : left < 0.6 ? 'warn' : 'ok'})"></i></div>`; }
+      } else if (tb.state === 'dirty') s = 'needs clearing';
+      return `<div class="table ${tb.state === 'dirty' ? 'dirty' : g ? 'occ' : ''}" id="table${tb.id}"><div class="t"><span>T${tb.id}</span><span>${g ? g.size + '/' + tb.seats : tb.seats}</span></div><div class="s">${s}</div>${bar}${t ? marker(t, LABEL[t.type]) : ''}</div>`;
+    }).join('');
+    // owner controls
+    const o = S.owner;
+    const q = [];
+    if (o.task) q.push(`<span class="chip on">${LABEL[o.task.type]}${o.task.table ? ' T' + o.task.table : ''} …</span>`);
+    for (const id of o.queue) { const t = S.tasks.find(x => x.id === id); if (t) q.push(`<button class="chip on" data-unq="${id}" aria-label="Remove from your list">${LABEL[t.type]}${t.table ? ' T' + t.table : t.ticket ? ' ' + t.ticket.dish.st : ''} ✕</button>`); }
+    while (q.length < 3) q.push('<span class="chip"></span>');
+    $('queue').innerHTML = q.join('');
+    for (const r of ['server', 'till', 'kitchen', 'dishes']) $('cv_' + r).setAttribute('aria-pressed', o.cover === r);
+    $('energy').className = 'energy' + (o.energy < 20 ? ' low' : '');
+    $('energy').firstElementChild.style.width = o.energy + '%';
+    $('energyN').textContent = Math.round(o.energy);
+    $('status').textContent = paused ? 'Paused.' : status;
+    // dots
+    const room = $('room').getBoundingClientRect();
+    const at = id => { const el = document.getElementById(id); if (!el) return null; const r = el.getBoundingClientRect(); return [r.left - room.left + r.width / 2, r.top - room.top + r.height / 2]; };
+    const dots = [];
+    const floor = S.staff.filter(s => ['server', 'cashier', 'cleaner'].includes(s.role));
+    floor.forEach((s, i) => {
+      const t = s.task; const home = s.role === 'cashier' ? at('till') : [room.width * (0.3 + 0.2 * i), room.height - 70];
+      const p = t ? (t.type === 'seat' ? at('door') || home : at('table' + t.table) || home) : home;
+      if (p) dots.push(`<i class="dot" style="left:${p[0] + (i - 1) * 7}px;top:${p[1]}px"></i>`);
+    });
+    const op = o.task ? (o.at === 'kitchen' ? [room.width / 2, 0] : at(o.at) || at('till')) : [room.width * 0.5, room.height - 70];
+    if (op) dots.push(`<i class="dot owner" style="left:${op[0]}px;top:${op[1] + 10}px"></i>`);
+    const dl = $('dots');
+    if (dl.children.length !== dots.length) dl.innerHTML = dots.join('');
+    else dots.forEach((h, i) => { const m = h.match(/left:([\d.-]+)px;top:([\d.-]+)px/); dl.children[i].style.left = m[1] + 'px'; dl.children[i].style.top = m[2] + 'px'; });
+    // incident
+    const inc = S.incident;
+    $('pillSlot').innerHTML = inc && !inc.open ? `<button class="pill" data-act="incident">Something needs you · ${Math.ceil(inc.left / 2)}s</button>` : '';
+    let ov = document.getElementById('overlay');
+    if (inc && inc.open && !ov) {
+      ov = document.createElement('div'); ov.id = 'overlay'; ov.className = 'overlay';
+      ov.innerHTML = `<div class="card" role="dialog" aria-label="${esc(inc.title)}"><h2>${esc(inc.title)}</h2><p>${esc(inc.text)}</p>${inc.options.map(op => `<button data-choice="${op.id}"><b>${esc(op.label)}</b><small>${esc(op.note)}</small></button>`).join('')}</div>`;
+      document.body.appendChild(ov);
+    } else if ((!inc || !inc.open) && ov) ov.remove();
+  }
+
+  function end() {
+    const s = S.stat, groups = s.arrived || 1;
+    const lost = s.walkouts + s.turnedAway;
+    const stars = s.starN ? (s.stars / s.starN).toFixed(1) : '-';
+    const busy = Math.round(100 * s.ownerBusyTicks / Math.max(1, S.tick));
+    const text = [`Shift: ${S.scenario.name}`, `Parties: ${s.arrived} arrived, ${s.served} served, ${lost} lost (${Math.round(100 * lost / groups)}%)`, `Takings: ${S.cash}  Tips: ${S.tips}  Rating: ${stars}`,
+      `You: ${s.taps} taps, ${s.ownerTasks} jobs done (staff did ${s.staffTasks}), busy ${busy}% of the shift, energy left ${Math.round(S.owner.energy)}, mistakes ${s.mistakes}`,
+      `Most jobs waiting at once: ${s.peakWaiting}`, `Situations: ${s.incidents.join(', ') || 'none'}`].join('\n');
+    app.innerHTML = `<div class="sheet">
+      <h1>Doors closed</h1>
+      <p class="muted">${esc(S.scenario.name)}</p>
+      <div class="stats">
+        <div class="stat"><span class="num">${s.served}</span>parties served</div>
+        <div class="stat"><span class="num" style="color:var(--${lost / groups > 0.15 ? 'bad' : lost / groups > 0.08 ? 'warn' : 'ok'})">${lost}</span>parties lost (${Math.round(100 * lost / groups)}%)</div>
+        <div class="stat"><span class="num">${S.cash.toLocaleString()}</span>coins taken</div>
+        <div class="stat"><span class="num">${stars}</span>average rating</div>
+        <div class="stat"><span class="num">${s.taps}</span>taps by you</div>
+        <div class="stat"><span class="num">${busy}%</span>of the shift you were working</div>
+      </div>
+      <h2>Tell Claude how it felt</h2>
+      <p>Fun, dull, stressful, confusing? Too many taps or too few? Paste the numbers below with your answer.</p>
+      <textarea id="results" readonly aria-label="Results to copy">${esc(text)}</textarea>
+      <button class="ghost" data-act="copy" id="copyBtn">Copy results</button>
+      <button class="primary" data-act="again">Play another shift</button>
+    </div>`;
+  }
+
+  app.addEventListener('pointerdown', e => {
+    const b = e.target.closest('button'); if (!b || b.disabled) return;
+    const d = b.dataset;
+    if (d.scen) { scen = SCENARIOS.find(s => s.id === d.scen); intro(); }
+    else if (d.act === 'start') start();
+    else if (d.act === 'again') intro();
+    else if (d.act === 'copy') { const ta = document.getElementById('results'); const done = () => { b.textContent = 'Copied'; }; const sel = () => { ta.focus(); ta.select(); b.textContent = 'Selected — copy it'; }; try { navigator.clipboard.writeText(ta.value).then(done, sel); } catch (_) { sel(); } }
+    else if (!S) return;
+    else if (d.act === 'pause') { paused = !paused; render(); }
+    else if (d.speed) { speed = +d.speed; paused = false; render(); }
+    else if (d.task) { if (!S.queueTask(+d.task)) status = S.owner.queue.length >= 3 ? 'Your list is full. Three jobs at most.' : 'Someone is already on that.'; render(); }
+    else if (d.station) { if (!S.queueCook(d.station)) status = 'Nothing waiting at the ' + d.station + ' you can start.'; render(); }
+    else if (d.unq) { S.unqueue(+d.unq); render(); }
+    else if (d.cover) { S.setCover(d.cover); status = S.owner.cover ? 'You are filling in: ' + S.owner.cover + '.' : 'You stopped filling in.'; render(); }
+    else if (d.act === 'incident') { S.incident.open = true; render(); }
+  });
+  document.body.addEventListener('pointerdown', e => {
+    const b = e.target.closest('[data-choice]'); if (!b || !S || !S.incident) return;
+    const res = S.incident.options.find(o => o.id === b.dataset.choice);
+    S.resolve(b.dataset.choice); status = res ? res.label + '.' : ''; render();
+  });
+  intro();
+})();
+</script>
