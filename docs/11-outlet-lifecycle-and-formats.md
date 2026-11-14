@@ -96,7 +96,8 @@ A neglected but well-operated outlet drifts to about **−12% demand in two mont
 further as rivals arrive — enough to turn a Good-tier profit into a small loss. Add to
 doc 06 targets: the *passive* bot must show this decline; the *competent* bot (now also
 buying one local ad per 4 weeks and a menu rework per 8 weeks) must hold demand within
-±5% of neutral at a marketing cost of 2–4% of revenue (measured: −3%).
+±5% of neutral at a marketing cost of 2–4% of revenue (measured: −3% demand at 3.4% of
+revenue with the prices in doc 02 §13).
 
 ### A.7 Showing it
 

@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 5) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 6) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -84,16 +84,16 @@ A role with two people counts half a gap when one is missing.
 
 ## Results (200 seeds × 26 weeks, Good tier, average location)
 
-Average weekly net profit after the manager's wage:
+Average weekly net profit after the manager's wage (ad prices from balance-log entry 6):
 
 | Run by | passive | remote | competent |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +3.8k |
-| Trainee | −2.2k | −1.4k | −0.2k |
-| Junior | −1.5k | −0.7k | +0.3k |
-| Capable | −0.8k | ≈ 0 | +0.9k |
-| Senior | −0.4k | +0.8k | +1.5k |
-| Veteran | ≈ 0 | +1.4k | +2.0k |
+| Owner, no manager | +2.1k | — | +3.4k |
+| Trainee | −2.2k | −1.7k | −0.5k |
+| Junior | −1.5k | −0.9k | ≈ 0 |
+| Capable | −0.8k | −0.2k | +0.6k |
+| Senior | −0.4k | +0.5k | +1.2k |
+| Veteran | ≈ 0 | +1.1k | +1.6k |
 
 The adaptive owner does +0.1k to +0.3k a week better than the competent one at every
 grade. The last four report columns are the ad measures: campaigns per run, flop %,
@@ -101,8 +101,13 @@ big-hit % and marketing as a share of revenue.
 
 `bots` ends with an **Ad returns** table: for each campaign type and outcome, average
 spend, extra groups, extra profit and return. In `play`, the `ads` command lists every
-campaign you ran with the same figures. Current result: a local ad returns ×4.3 and
-flyers ×5.9 on average, which is too generous to be a gamble — see balance-log entry 5.
+campaign you ran with the same figures. Current result: a local ad returns ×2.2 and
+flyers ×2.6 on average, and a weak response roughly breaks even (balance-log entry 6).
+
+The last table, **Second outlet**, buys a running Good outlet at the later-market price
+(`TAKEOVER_PRICE_GOOD` × `TAKEOVER_MARKET_PRICE_FACTOR`) from company cash and reports
+weeks until operating profit has paid it back, over 104 weeks. Hidden problems are not
+modelled, so treat it as a best case.
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).

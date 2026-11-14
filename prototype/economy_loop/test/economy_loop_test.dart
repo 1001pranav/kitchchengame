@@ -206,12 +206,12 @@ void main() {
       final served = s.weeks.fold(0, (a, w) => a + w.served);
       expect(c.extraGroups,
           lessThan(served)); // never credited with more than happened
-      expect(c.spend, 1500);
+      expect(c.spend, 3000);
       if (c.mult == 0) {
         sawFlop = true;
         expect(c.extraGroups, 0);
         expect(c.returnOnSpend, 0);
-        expect(c.netGain, -1500);
+        expect(c.netGain, -3000);
       } else {
         sawWorking = true;
         expect(c.extraGroups, greaterThan(0));

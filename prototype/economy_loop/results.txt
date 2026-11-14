@@ -2,41 +2,51 @@ Good tier, average location, 200 seeds x 26 weeks
 
 owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk  ads/run  flop%  bighit%  mkt%rev
 passive    OWNER-RUN    100%        -     44.1k       2.1k   3.3k    2.1k    1.8k          -12%     3.59          1.6    135%                 0      0.0      -        -     0.0%
-competent  OWNER-RUN    100%        -     89.4k       3.8k   4.6k    3.9k    3.5k           -3%     3.53          0.7     80%                 0      7.0  12.3%    10.1%     1.7%
-adaptive   OWNER-RUN    100%        -     95.8k       4.0k   4.7k    4.2k    3.8k           -2%     3.53          0.6     75%                 0      9.8  13.9%     8.6%     1.9%
+competent  OWNER-RUN    100%        -     79.8k       3.4k   4.2k    3.6k    3.1k           -3%     3.53          0.7     80%                 0      7.0  12.3%    10.1%     3.5%
+adaptive   OWNER-RUN    100%        -     84.9k       3.6k   4.3k    3.8k    3.4k           -2%     3.53          0.6     75%                 0      9.8  13.9%     8.6%     3.8%
 passive    trainee        0%        9     -5.5k      -2.2k  -1.3k   -2.8k       -          -12%     2.79          5.3    142%             -2.0k      0.0      -        -     0.0%
 passive    junior         0%       11     -2.3k      -1.5k   -395   -2.3k       -          -12%     2.98          4.7    240%             -1.6k      0.0      -        -     0.0%
 passive    capable        0%       13     -3.6k       -828    290   -1.7k       -          -12%     3.18          4.1   1182%             -1.0k      0.0      -        -     0.0%
 passive    senior         1%       17     -4.2k       -388    807    -633    -538          -12%     3.35          3.7   2820%              -332      0.0      -        -     0.0%
 passive    veteran        3%       21     -3.6k        -10   1.3k      17    -567          -12%     3.47          3.4   1659%               412      0.0      -        -     0.0%
-remote     trainee        0%       11     -3.9k      -1.4k   -491   -1.8k       -           -3%     2.72          4.4   1080%             -2.1k      2.4  13.2%     9.0%     2.0%
-remote     junior         0%       13     -2.7k       -651    436   -1.2k       -           -3%     2.93          3.7   2398%             -1.6k      3.2  13.4%     8.4%     1.8%
-remote     capable       17%       20     -2.5k         39   1.2k    -240      59           -3%     3.14          3.1   1029%             -1.0k      4.7  13.8%    10.1%     1.7%
-remote     senior        62%       21      8.5k        751   2.0k    1.2k     330           -3%     3.28          2.6    344%              -283      6.2  11.5%     9.9%     1.7%
-remote     veteran       92%       25     27.1k       1.4k   2.5k    1.8k     778           -3%     3.39          2.0    168%               504      6.8  11.4%    10.3%     1.7%
-competent  trainee        7%       17     -3.1k       -240    225    -312     192           -3%     3.06          3.6   1859%             -1.7k      3.8  13.6%     8.4%     1.8%
-competent  junior        32%       21     -1.6k        286    820     350     666           -3%     3.24          3.1    915%             -1.3k      5.0  12.5%     9.2%     1.7%
-competent  capable       70%       21     12.9k        881   1.6k    1.0k     922           -3%     3.41          2.6    286%              -746      6.3  12.6%     9.0%     1.8%
-competent  senior        94%       25     27.6k       1.5k   2.2k    1.5k    1.4k           -3%     3.51          2.1    177%                -6      6.8  12.0%    10.6%     1.8%
-competent  veteran       99%       25     41.4k       2.0k   2.6k    2.1k    1.8k           -3%     3.59          1.7    134%               665      7.0  12.1%     9.2%     1.7%
-adaptive   trainee       10%       17     -3.1k       -151    255    -193     197           -2%     3.07          3.5   1851%             -1.7k      5.5  14.3%     7.6%     1.9%
-adaptive   junior        43%       21      -709        431    893     527     717           -2%     3.25          2.9    708%             -1.3k      7.5  12.9%     8.8%     1.9%
-adaptive   capable       89%       24     18.5k       1.1k   1.7k    1.2k    1.2k           -2%     3.40          2.3    205%              -756      9.2  11.6%     9.4%     2.0%
-adaptive   senior        98%       25     33.5k       1.7k   2.3k    1.8k    1.8k           -2%     3.51          1.8    143%                -3      9.5  12.9%     9.4%     1.9%
-adaptive   veteran      100%        -     49.8k       2.3k   2.7k    2.4k    2.3k           -2%     3.58          1.4    114%               683      9.5  11.7%     9.9%     1.9%
+remote     trainee        0%        9     -4.8k      -1.7k   -807   -1.9k       -           -3%     2.72          4.4   1072%             -2.1k      2.1  12.4%     8.7%     3.9%
+remote     junior         0%       13     -4.0k       -876     89   -1.5k       -           -3%     2.94          3.7   1588%             -1.6k      2.8  13.3%     8.5%     3.4%
+remote     capable        6%       17     -3.5k       -187    874    -556    -404           -3%     3.13          3.1    607%             -1.1k      4.0  13.4%    10.1%     3.2%
+remote     senior        47%       21      -129        470   1.6k     870     118           -3%     3.29          2.5    278%              -287      5.6  11.8%    10.1%     3.3%
+remote     veteran       82%       25     17.3k       1.1k   2.1k    1.5k     532           -3%     3.40          2.0    168%               502      6.6  11.5%    10.1%     3.4%
+competent  trainee        3%       16     -3.8k       -473    -94    -626     401           -3%     3.05          3.6   1900%             -1.7k      3.2  12.1%     8.8%     3.3%
+competent  junior        17%       17     -2.7k          5    487     -22     608           -4%     3.24          3.2    641%             -1.3k      4.2  13.8%     9.0%     3.3%
+competent  capable       53%       21      2.5k        579   1.2k     663     758           -3%     3.40          2.6    261%              -765      5.6  12.7%     9.3%     3.4%
+competent  senior        82%       25     18.0k       1.2k   1.9k    1.2k    1.2k           -3%     3.51          2.1    179%               -13      6.5  11.8%    10.5%     3.4%
+competent  veteran       96%       25     31.8k       1.6k   2.3k    1.8k    1.5k           -3%     3.58          1.7    135%               664      6.9  12.1%     9.3%     3.4%
+adaptive   trainee        2%       17     -3.8k       -394    -87    -514     220           -2%     3.06          3.5   1804%             -1.7k      4.4  13.2%     8.5%     3.6%
+adaptive   junior        24%       20     -2.1k        124    532     179     620           -2%     3.23          3.0    417%             -1.3k      6.0  12.5%     8.3%     3.6%
+adaptive   capable       68%       21      8.7k        768   1.3k     879     958           -2%     3.40          2.3    205%              -759      8.3  11.8%     9.1%     3.7%
+adaptive   senior        94%       25     23.0k       1.3k   1.9k    1.4k    1.4k           -2%     3.50          1.9    144%                -7      9.4  13.1%     9.5%     3.8%
+adaptive   veteran       99%       25     39.1k       1.9k   2.4k    2.0k    1.9k           -2%     3.58          1.5    114%               682      9.5  11.6%     9.9%     3.7%
 
 Ad returns: campaigns at least 8 weeks old, owners who market and visit
 
 campaign   outcome         runs   spend  extra groups  extra profit  return  net gain
-localAd    all            10905    1.5k         186.1          6.5k   x4.32      5.0k
-           BIG HIT         1060    1.5k         491.2         17.1k  x11.39     15.6k
-           as expected     3834    1.5k         183.4          6.4k   x4.27      4.9k
-           flopped         1284    1.5k           0.0             0   x0.00     -1.5k
-           weak response   2750    1.5k          86.9          3.0k   x2.02      1.5k
-           worked well     1977    1.5k         286.3         10.0k   x6.64      8.5k
-flyers     all             2050     400          67.5          2.4k   x5.89      2.0k
-           BIG HIT          174     400         247.9          8.7k  x21.70      8.3k
-           as expected      716     400          62.9          2.2k   x5.48      1.8k
-           flopped          280     400           0.0             0   x0.00      -400
-           weak response    529     400          29.7          1.0k   x2.58       634
-           worked well      351     400          98.1          3.4k   x8.55      3.0k
+localAd    all            10342    3.0k         186.3          6.5k   x2.17      3.5k
+           BIG HIT         1013    3.0k         488.2         17.0k   x5.68     14.0k
+           as expected     3618    3.0k         183.6          6.4k   x2.14      3.4k
+           flopped         1208    3.0k           0.0             0   x0.00     -3.0k
+           weak response   2595    3.0k          86.9          3.0k   x1.01        40
+           worked well     1908    3.0k         284.4          9.9k   x3.31      6.9k
+flyers     all             1936     900          67.4          2.4k   x2.63      1.5k
+           BIG HIT          165     900         248.0          8.7k   x9.69      7.8k
+           as expected      674     900          62.7          2.2k   x2.44      1.3k
+           flopped          264     900           0.0             0   x0.00      -900
+           weak response    502     900          29.6          1.0k   x1.15       136
+           worked well      331     900          98.2          3.4k   x3.82      2.5k
+
+Second outlet: buy a running Good outlet for 75.0k from company cash, 104 weeks
+
+owner      manager   op profit/wk  w1-26   w27-52  median payback wk  paid back by wk 52
+remote     capable            -745   -571     -628               >104                0.0%
+remote     senior              358    476      410               >104                5.5%
+remote     veteran            1.5k   1.3k     1.3k                 59               42.5%
+competent  capable            1.1k    674     1.4k                 79               22.5%
+competent  senior             2.1k   1.3k     2.2k                 45               67.5%
+competent  veteran            2.7k   1.8k     2.7k                 38               89.5%
