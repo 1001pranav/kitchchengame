@@ -288,6 +288,7 @@
   "SCRATCH_START_AWARENESS": 0.45,
   "OPENING_GRACE_WEEKS": 12,
   "AWARENESS_GAIN": 0.01,
+  "TAKEOVER_START_AWARENESS": 0.7,
   "_comment_incidents": "Incidents and hidden problems (doc 05; doc 02 §11, §15.4). INCIDENTS = 0 turns them off. See README for the stand-ins.",
   "INCIDENTS": 1,
   "INCIDENT_FREQ": 1.0,
