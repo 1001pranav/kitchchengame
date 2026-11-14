@@ -110,7 +110,7 @@ Starting capital: 100,000 coins. Price above that is financed by the starting lo
 | Worst | 30,000 | 0 | 70,000 | 6, skill 15–40, morale 25 | 15–35, one broken | 1.5 | Poor, overpriced lease | 4–5 |
 
 Later in the game (Phase 2) the same kinds of offer appear in the takeover market at
-half these prices, with no loan, because a later outlet must pay a manager (doc 02 §15.9).
+40% of these prices, with no loan, because a later outlet must pay a manager (doc 02 §15.9).
 
 Each new game generates one offer per tier from the seed. **Due diligence** costs 2,000
 coins per offer and reveals half of its hidden problems (rounded up).

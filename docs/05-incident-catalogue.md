@@ -121,7 +121,7 @@ cooldowns as "about how often should this happen", e.g. 42 days ≈ four times a
 **Defaults are what an ignored card does.** The passive bot (doc 06 §6.1) takes every
 default, including "leave it broken" (#21), "ignore" the pests (#26) and "bucket" (#25).
 Several defaults persist until someone acts, so for a player who never answers they are
-fatal (balance-log entry 9: inherited pests → 7% survival for an owner who works the
+fatal (balance-log entries 9–10: inherited pests → 0–7% survival for an owner who works the
 floor but never answers a card). That is intended; a default must never be the best
 option, and an owner who reads the card can always do better.
 

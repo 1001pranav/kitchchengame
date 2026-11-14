@@ -28,9 +28,9 @@ adaptive   veteran        0%       13     -3.6k       -910   -358   -1.3k       
 
 Weeks with negative operating profit, owner never visits (doc 06 §4 manager targets)
 
-owner      manager   weeks 1-12  weeks 13-26
-remote     senior         88.2%            -
-remote     veteran        82.7%            -
+owner      manager   weeks 5-12  weeks 13-26
+remote     senior         99.7%            -
+remote     veteran        98.7%            -
 
 Ad returns: campaigns at least 8 weeks old, owners who market and visit
 

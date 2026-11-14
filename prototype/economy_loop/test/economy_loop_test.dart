@@ -62,7 +62,8 @@ void main() {
   test('forecast at neutral health is footfall × rep × dow (doc 02 §5.1)', () {
     final s = OutletSim(load(), 1);
     // day 0: Monday 0.80, spring 1.00, rep 3.5 -> 1.125, buzz 0.5 & freshness 0.6 -> 1.0
-    expect(s.forecast(), closeTo(s.b.d('BASE_FOOTFALL') * 1.125 * 0.8, 1e-9));
+    expect(s.forecast(),
+        closeTo(s.b.d('BASE_FOOTFALL') * 1.125 * 0.8 * s.awareness, 1e-9));
   });
 
   test(
@@ -289,8 +290,15 @@ void main() {
         s.step();
       }
       expect(s.awareness, 1.0);
-      expect(
-          OutletSim(load(), 2).awareness, 1.0); // a takeover keeps its regulars
+    });
+
+    test('a takeover keeps most regulars; the rest return within ~6 weeks', () {
+      final t = OutletSim(load(), 2, ownerRun: true);
+      expect(t.awareness, t.b.d('TAKEOVER_START_AWARENESS'));
+      while (t.day < 42) {
+        t.step();
+      }
+      expect(t.awareness, 1.0);
     });
 
     test('leased kit costs a weekly fee and never drops below 70', () {

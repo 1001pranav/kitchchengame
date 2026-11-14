@@ -278,7 +278,8 @@ void main(List<String> args) {
   if (!only) {
     stdout.writeln(
         '\nWeeks with negative operating profit, owner never visits (doc 06 §4 manager targets)\n');
-    stdout.writeln('owner      manager   weeks 1-12  weeks 13-26');
+    // From week 5: the takeover handover month (doc 02 §15.9) is not the manager's.
+    stdout.writeln('owner      manager   weeks 5-12  weeks 13-26');
     for (final key in ['remote/senior', 'remote/veteran']) {
       final runs = kept[key]!;
       String share(int a, int z) {
@@ -289,7 +290,7 @@ void main(List<String> args) {
 
       final parts = key.split('/');
       stdout.writeln('${parts[0].padRight(10)} ${parts[1].padRight(9)} '
-          '${share(0, 12).padLeft(10)} ${share(12, 26).padLeft(12)}');
+          '${share(4, 12).padLeft(10)} ${share(12, 26).padLeft(12)}');
     }
   }
 

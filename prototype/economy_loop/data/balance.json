@@ -261,7 +261,7 @@
     }
   ],
   "TAKEOVER_PRICE_GOOD": 150000,
-  "TAKEOVER_MARKET_PRICE_FACTOR": 0.5,
+  "TAKEOVER_MARKET_PRICE_FACTOR": 0.4,
   "_comment_scratch": "Route B, start from scratch (doc 02 §15.9). Medium size, 3-year lease, average location.",
   "SCRATCH_FITOUT": {
     "basic": { "cost": 8000, "days": 7, "buzz": 0.6, "patience": 0.95 },
