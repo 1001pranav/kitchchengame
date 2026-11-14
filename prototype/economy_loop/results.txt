@@ -1,121 +1,121 @@
 Good tier, average location, 200 seeds x 26 weeks
 
 owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk  ads/run  flop%  bighit%  mkt%rev
-passive    OWNER-RUN      0%        7     -3.8k      -2.7k   -996       -       -          -12%     2.02          4.6    288%                 0      0.0      -        -     0.0%
-chores     OWNER-RUN     74%       21     17.0k       1.1k   2.0k     417    1.4k          -12%     3.51          2.2    201%               -30      0.0      -        -     0.0%
-competent  OWNER-RUN    100%        -     90.2k       3.8k   3.9k    3.6k    3.7k            2%     3.50          0.6     72%                 0      7.0  10.7%    12.4%     3.8%
-adaptive   OWNER-RUN    100%        -     97.2k       4.1k   3.9k    3.9k    4.0k            3%     3.49          0.5     67%                 0      9.6  10.3%    11.7%     4.0%
-passive    trainee        0%        8     -4.9k      -2.7k  -2.3k       -       -          -12%     2.68          5.0    178%             -2.0k      0.0      -        -     0.0%
-passive    junior         0%        9     -3.8k      -1.8k  -1.2k   -2.8k       -          -12%     2.97          4.4    382%             -1.6k      0.0      -        -     0.0%
-passive    capable        0%       12     -4.0k      -1.1k   -446   -2.4k       -          -12%     3.22          3.9   1175%              -968      0.0      -        -     0.0%
-passive    senior         0%       13     -4.0k       -695     78   -1.5k       -          -12%     3.37          3.6   2270%              -248      0.0      -        -     0.0%
-passive    veteran        0%       17     -3.6k       -364    626   -1.3k       -          -12%     3.47          3.4   2051%               490      0.0      -        -     0.0%
-remote     trainee        0%        9     -4.7k      -1.7k  -1.2k   -2.6k       -            1%     2.65          4.0   1103%             -2.2k      1.9  14.4%    10.1%     4.0%
-remote     junior         2%       13     -3.9k       -864   -249   -1.8k      50            1%     2.86          3.3   1548%             -1.7k      2.6  13.1%    10.0%     3.7%
-remote     capable       21%       16     -2.4k         24    671    -687     214            1%     3.06          2.7    708%             -1.1k      4.0  12.3%    11.1%     3.6%
-remote     senior        53%       17      2.0k        776   1.3k     485     712            1%     3.22          2.2    283%              -203      5.3  13.4%    11.1%     3.7%
-remote     veteran       84%       21     23.3k       1.5k   1.9k    1.3k     912            1%     3.34          1.6    146%               616      6.4  10.4%    11.5%     3.7%
-competent  trainee        7%       13     -2.8k       -540   -522   -1.1k     785            1%     2.95          3.4   1511%             -1.8k      2.8  13.2%    10.9%     3.7%
-competent  junior        29%       13     -1.6k        150    164    -460     816            1%     3.13          2.9    733%             -1.3k      3.8  12.2%    10.9%     3.6%
-competent  capable       61%       17      8.3k        953   1.0k     424    1.3k            1%     3.32          2.2    267%              -745      5.3   9.0%    11.7%     3.6%
-competent  senior        81%       17     27.6k       1.6k   1.6k    1.1k    1.7k            1%     3.43          1.7    170%                92      6.2   9.3%    11.5%     3.7%
-competent  veteran       91%       17     43.4k       2.0k   2.1k    1.6k    2.0k            2%     3.47          1.3    115%               769      6.6   9.7%    13.2%     3.7%
-adaptive   trainee        7%       13     -3.4k       -472   -490   -1.0k     719            2%     2.95          3.3   1009%             -1.8k      3.9  12.9%     8.7%     3.9%
-adaptive   junior        34%       13     -1.0k        290    229    -225     867            2%     3.14          2.7    495%             -1.3k      5.6  12.0%    11.2%     3.9%
-adaptive   capable       67%       16     15.4k       1.1k    974     557    1.5k            3%     3.32          2.1    433%              -740      7.4  11.9%    12.1%     4.0%
-adaptive   senior        84%       17     31.9k       1.7k   1.6k    1.2k    1.9k            3%     3.43          1.6    147%                96      8.4  11.2%    11.2%     4.0%
-adaptive   veteran       94%       17     46.6k       2.2k   2.1k    1.8k    2.2k            3%     3.49          1.2    103%               790      9.0  10.6%    12.3%     4.0%
+passive    OWNER-RUN      0%        6     -4.0k      -3.4k  -2.7k       -       -          -12%     2.26          5.5    248%                 0      0.0      -        -     0.0%
+chores     OWNER-RUN     65%       17      8.4k        766     36     371    1.3k          -12%     3.51          2.6    345%               -37      0.0      -        -     0.0%
+competent  OWNER-RUN    100%        -     84.1k       3.6k   2.2k    3.5k    3.8k            1%     3.50          0.7     78%                 0      7.0  10.1%    12.8%     3.8%
+adaptive   OWNER-RUN    100%        -     90.5k       3.8k   2.2k    3.8k    3.9k            3%     3.49          0.6     73%                 0      9.6  10.5%    11.4%     4.1%
+passive    trainee        0%        5     -2.8k      -3.9k  -4.1k       -       -          -12%     2.73          5.9     80%             -1.7k      0.0      -        -     0.0%
+passive    junior         0%        8     -4.1k      -2.9k  -3.2k       -       -          -12%     3.00          5.2    129%             -1.4k      0.0      -        -     0.0%
+passive    capable        0%        9     -3.3k      -1.9k  -2.5k   -2.0k       -          -12%     3.26          4.5    302%              -909      0.0      -        -     0.0%
+passive    senior         0%        9     -3.5k      -1.3k  -2.0k   -1.2k       -          -12%     3.41          4.1    765%              -238      0.0      -        -     0.0%
+passive    veteran        0%       13     -3.4k       -915  -1.6k   -1.0k       -          -12%     3.50          3.8   1891%               458      0.0      -        -     0.0%
+remote     trainee        0%        9     -3.8k      -2.4k  -2.6k   -2.4k       -            3%     2.67          4.7    473%             -2.0k      1.6  11.0%    10.6%     4.1%
+remote     junior         1%        9     -3.1k      -1.3k  -1.7k   -1.4k    -237            1%     2.88          3.9    992%             -1.6k      2.1  13.1%    11.6%     3.8%
+remote     capable       14%       13     -3.0k       -325   -948    -761     651            1%     3.08          3.2   1453%             -1.0k      3.1  12.1%    12.3%     3.6%
+remote     senior        42%       13      -552        491   -405     389     710            1%     3.24          2.5    884%              -211      4.4  14.6%    11.0%     3.6%
+remote     veteran       67%       17     15.5k       1.2k     95    1.3k    1.2k            1%     3.35          2.0    335%               588      5.5   9.4%    10.6%     3.6%
+competent  trainee        2%       11     -4.0k      -1.1k  -1.9k   -1.0k    1.6k            1%     2.93          4.0   1340%             -1.7k      2.2  11.8%    10.0%     3.7%
+competent  junior        18%       13     -2.7k       -268  -1.3k    -501     955            1%     3.13          3.4   1148%             -1.3k      3.0  10.1%     9.7%     3.6%
+competent  capable       44%       13      -373        614   -668     397    1.5k            1%     3.31          2.6   1009%              -732      4.3   9.7%    12.1%     3.6%
+competent  senior        65%       13     19.8k       1.3k   -212    1.1k    2.1k            1%     3.43          2.1    525%                57      5.3   9.4%    10.8%     3.6%
+competent  veteran       81%       13     32.0k       1.7k    218    1.5k    2.1k            1%     3.49          1.7    213%               715      6.0  10.2%    13.5%     3.7%
+adaptive   trainee        3%       12     -3.7k       -994  -1.9k    -956     980            3%     2.93          3.9   1670%             -1.8k      3.1  12.8%    10.1%     4.0%
+adaptive   junior        23%       13     -2.0k        -80  -1.2k    -238    1.0k            3%     3.12          3.2    946%             -1.3k      4.5  11.7%    10.7%     3.9%
+adaptive   capable       49%       13      -148        742   -638     561    1.5k            2%     3.31          2.5    554%              -742      6.1  11.6%    11.3%     3.8%
+adaptive   senior        70%       13     21.5k       1.3k   -136    1.1k    2.0k            2%     3.41          2.0    477%                42      7.3  10.6%    11.2%     3.9%
+adaptive   veteran       84%       13     36.9k       1.8k    317    1.7k    2.2k            3%     3.48          1.5    154%               742      8.3  10.6%    11.8%     4.0%
 
 Survival, incidents and hidden problems (200 seeds x 26 weeks)
 
-owner      manager   survive  fail-wk  min cash  tight d wk1-8  incidents/wk  by default
-passive    OWNER-RUN    0.0%        7     -4.4k            27%           3.8      100.0%
-chores     OWNER-RUN   74.0%       21     11.5k             2%           2.3       90.3%
-competent  OWNER-RUN  100.0%        -     18.5k             0%           2.1        6.1%
-remote     senior      52.5%       17      1.1k             5%           2.3       26.9%
-competent  senior      81.0%       17     14.5k             4%           2.2       24.7%
-remote     veteran     83.5%       21     14.7k             3%           2.2       27.0%
-competent  veteran     90.5%       17     16.9k             2%           2.2       25.6%
+owner      manager   survive  fail-wk  min cash  tight d wk1-8  runs <1wk  runs <0.5wk  incidents/wk  by default
+passive    OWNER-RUN    0.0%        6     -4.7k            30%     100.0%       100.0%           3.8      100.0%
+chores     OWNER-RUN   64.5%       17      3.0k             6%      41.0%        20.0%           2.3       90.0%
+competent  OWNER-RUN  100.0%        -     17.7k             1%      14.0%         4.5%           2.1        6.2%
+remote     senior      41.5%       13     -2.8k            14%      68.5%        37.0%           2.3       28.1%
+competent  senior      64.5%       13      7.0k            12%      61.0%        32.5%           2.2       25.0%
+remote     veteran     67.0%       17      6.8k            10%      55.0%        29.0%           2.2       28.5%
+competent  veteran     80.5%       13     10.9k             9%      52.0%        26.0%           2.2       26.2%
 
 Survival by hidden problem drawn (Good tier draws 2)
 
 owner      manager       chefLeaving     fakeReviews            feud          fridge healthViolation           lease         licence           pests        skimming    supplierDebt
 passive    OWNER-RUN            0.0%            0.0%            0.0%            0.0%            0.0%            0.0%            0.0%            0.0%            0.0%            0.0%
-chores     OWNER-RUN           86.8%           79.5%           92.3%           84.8%           47.5%           85.4%           83.0%            6.7%           78.3%           78.6%
+chores     OWNER-RUN           76.3%           72.7%           87.2%           81.8%           45.0%           78.0%           74.5%            0.0%           65.2%           50.0%
 competent  OWNER-RUN          100.0%          100.0%          100.0%          100.0%          100.0%          100.0%          100.0%          100.0%          100.0%          100.0%
-remote     senior              64.9%           60.5%           50.0%           69.2%           62.0%           59.6%           64.3%           18.0%               -           35.3%
-competent  senior              81.1%           86.8%           84.8%           92.3%           84.0%           87.2%           90.5%           62.0%               -           66.7%
-remote     veteran             89.2%           84.2%           82.6%           89.7%           88.0%           95.7%           88.1%           66.0%               -           72.5%
-competent  veteran             94.6%           89.5%           93.5%           97.4%           92.0%           97.9%           95.2%           70.0%               -           88.2%
+remote     senior              48.6%           55.3%           41.3%           51.3%           52.0%           44.7%           57.1%           16.0%               -           17.6%
+competent  senior              67.6%           73.7%           69.6%           79.5%           72.0%           72.3%           73.8%           38.0%               -           43.1%
+remote     veteran             73.0%           76.3%           65.2%           87.2%           74.0%           74.5%           83.3%           38.0%               -           43.1%
+competent  veteran             81.1%           92.1%           87.0%           87.2%           80.0%           93.6%           85.7%           62.0%               -           62.7%
 
 Weeks with negative operating profit, owner never visits (doc 06 §4 manager targets)
 
-owner      manager   weeks 1-12  weeks 13-26
-remote     senior         22.0%        33.5%
-remote     veteran        12.4%        21.5%
+owner      manager   weeks 5-12  weeks 13-26
+remote     senior         25.6%        31.7%
+remote     veteran        13.9%        20.0%
 
 Ad returns: campaigns at least 8 weeks old, owners who market and visit
 
 campaign   outcome         runs   spend  extra groups  extra profit  return  net gain
-localAd    all             9426    3.0k         192.6          6.6k   x2.21      3.6k
-           BIG HIT         1175    3.0k         422.4         14.5k   x4.84     11.5k
-           as expected     3290    3.0k         191.6          6.6k   x2.20      3.6k
-           flopped          976    3.0k           0.0             0   x0.00     -3.0k
-           weak response   2325    3.0k          93.8          3.2k   x1.07       225
-           worked well     1660    3.0k         283.3          9.8k   x3.25      6.8k
-flyers     all             1665     900          73.1          2.5k   x2.79      1.6k
-           BIG HIT          166     900         233.3          8.0k   x8.88      7.1k
-           as expected      567     900          69.2          2.4k   x2.63      1.5k
-           flopped          221     900           0.0             0   x0.00      -900
-           weak response    435     900          33.3          1.1k   x1.27       239
-           worked well      276     900         106.4          3.7k   x4.06      2.8k
+localAd    all             8189    3.0k         194.3          6.7k   x2.24      3.7k
+           BIG HIT         1009    3.0k         430.3         14.8k   x4.95     11.8k
+           as expected     2752    3.0k         191.1          6.6k   x2.20      3.6k
+           flopped          836    3.0k           0.0             0   x0.00     -3.0k
+           weak response   2042    3.0k          92.8          3.2k   x1.07       216
+           worked well     1550    3.0k         284.9          9.9k   x3.28      6.9k
+flyers     all             1476     900          71.2          2.5k   x2.73      1.6k
+           BIG HIT          143     900         221.1          7.6k   x8.45      6.7k
+           as expected      512     900          67.7          2.3k   x2.61      1.4k
+           flopped          188     900           0.0             0   x0.00      -900
+           weak response    377     900          32.4          1.1k   x1.25       222
+           worked well      256     900         103.8          3.6k   x3.99      2.7k
 
-Second outlet: buy a running Good outlet for 75.0k from company cash, 104 weeks
+Second outlet: buy a running Good outlet for 60.0k from company cash, 104 weeks
 
 owner      manager   op profit/wk  w1-26   w27-52  median payback wk  paid back by wk 52
-remote     capable            -322   -322      -90               >104                1.5%
-remote     senior              700    643      933                 91               30.5%
-remote     veteran            1.4k   1.5k     1.7k                 46               62.5%
-competent  capable            1.4k    897     1.8k                 51               51.0%
-competent  senior             2.0k   1.6k     2.5k                 39               76.0%
-competent  veteran            2.3k   2.1k     2.9k                 34               90.0%
+remote     capable            -387   -587      -56               >104                4.5%
+remote     senior              614    363      898                 88               35.0%
+remote     veteran            1.3k   1.2k     1.7k                 42               70.0%
+competent  capable            1.4k    665     1.8k                 48               58.5%
+competent  senior             2.0k   1.3k     2.5k                 38               80.5%
+competent  veteran            2.3k   1.8k     2.9k                 31               94.0%
 
-Opening routes: a later Good-size outlet from company cash, 200 seeds x 104 weeks (buy price 75.0k)
+Opening routes: a later Good-size outlet from company cash, 200 seeds x 104 weeks (buy price 60.0k)
 
 owner      manager   route             up-front  1st profit wk  max tied up  w1-26/wk  w27-52/wk  payback wk  paid by 52  crisis<=26  net wk52  net wk104
-competent  capable   buy running          75.0k              1        76.4k       897       1.8k          51       51.0%       15.5%      3.1k      81.6k
+competent  capable   buy running          60.0k              2        67.0k       665       1.8k          48       58.5%       24.5%     12.1k      98.5k
 competent  capable   std + new            58.5k              8        79.0k       226       2.3k          43       76.0%        5.0%     22.4k     149.8k
 competent  capable   basic + 2nd-hand     36.9k              8        61.4k      -184       2.0k          41       75.0%       10.0%     28.5k     117.5k
 competent  capable   basic + leased       22.2k              9        48.5k      -454       1.9k          39       76.5%       20.5%     32.1k     130.1k
-competent  senior    buy running          75.0k              1        75.1k      1.6k       2.5k          39       76.0%        8.5%     39.5k     149.2k
+competent  senior    buy running          60.0k              2        64.7k      1.3k       2.5k          38       80.5%       13.0%     44.8k     157.6k
 competent  senior    std + new            58.5k              8        77.0k       796       3.0k          37       97.0%        1.0%     52.5k     202.6k
 competent  senior    basic + 2nd-hand     36.9k              7        56.7k       458       2.8k          32       97.0%        4.5%     62.1k     175.6k
 competent  senior    basic + leased       22.2k              7        44.6k        23       2.5k          32       96.0%        7.0%     58.3k     177.4k
-competent  veteran   buy running          75.0k              1        75.0k      2.1k       2.9k          34       90.0%        6.5%     58.8k     177.8k
+competent  veteran   buy running          60.0k              2        63.6k      1.8k       2.9k          31       94.0%        6.5%     67.4k     186.3k
 competent  veteran   std + new            58.5k              7        75.8k      1.3k       3.3k          32       99.5%        0.0%     74.9k     227.1k
 competent  veteran   basic + 2nd-hand     36.9k              7        54.7k       987       3.2k          26      100.0%        0.0%     86.7k     199.8k
 competent  veteran   basic + leased       22.2k              7        42.6k       520       2.8k          25      100.0%        1.5%     80.4k     205.4k
-refit      capable   buy running          75.0k              2        85.9k      1.0k       2.3k          46       67.0%        9.5%     19.1k     131.5k
+refit      capable   buy running          60.0k              3        75.4k       772       2.4k          42       77.5%       16.0%     27.4k     137.5k
 refit      capable   std + new            58.5k              8        79.0k       439       2.6k          41       93.0%        0.5%     30.1k     164.3k
 refit      capable   basic + 2nd-hand     36.9k              7        60.6k        21       2.3k          38       88.5%        5.0%     39.9k     135.5k
 refit      capable   basic + leased       22.2k              8        47.6k      -247       2.1k          37       90.0%       11.0%     39.4k     143.5k
-refit      senior    buy running          75.0k              2        84.1k      1.7k       2.9k          38       88.0%        3.5%     49.2k     172.7k
+refit      senior    buy running          60.0k              2        73.3k      1.4k       3.0k          35       92.0%        8.0%     55.3k     180.9k
 refit      senior    std + new            58.5k              8        77.1k       946       3.1k          35       99.5%        0.5%     57.6k     208.2k
 refit      senior    basic + 2nd-hand     36.9k              7        56.5k       665       2.9k          30      100.0%        1.0%     68.9k     181.6k
 refit      senior    basic + leased       22.2k              7        44.2k       223       2.6k          30       99.0%        1.0%     65.4k     188.7k
-refit      veteran   buy running          75.0k              2        83.5k      2.1k       3.2k          34       96.0%        0.0%     69.4k     198.5k
+refit      veteran   buy running          60.0k              2        72.7k      1.8k       3.2k          31       96.0%        3.5%     75.5k     206.7k
 refit      veteran   std + new            58.5k              7        75.9k      1.4k       3.3k          31      100.0%        0.0%     77.8k     230.7k
 refit      veteran   basic + 2nd-hand     36.9k              7        54.7k      1.1k       3.2k          25      100.0%        0.0%     89.2k     204.1k
 refit      veteran   basic + leased       22.2k              7        42.6k       657       2.9k          23      100.0%        0.0%     82.6k     209.2k
-remote     capable   buy running          75.0k              1       100.4k      -322        -90        >104        1.5%       63.0%    -81.5k     -89.0k
+remote     capable   buy running          60.0k              3        99.1k      -587        -56        >104        4.5%       64.0%    -69.7k     -82.8k
 remote     capable   std + new            58.5k              8        92.5k      -864        368        >104        2.5%       48.5%    -59.0k     -42.7k
 remote     capable   basic + 2nd-hand     36.9k              9        86.7k     -1.3k        137        >104        3.5%       53.0%    -50.3k     -60.7k
 remote     capable   basic + leased       22.2k              9        76.0k     -1.6k        -19        >104        8.0%       70.0%    -44.6k     -51.1k
-remote     senior    buy running          75.0k              1        77.5k       643        933          91       30.5%       35.5%    -28.7k      13.9k
+remote     senior    buy running          60.0k              2        68.7k       363        898          88       35.0%       38.5%    -21.9k      17.2k
 remote     senior    std + new            58.5k              8        78.7k        27       1.4k          55       44.0%       12.0%     -4.5k      70.9k
 remote     senior    basic + 2nd-hand     36.9k              7        59.4k      -426       1.2k          53       50.0%       21.0%      -934      27.7k
 remote     senior    basic + leased       22.2k              8        47.3k      -699        908          55       48.0%       36.0%     -3.2k      43.0k
-remote     veteran   buy running          75.0k              1        75.0k      1.5k       1.7k          46       62.5%       10.5%     14.8k      78.2k
+remote     veteran   buy running          60.0k              2        64.7k      1.2k       1.7k          42       70.0%       13.0%     22.4k      88.4k
 remote     veteran   std + new            58.5k              7        76.2k       748       2.2k          40       85.0%        0.5%     33.7k     128.3k
 remote     veteran   basic + 2nd-hand     36.9k              7        55.5k       407       2.0k          34       89.0%        5.5%     41.1k      99.3k
 remote     veteran   basic + leased       22.2k              7        43.7k         7       1.7k          35       86.0%        8.5%     36.2k     102.7k

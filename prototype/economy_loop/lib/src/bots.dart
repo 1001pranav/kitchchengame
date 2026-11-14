@@ -135,6 +135,9 @@ class RunSummary {
 
   /// Share of days in weeks 1–8 with cash below one week of costs (doc 06 §4).
   final double tightDays;
+
+  /// Lowest cash in weeks 1–8, in weeks of fixed costs.
+  final double minCover8;
   final int incidents;
   final int incidentDefaults;
   final List<String> hidden;
@@ -142,6 +145,7 @@ class RunSummary {
     required this.weeklyOperating,
     required this.minCash,
     required this.tightDays,
+    required this.minCover8,
     required this.incidents,
     required this.incidentDefaults,
     required this.hidden,
@@ -171,6 +175,7 @@ RunSummary runOne(
   final s = OutletSim(b, seed, managerGrade: grade, ownerRun: ownerRun);
   final reps = <double>[];
   var minCash = s.cash, tight = 0, tightOf = 0;
+  var minCover = double.infinity;
   while (s.day < weeksToRun * 7 && s.gameOver == null) {
     owner.act(s);
     s.step();
@@ -179,6 +184,7 @@ RunSummary runOne(
     if (s.day <= 56) {
       tightOf++;
       if (s.cash < s.fixedPerDay * 7) tight++;
+      minCover = math.min(minCover, s.cash / (s.fixedPerDay * 7));
     }
   }
   final profits = s.days
@@ -223,6 +229,7 @@ RunSummary runOne(
     weeklyOperating: s.weeks.map((w) => w.operatingProfit).toList(),
     minCash: minCash,
     tightDays: tightOf == 0 ? 0 : tight / tightOf,
+    minCover8: minCover,
     incidents: s.incidents?.raised ?? 0,
     incidentDefaults: s.incidents?.defaults ?? 0,
     hidden: s.incidents?.hidden ?? const [],

@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 9) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 10) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -115,31 +115,33 @@ bin/bots.dart` disables named incidents (`hidden` = hidden problems).
 
 ## Results (200 seeds × 26 weeks, Good tier, average location)
 
-Average weekly net profit after the manager's wage (balance-log entry 9, incidents and
-hidden problems on):
+Average weekly net profit after the manager's wage (balance-log entry 10: incidents,
+hidden problems and the handover month on):
 
 | Run by | passive | remote | competent |
 |---|---|---|---|
-| Owner, no manager | −2.7k (chores +1.1k) | — | +3.8k |
-| Trainee | −2.7k | −1.7k | −0.5k |
-| Junior | −1.8k | −0.9k | +0.2k |
-| Capable | −1.1k | ≈ 0 | +1.0k |
-| Senior | −0.7k | +0.8k | +1.6k |
-| Veteran | −0.4k | +1.5k | +2.0k |
+| Owner, no manager | −3.4k (chores +0.8k) | — | +3.6k |
+| Trainee | −3.9k | −2.4k | −1.1k |
+| Junior | −2.9k | −1.3k | −0.3k |
+| Capable | −1.9k | −0.3k | +0.6k |
+| Senior | −1.3k | +0.5k | +1.3k |
+| Veteran | −0.9k | +1.2k | +1.7k |
 
-Owner-run survival: passive 0%, chores 74%, competent 100%. The adaptive owner does
+Owner-run survival: passive 0%, chores 65%, competent 100%. The adaptive owner does
 +0.1k to +0.3k a week better than the competent one at every grade. The last four report columns are the ad measures: campaigns per run, flop %,
 big-hit % and marketing as a share of revenue.
 
 After the main table, **Survival, incidents and hidden problems** gives survival, median
 failure week, median lowest cash, the share of days in weeks 1–8 with cash below one
-week of costs, incidents a week and the share resolved by default; then survival by
-which hidden problem was drawn; then the skill-80 losing-weeks target.
+week of costs, the share of runs whose cash ever falls below one week (and half a week)
+of costs in weeks 1–8, incidents a week and the share resolved by default; then survival by
+which hidden problem was drawn; then the skill-80 losing-weeks target (from week 5,
+after the handover month).
 
 `bots` then prints an **Ad returns** table: for each campaign type and outcome, average
 spend, extra groups, extra profit and return. In `play`, the `ads` command lists every
 campaign you ran with the same figures. Current result: a local ad returns ×2.3 and
-flyers ×2.8 on average, and a weak response roughly breaks even (balance-log entry 9).
+flyers ×2.7 on average, and a weak response roughly breaks even (balance-log entry 10).
 
 The **Second outlet** table buys a running Good outlet at the later-market price
 (`TAKEOVER_PRICE_GOOD` × `TAKEOVER_MARKET_PRICE_FACTOR`) from company cash and reports

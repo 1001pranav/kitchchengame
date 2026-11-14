@@ -178,6 +178,17 @@ class OutletSim {
         : applicants.removeAt(0);
     inspectionDay = rng.nextInt(7, 27);
     if (scratch != null) _openFromScratch(scratch!);
+    // Handover (doc 02 §15.9): some regulars wait to see how the new owner does, so a
+    // takeover starts below full awareness and word of mouth fills it in.
+    if (scratch == null && b.has('TAKEOVER_START_AWARENESS')) {
+      awareness = b.d('TAKEOVER_START_AWARENESS');
+    }
+    // Handover costs settled in the first week (doc 02 §15.9): cash, not operating
+    // profit, like an inherited debt.
+    if (scratch == null && b.has('HANDOVER_COST')) {
+      cash -= b.i('HANDOVER_COST');
+      week.inherited += b.i('HANDOVER_COST');
+    }
     if (b.has('INCIDENTS') && b.d('INCIDENTS') > 0) {
       incidents = IncidentEngine(this);
     }

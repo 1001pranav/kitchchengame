@@ -261,7 +261,7 @@
     }
   ],
   "TAKEOVER_PRICE_GOOD": 150000,
-  "TAKEOVER_MARKET_PRICE_FACTOR": 0.5,
+  "TAKEOVER_MARKET_PRICE_FACTOR": 0.4,
   "_comment_scratch": "Route B, start from scratch (doc 02 §15.9). Medium size, 3-year lease, average location.",
   "SCRATCH_FITOUT": {
     "basic": { "cost": 8000, "days": 7, "buzz": 0.6, "patience": 0.95 },
@@ -288,6 +288,7 @@
   "SCRATCH_START_AWARENESS": 0.45,
   "OPENING_GRACE_WEEKS": 12,
   "AWARENESS_GAIN": 0.01,
+  "TAKEOVER_START_AWARENESS": 0.7,
   "_comment_incidents": "Incidents and hidden problems (doc 05; doc 02 §11, §15.4). INCIDENTS = 0 turns them off. See README for the stand-ins.",
   "INCIDENTS": 1,
   "INCIDENT_FREQ": 1.0,

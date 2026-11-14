@@ -219,7 +219,7 @@ void main(List<String> args) {
     stdout.writeln(
         '\nSurvival, incidents and hidden problems ($seeds seeds x $weeks weeks)\n');
     stdout.writeln(
-        'owner      manager   survive  fail-wk  min cash  tight d wk1-8  incidents/wk  by default');
+        'owner      manager   survive  fail-wk  min cash  tight d wk1-8  runs <1wk  runs <0.5wk  incidents/wk  by default');
     const rows = [
       'passive/owner-run',
       'chores/owner-run',
@@ -243,6 +243,9 @@ void main(List<String> args) {
         (fails.isEmpty ? '-' : median(fails).toString()).padLeft(8),
         k(median(runs.map((r) => r.minCash).toList())).padLeft(9),
         '${(avg(runs.map((r) => r.tightDays)) * 100).round()}%'.padLeft(14),
+        pct(runs.where((r) => r.minCover8 < 1).length, runs.length).padLeft(10),
+        pct(runs.where((r) => r.minCover8 < 0.5).length, runs.length)
+            .padLeft(12),
         (inc / math.max(1, wks)).toStringAsFixed(1).padLeft(13),
         pct(runs.fold(0, (a, r) => a + r.incidentDefaults), inc).padLeft(11),
       ].join(' '));
@@ -275,7 +278,8 @@ void main(List<String> args) {
   if (!only) {
     stdout.writeln(
         '\nWeeks with negative operating profit, owner never visits (doc 06 §4 manager targets)\n');
-    stdout.writeln('owner      manager   weeks 1-12  weeks 13-26');
+    // From week 5: the takeover handover month (doc 02 §15.9) is not the manager's.
+    stdout.writeln('owner      manager   weeks 5-12  weeks 13-26');
     for (final key in ['remote/senior', 'remote/veteran']) {
       final runs = kept[key]!;
       String share(int a, int z) {
@@ -286,7 +290,7 @@ void main(List<String> args) {
 
       final parts = key.split('/');
       stdout.writeln('${parts[0].padRight(10)} ${parts[1].padRight(9)} '
-          '${share(0, 12).padLeft(10)} ${share(12, 26).padLeft(12)}');
+          '${share(4, 12).padLeft(10)} ${share(12, 26).padLeft(12)}');
     }
   }
 

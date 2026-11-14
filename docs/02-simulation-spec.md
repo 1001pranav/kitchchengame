@@ -791,18 +791,20 @@ the first day the owner is not there.
 
 **Route A — Buy a running restaurant.** Same generator and tiers as the start of the
 game (doc 01 §4.3), including hidden problems and due diligence, but the price is the
-start price × `TAKEOVER_MARKET_PRICE_FACTOR (0.5)` (Good tier: 75,000). Offers refresh
+start price × `TAKEOVER_MARKET_PRICE_FACTOR (0.4)` (Good tier: 60,000). Offers refresh
 every 28 days. Trading starts the next day. No starting loan comes with a later
 takeover; it is paid from company cash.
 
 *Why later takeovers are cheaper.* A later outlet always needs a manager, and the
 manager's wage takes 1.5–2k of a Good outlet's ~4k a week. At the start price a
 Senior-run Good outlet pays back in about 57 weeks and a Veteran-run one in about 49
-(prototype, owner visits weekly, balance-log entry 8). × 0.5 is kept because it is where
-buying and building from scratch come out even on money, each with its own advantage
-(entry 8); × 0.6 let a scratch build beat buying outright. Both prices are about the
-same multiple of what the buyer will earn: 150,000 ≈ 37 weeks of an owner-run outlet's
-profit, 75,000 ≈ 30 weeks of a Senior-run one's in its first year. In the story,
+(prototype, owner visits weekly, balance-log entry 8). × 0.5 was where buying and
+building came out even before hidden problems and the handover month were modelled;
+those cost a buyer about 18k by week 52, so the factor is × 0.4 (balance-log entry 10),
+where buying is fastest to income and within a few thousand of the other routes at week
+52. Both prices are about the same multiple of what the buyer will earn: 150,000 ≈ 37
+weeks of an owner-run outlet's profit, 60,000 ≈ 30 weeks of a Senior-run one's in its
+first year after hidden problems. In the story,
 the later market is owners selling up, priced on what the place earns for a buyer who
 has to pay someone to run it; the game-start offer is priced for an owner who works
 the floor.
@@ -872,7 +874,11 @@ each early customer counts twice. Opening may be postponed (rent keeps running).
 place exists. It starts at `SCRATCH_START_AWARENESS (0.45)` and each trading day rises by
 `AWARENESS_GAIN (0.01) × (0.5 + buzz) × min(1.5, reputation / 3.5)`, capped at 1, so
 the launch campaign, ads and a good rating all shorten the ramp. A taken-over outlet
-has awareness 1: its regulars come with it. Without this rule a new outlet drew almost
+keeps most of its regulars: it starts at `TAKEOVER_START_AWARENESS (0.7)` — some
+regulars wait to see how the new owner does — and fills in by the same rule, in about
+four weeks (the "handover month", balance-log entry 10). This applies to the game-start
+takeover as well, and is what makes a Good start only slightly profitable in its first
+month (doc 06 §3). Without this rule a new outlet drew almost
 as many customers as a takeover from its first day (balance log entry 7).
 
 **Reserve check (both routes).** The purchase or lease is refused if cash afterwards

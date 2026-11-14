@@ -2,6 +2,73 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 10 — the handover month, a restated cash target, takeovers at × 0.4
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).
+Decided by the design owner from three options (restate per run + less cash / thinner
+first month / drop for Good), then "ship the handover month with its knock-on fixes".
+
+### Finding — "cash tight on 20–40% of days" cannot be reached by tuning
+
+Doc 06 §4 asked for cash below one week of costs on 20–40% of days in weeks 1–8 for the
+competent Good bot. Entry 9 measured 0%. Swept (incidents on, competent owner-run):
+
+| Lever | Tight days | Competent survival | Chores survival |
+|---|---|---|---|
+| Start cash 20k (as is) | 0% | 100% | 74% |
+| Start cash 15k / 12k / 10k | 1% / 3% / 6% | 100% / 99% / 98.5% | 69.5% / 65.5% / 63% |
+| Handover awareness 0.6 (thin first month, +0.7k a week) | 3% | 98% | 42.5% |
+| Awareness 0.7 + 8k handover cost | 9% | 95.5% | 43.5% |
+| Awareness 0.7 + 10k handover cost | 17% | **91%** | **36.5%** |
+
+Any profit refills cash within days, and the competent bot never spends below one week
+of costs (doc 06 §6.1), so cash only drops under the line when something forces it — and
+anything that forces it hard enough breaks the ≥ 92% competent and 60–80% chores bands.
+The target measured the bot's caution, not the game's tension.
+
+### Changes
+
+| Change | Old → new | Reason |
+|---|---|---|
+| `TAKEOVER_START_AWARENESS` (new, doc 02 §15.9) | 1 → 0.7, filled in by the existing awareness rule (≈ 4 weeks) | Some regulars wait to see the new owner. Gives doc 06 §3's "Good: slightly profitable" first month: competent owner-run +2.2k a week in weeks 1–4, +3.5–3.8k after. Swept 0.6 / 0.7 / 0.75 / 0.8 → chores 42.5 / 64.5 / 69.5 / 72%, weeks 1–4 +0.7k / +2.2k / +2.7k / +3.2k. 0.7 is the thinnest month that keeps chores in band |
+| Cash target (doc 06 §4) | 20–40% of days → 10–30% of competent runs dip below 1 week of costs in weeks 1–8 | Finding above. Measured 14%. **The band was set around the measured value**, to say "some good runs feel the squeeze, most don't"; it is a restatement, not a pass |
+| Skill-80 losing weeks (doc 06 §4) | weeks 1–12 → weeks 5–12 | The handover month is not the manager's doing. Measured 13.9% (≤ 12.5% fails, narrowly) and 20.0% for weeks 13–26 (passes) |
+| `TAKEOVER_MARKET_PRICE_FACTOR` (doc 02 §15.9, doc 01 §4.3) | 0.5 → 0.4 (Good: 75,000 → 60,000) | Hidden problems (entry 9) and the handover month made buying lose everywhere at × 0.5 |
+
+No handover cost was added: it bought cash tension only by breaking survival bands.
+
+### Result
+
+| Owner-run, Good | Survive | Net a week | Weeks 1–4 | Runs below 1 week of costs, wk 1–8 |
+|---|---|---|---|---|
+| Passive | 0% | −3.4k | −2.7k | 100% |
+| Chores | 64.5% | +0.8k | ≈ 0 | 41% |
+| Competent | 100% | +3.6k | +2.2k | 14% |
+
+Managed, markets + visits / never visits (net a week): Trainee −1.1k / −2.4k, Junior
+−0.3k / −1.3k, Capable +0.6k / −0.3k, Senior +1.3k / +0.5k, Veteran +1.7k / +1.2k.
+Survival (markets + visits): 2%, 18%, 44%, 65%, 81% (entry 9: 7, 29, 61, 81, 91) — the
+handover month now falls on outlets that also pay a manager and the 70,000 loan, a
+combination the real game does not have (README).
+
+Grade steps: +825, +882, +659, +419; never visits **+1,031, +1,004**, +816, +674 — the
+first two are just over +1,000: an unvisited weak manager cannot ride out the handover.
+Not tuned. Ads unchanged in band (local ad ×2.2, flyers ×2.7, marketing 3.6–4.1%).
+
+Opening routes, Senior, refit: buy at 60,000 pays back in 35 weeks, +55.3k at week 52,
++181k at week 104; standard + new 35 / +57.6k / +208k; basic + second-hand 30 / +68.9k /
++182k; basic + leased 30 / +65.4k / +189k. Buying is fastest to income, a few thousand
+behind at week 52, level with basic at 104 and 27k behind standard + new — and the
+riskiest (crisis 8% vs 0.5–1%). At × 0.5 it was +40.3k / +166k. Doc 06's "buying is
+safer" no longer holds; due diligence is the natural lever for that, not the price.
+
+### Still open
+
+- Never-visits Trainee → Junior and Junior → Capable steps just over +1,000.
+- Skill-80 losing weeks 5–12 at 13.9% against ≤ 12.5%.
+- Buying is the riskiest route; model due diligence (doc 01 §4.3) before moving price again.
+- Flop rate 9–15% against 10–18% (entry 9).
+
 ## Entry 9 — incidents and hidden problems; the passive bot was never passive
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).
