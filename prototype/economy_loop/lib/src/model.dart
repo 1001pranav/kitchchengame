@@ -133,6 +133,7 @@ class Staff {
   final double loyalty;
   bool vacant = false;
   bool absentToday = false;
+  int trainingUntil = -1; // away on a course until this day (doc 02 §7.6)
   Staff(this.role, this.skill, this.wage, this.reliability, this.loyalty);
 }
 

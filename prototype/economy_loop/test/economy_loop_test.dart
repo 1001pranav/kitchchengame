@@ -11,8 +11,33 @@ Balance load([String f = 'data/balance.json']) =>
 
 void main() {
   test('SimRng matches the doc 08 §5 test vector', () {
-    expect(SimRng(1).nextU32(), 270369);
+    expect(SimRng(1).nextU32(), 524866043);
     expect(SimRng(0).state, 0x9E3779B9);
+  });
+
+  test('the first draw is not biased for small seeds (doc 08 §5 seed mixing)',
+      () {
+    var sum = 0.0;
+    for (var seed = 1; seed <= 200; seed++) {
+      sum += SimRng(seed).nextFloat();
+    }
+    expect(
+        sum / 200, closeTo(0.5, 0.06)); // was 0.006 before the seed was mixed
+  });
+
+  test(
+      'refit owner trains a weak head chef to 50 and replaces unserviceable kit',
+      () {
+    final s = OutletSim(load(), 5, managerGrade: Grade.senior)..cash += 1000000;
+    final chef = s.crew.firstWhere((c) => c.role == 'headChef')..skill = 41;
+    s.equipment.first.ageDays = 168 * 5; // max condition 70
+    final o = RefitOwner();
+    while (s.day < 14) {
+      o.act(s);
+      s.step();
+    }
+    expect(chef.skill, greaterThanOrEqualTo(50));
+    expect(s.equipment.first.ageDays, lessThan(30));
   });
 
   test('missing balance key names the key', () {

@@ -797,8 +797,12 @@ takeover; it is paid from company cash.
 
 *Why later takeovers are cheaper.* A later outlet always needs a manager, and the
 manager's wage takes 1.5–2k of a Good outlet's ~4k a week. At the start price a
-Senior-run Good outlet paid back in about 80 weeks and a Veteran-run one in about 63
-(prototype, owner visits weekly), against the 35–50 target in doc 06 §4. In the story,
+Senior-run Good outlet pays back in about 57 weeks and a Veteran-run one in about 49
+(prototype, owner visits weekly, balance-log entry 8). × 0.5 is kept because it is where
+buying and building from scratch come out even on money, each with its own advantage
+(entry 8); × 0.6 let a scratch build beat buying outright. Both prices are about the
+same multiple of what the buyer will earn: 150,000 ≈ 37 weeks of an owner-run outlet's
+profit, 75,000 ≈ 30 weeks of a Senior-run one's in its first year. In the story,
 the later market is owners selling up, priced on what the place earns for a buyer who
 has to pay someone to run it; the game-start offer is priced for an owner who works
 the floor.

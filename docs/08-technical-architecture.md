@@ -115,7 +115,17 @@ breakdown object from which the total is derived) so explanations can never drif
 state cannot be saved):
 
 ```dart
-int _s;                       // 1 .. 0xFFFFFFFF, never 0; seed 0 is replaced by 0x9E3779B9
+int _s;                       // 1 .. 0xFFFFFFFF, never 0
+SimRng(int seed) : _s = mix(seed);
+// murmur3 fmix32: without it, small seeds (1, 2, 3 …) give a first draw near 0, so the
+// first thing generated in every game (the first staff member's skill) is the minimum.
+static int mix(int seed) {
+  var h = seed & 0xFFFFFFFF;
+  h ^= h >> 16;  h = (h * 0x85EBCA6B) & 0xFFFFFFFF;
+  h ^= h >> 13;  h = (h * 0xC2B2AE35) & 0xFFFFFFFF;
+  h ^= h >> 16;
+  return h == 0 ? 0x9E3779B9 : h;
+}
 int nextU32() {
   var x = _s;
   x ^= (x << 13) & 0xFFFFFFFF;
@@ -127,7 +137,8 @@ double nextFloat() => (nextU32() >> 8) / 16777216.0;      // [0, 1)
 int nextInt(int a, int b) => a + (nextFloat() * (b - a + 1)).floor();   // inclusive
 ```
 
-Test vector: seed 1 → first `nextU32()` is **270369**. `rngState` in the save is `_s`.
+Test vectors: seed 1 → first `nextU32()` is **524866043**; seed 0 → state 0x9E3779B9;
+the mean first `nextFloat()` over seeds 1–200 is about 0.5 (it was 0.006 before mixing). `rngState` in the save is `_s`.
 Helpers: `chance(p)`, `pick(list)`, `weighted(items, weights)`, `shuffle(list)` — all
 consume a fixed, documented number of draws. UI-only randomness (particle jitter,
 idle animations) must use a separate `dart:math Random`, never `SimRng`.

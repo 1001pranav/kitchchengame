@@ -2,6 +2,107 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 8 — a seed bug gave every run the worst head chef; numbers re-measured
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).
+
+### The bug
+
+`SimRng` (doc 08 §5) seeded xorshift32 with the raw seed. For seeds 1–200 the **first**
+draw averaged 0.006 instead of 0.5 (seed 1 → 270369 out of 4.3 billion). The first thing
+an outlet rolls is its head chef's skill, so every run in entries 1–7 had a head chef at
+the bottom of the range (40 for a takeover, 45 for a scratch build). Below 50 a head chef
+cannot rework the menu (doc 02 §13), so the competent owner's rework every 8 weeks
+silently failed in every run: menu freshness ran down to 0 and stayed there. Every
+draw after the first was fine.
+
+The same bug would hit the real game for any small or sequential seed (bot runs, tests,
+"seed of the day"). Fix, doc 08 §5: the seed is scrambled with murmur3 `fmix32` before
+use. New test vector: seed 1 → first `nextU32()` 524866043.
+
+### What moved (competent owner who visits weekly, net profit a week)
+
+| | Owner-run | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|---|
+| Entry 7 | +3.4k | −0.5k | ≈ 0 | +0.6k | +1.2k | +1.6k |
+| Entry 8 | +4.1k | −0.1k | +0.6k | +1.2k | +1.8k | +2.3k |
+
+Owner markets but never visits: −1.4k, −0.6k, +0.3k, +1.0k, +1.7k (was −1.7k, −0.9k,
+−0.2k, +0.5k, +1.1k). Demand weeks 5–8 for marketing owners: +2% (was −3%). Grade steps
+are still inside +200 to +1,000 (about +600, +650, +600, +500; never visits about +850,
++850, +700, +700). Ads: local ad ×2.3, flyers ×3.0, weak response ×1.1 / ×1.3,
+marketing 3.5% of revenue — all still inside their bands. The old open item "Capable,
+never visited, drifts to −0.5k" is gone: it now holds about +0.3k by weeks 23–26.
+
+Not re-measured here: the skill-80 losing-weeks targets (entry 6) and passive survival
+(still 100%; still needs incidents). Entries 1–7 stand as a record of what was decided,
+but any conclusion there that rested on menu freshness should be read with this in mind.
+
+### Refit owner (new bot)
+
+A fourth scripted owner, `refit`, does what the competent one does and, on taking over,
+trains the head chef until skill ≥ 50 (doc 02 §7.6: 10 × skill, 2 days away, +5–10) and
+replaces every unit too old to service (max condition < 75). The same policy runs on
+scratch outlets. With the seed fixed, 39% of takeovers start with a head chef below 50.
+
+| Senior, weeks 27–52 a week | Competent | Refit |
+|---|---|---|
+| Buy running | 3.0k | 3.5k |
+| Standard + new | 3.3k | 3.4k |
+
+The steady-state gap entry 7 blamed on inherited crew and kit was mostly the seed bug
+plus the bot never fixing anything. With the bug fixed it is 0.3k; with the refit it is
+gone (buying is 0.1k ahead).
+
+### Opening routes, re-measured (Senior manager, owner visits weekly)
+
+| Route at price × 0.5 (75,000) | Up front | Most cash tied up | First profit wk | Payback wk | Net wk 52 | Net wk 104 |
+|---|---|---|---|---|---|---|
+| Buy, competent | 75.0k | 75.0k | 1 | 34 | +62.9k | +219k |
+| Buy, refit | 75.0k | 82.5k | 2 | 33 | +73.2k | +251k |
+| Standard + new, refit | 58.5k | 78.9k | 8 | 35 | +65.3k | +251k |
+| Basic + second-hand, refit | 36.9k | 58.6k | 7 | 30 | +74.3k | +222k |
+| Basic + leased, refit | 22.2k | 45.8k | 8 | 27 | +77.3k | +239k |
+
+Veteran payback (refit): 29 / 31 / 25 / 23. Capable: 40 / 42 / 38 / 36.
+
+**No route dominates any more.** Buying gets income six weeks sooner. Basic + leased
+ties up half the cash and is best at week 52. Standard + new ties with buying at week
+104. Crisis by week 26 is 0–1% everywhere for an owner who refits, so "safer" is no
+longer a difference the prototype can show; hidden problems (not modelled) are where
+buying should carry its risk.
+
+### Price: keep × 0.5 (tested × 0.6, × 0.7, × 1.0)
+
+| Buy price | Senior payback (competent / refit) | Veteran | Senior net wk 52 (refit) | Senior net wk 104 (refit) |
+|---|---|---|---|---|
+| 75,000 (× 0.5) | 34 / 33 | 29 / 29 | +73.2k | +251k |
+| 90,000 (× 0.6) | 39 / 38 | 34 / 33 | +58.2k | +236k |
+| 105,000 (× 0.7) | 43 / 41 | 38 / 37 | +43.2k | +221k |
+| 150,000 (× 1.0) | 57 / – | 49 / – | – | – |
+
+× 0.6 puts payback back inside doc 06's 35–50, but then standard + new beats buying at
+week 52 and at week 104, with the same risk, so buying's only advantage is six weeks of
+earlier income for 15k more. That is the dominance problem again, the other way round.
+× 0.5 is where the money ties and each route keeps a reason to pick it. Hidden problems
+will cost buying something on top, which argues against raising it. So the payback band
+in doc 06 §4 is restated to 30–45 (it was set from entry-6 numbers that had the seed
+bug), rather than the price moved.
+
+At the old 150,000 price a Veteran now pays back in 49 weeks, not the 63 that entry 6
+used to justify halving it. The halving was larger than the corrected numbers needed for
+the band alone; it is kept because of route balance, not the band.
+
+On the 150,000 vs 75,000 question (entry 7): the "same multiple of what the buyer earns"
+rule still roughly holds after the fix: owner-run 4.1k a week → 150,000 is 37 weeks;
+Senior-run, first year about 2.5k → 75,000 is 30 weeks.
+
+### Still open
+
+- Hidden problems for route A, so buying carries its risk.
+- Passive owner-run survival (100% vs 60–80%), unchanged.
+- Re-measure the skill-80 losing-weeks targets.
+
 ## Entry 7 — building from scratch measured; as written it beat buying on every count
 
 Source: `prototype/economy_loop/results.txt`, new **Opening routes** table (200 seeds × 104
