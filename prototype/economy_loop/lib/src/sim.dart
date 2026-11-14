@@ -22,6 +22,10 @@ class OutletSim {
   double buzz;
   double freshness;
   double competition = 0;
+
+  /// Share of the location's footfall that knows the outlet exists (doc 02 §15.9
+  /// "slow ramp"). 1 for a takeover: its regulars come with it.
+  double awareness = 1.0;
   double priceIndex = 1.0;
   double crewMorale;
 
@@ -55,7 +59,29 @@ class OutletSim {
   /// Phase-1 reference: the owner runs the outlet every day and there is no manager wage.
   final bool ownerRun;
 
-  OutletSim(this.b, int seed, {Grade? managerGrade, this.ownerRun = false})
+  /// Route B (doc 02 §15.9): opened from scratch instead of taken over. Null = taken over.
+  final ScratchPlan? scratch;
+
+  /// First trading day. 0 for a takeover; the build time for a scratch outlet.
+  int openDay = 0;
+  int get tradingDay => day - openDay;
+  bool get building => day < openDay;
+
+  /// Non-refundable money put in before opening (doc 02 §15.8 `invested`), and the
+  /// refundable lease deposit. Paid by the caller from company cash, not from [cash].
+  int investment = 0;
+  int deposit = 0;
+
+  /// Opening period (doc 02 §15.7): a scratch outlet's losing weeks do not count toward
+  /// crisis until its first profitable week, or OPENING_GRACE_WEEKS of trading.
+  bool opening = false;
+
+  /// Index into [weeks] of the first week after the opening period (0 for a takeover).
+  int openingEndWeek = 0;
+  double patience = 1.0;
+
+  OutletSim(this.b, int seed,
+      {Grade? managerGrade, this.ownerRun = false, this.scratch})
       : rng = SimRng(seed),
         cash = b.i('START_CASH'),
         loanPrincipal0 = b.i('START_LOAN'),
@@ -71,8 +97,18 @@ class OutletSim {
       if (!ownerRun && b.d('WORKING_MANAGER') > 0 && role == 'cashier') {
         continue;
       }
-      final skill =
-          rng.nextInt(b.i('CREW_SKILL_MIN'), b.i('CREW_SKILL_MAX')).toDouble();
+      // Scratch: hired from the build-period pool, skill centred on
+      // 20 + 10 × company rating (doc 02 §15.9 step 4); the bot picks from that pool.
+      final int lo, hi;
+      if (scratch == null) {
+        lo = b.i('CREW_SKILL_MIN');
+        hi = b.i('CREW_SKILL_MAX');
+      } else {
+        final centre = (20 + 10 * b.d('SCRATCH_COMPANY_REP')).round();
+        lo = centre - b.i('SCRATCH_CREW_SKILL_SPREAD');
+        hi = centre + b.i('SCRATCH_CREW_SKILL_SPREAD');
+      }
+      final skill = rng.nextInt(lo, hi).toDouble();
       final base = (wages[role] as num).toDouble();
       // doc 04 §6: reliability and loyalty = tier morale ±20.
       final m = b.d('START_CREW_MORALE');
@@ -85,6 +121,10 @@ class OutletSim {
     }
     final eq = b.map('EQUIPMENT');
     for (final t in eq.keys.toList()..sort()) {
+      if (scratch != null) {
+        equipment.add(_scratchUnit(t));
+        continue;
+      }
       equipment.add(Equipment(
           t,
           rng
@@ -99,6 +139,58 @@ class OutletSim {
         ? Manager.generate(rng, managerGrade, 0)
         : applicants.removeAt(0);
     inspectionDay = rng.nextInt(7, 27);
+    if (scratch != null) _openFromScratch(scratch!);
+  }
+
+  Equipment _scratchUnit(String t) {
+    final price = _eqD(t, 'price');
+    switch (scratch!.equip) {
+      case EquipMode.buyNew:
+        investment += price.round();
+        return Equipment(t, 100, 0);
+      case EquipMode.secondHand:
+        investment += (price * b.d('SECOND_HAND_PRICE')).round();
+        final faulty = rng.chance(b.d('SECOND_HAND_FAULT'));
+        return Equipment(
+            t,
+            b.d(faulty
+                ? 'SECOND_HAND_FAULT_CONDITION'
+                : 'SECOND_HAND_CONDITION'),
+            b.i('SECOND_HAND_AGE_DAYS'));
+      case EquipMode.lease:
+        return Equipment(t, 100, 0)..leased = true;
+    }
+  }
+
+  /// Route B opening (doc 02 §15.9): closed for the build, rent from signing, crew and
+  /// manager paid from opening day, rating 3.0 that moves twice as fast for 28 days.
+  void _openFromScratch(ScratchPlan p) {
+    final fit =
+        (b.map('SCRATCH_FITOUT')[p.fitOut] as Map).cast<String, dynamic>();
+    openDay = (fit['days'] as num).toInt();
+    // Paid from company cash: no starting loan comes with a new outlet.
+    loanPrincipal0 = 0;
+    loanOutstanding = 0;
+    closedUntil = openDay;
+    investment += (fit['cost'] as num).toInt() + b.i('OPENING_LICENCE');
+    deposit = b.i('LEASE_DEPOSIT_WEEKS') * b.i('WEEKLY_RENT');
+    buzz = (fit['buzz'] as num).toDouble();
+    patience = (fit['patience'] as num).toDouble();
+    reputation = b.d('SCRATCH_START_REP');
+    hygiene = b.d('SCRATCH_START_HYGIENE');
+    freshness = 1.0;
+    lastVisitDay = openDay;
+    awareness = b.d('SCRATCH_START_AWARENESS');
+    opening = true;
+    manager.hiredDay = openDay;
+    manager.lastCoachDay = openDay - 7;
+    inspectionDay = openDay + rng.nextInt(7, 27);
+    if (p.launchCampaign) {
+      investment += b.i('LAUNCH_CAMPAIGN_COST');
+      // Not in campaignLog: it is part of the opening cost, not a marketing decision.
+      campaigns.add(Campaign('launch', openDay, b.i('LAUNCH_CAMPAIGN_COST'), 1,
+          'launch', b.d('LAUNCH_BOOST'), openDay + b.i('LAUNCH_DAYS') - 1, 0));
+    }
   }
 
   // ---------------------------------------------------------------- helpers
@@ -182,7 +274,8 @@ class OutletSim {
         marketingFactor *
         buzzFactor *
         freshnessFactor *
-        competitionFactor;
+        competitionFactor *
+        awareness;
   }
 
   void _mgr(String key, int coins) =>
@@ -359,7 +452,11 @@ class OutletSim {
     if (dow == 0) {
       final pDo = present ? 1.0 : clampD(0.3 + manager.upkeep / 100, 0, 1);
       for (final e in equipment) {
-        if (e.broken || e.condition >= b.d('MAINTENANCE_THRESHOLD')) continue;
+        if (e.broken ||
+            e.leased ||
+            e.condition >= b.d('MAINTENANCE_THRESHOLD')) {
+          continue;
+        }
         if (rng.chance(pDo)) {
           final c =
               (_eqD(e.type, 'price') * b.d('MAINTENANCE_COST_PCT')).round();
@@ -468,7 +565,8 @@ class OutletSim {
     final wf = clampD(
         (b.d('PROTO_WALKOUT_BASE') + b.d('PROTO_WALKOUT_PER_GAP') * gaps) *
             moraleMult *
-            (1 + sl),
+            (1 + sl) /
+            patience,
         0,
         0.6);
     final walkouts = (seated * wf).round();
@@ -594,6 +692,7 @@ class OutletSim {
 
     // Equipment wear and breakdowns (doc 02 §10.1, §10.3, §15.12 upkeep).
     for (final e in equipment) {
+      if (building) continue;
       e.ageDays++;
       if (e.broken) continue;
       final busy = served > 1.2 * fc ? 1.5 : 1.0;
@@ -602,12 +701,23 @@ class OutletSim {
           : 1 - mastery(manager.upkeep) * b.d('MASTERY_WEAR_MAX');
       e.condition =
           math.max(0, e.condition - _eqD(e.type, 'wear') * busy * care);
+      if (e.leased) {
+        e.condition = math.max(e.condition, b.d('EQUIP_LEASE_MIN_CONDITION'));
+      }
       var p = b.d('BREAK_BASE') + math.max(0, 60 - e.condition) / 400;
       final refail = e.refailUntil >= day;
       if (refail) p += b.d('CHEAP_REPAIR_REFAIL') / b.i('PROTO_REFAIL_WINDOW');
       if (!rng.chance(p)) continue;
       e.broken = true;
       e.warned = false;
+      if (e.leased) {
+        // Lessor fixes it free by the next day; spoiled stock is still ours.
+        upkeepToday += _eqD(e.type, 'spoilage').round();
+        e.readyDay = day + 1;
+        notes.add(
+            'The leased ${e.type} broke down; the lessor fixes it by tomorrow.');
+        continue;
+      }
       final price = _eqD(e.type, 'price');
       final proper = (price * b.d('PROPER_REPAIR_PCT')).round();
       final cheap = (price * b.d('CHEAP_REPAIR_PCT')).round();
@@ -684,7 +794,9 @@ class OutletSim {
     // Reputation (doc 02 §6.8).
     if (groupsLeft > 0) {
       final w = math.min(1.0, repGroups / 20);
-      final k = stars > reputation ? b.d('REP_UP') : b.d('REP_DOWN');
+      final fast = scratch != null && tradingDay < b.i('SCRATCH_FAST_REP_DAYS');
+      final k = (stars > reputation ? b.d('REP_UP') : b.d('REP_DOWN')) *
+          (fast ? 2 : 1);
       reputation = clampD(reputation + (stars - reputation) * k * w, 0, 5);
     }
 
@@ -697,6 +809,16 @@ class OutletSim {
       }
     }
     freshness = math.max(0, freshness - b.d('FRESHNESS_DECAY'));
+    // Word of mouth (doc 02 §15.9): a new outlet becomes known faster while it has buzz
+    // and a good rating. Uses today's buzz, so the launch campaign and ads speed it up.
+    if (awareness < 1 && !building) {
+      awareness = math.min(
+          1,
+          awareness +
+              b.d('AWARENESS_GAIN') *
+                  (0.5 + buzzPrev) *
+                  clampD(reputation / 3.5, 0, 1.5));
+    }
     campaigns.removeWhere((c) => c.until < day);
 
     // Mastery: a manager strong on people develops the crew (doc 02 §15.16).
@@ -734,7 +856,7 @@ class OutletSim {
     week.ingredients += ingredients;
     week.upkeep += upkeepToday;
     week.wages += wagesToday;
-    week.managerWage += managerWage;
+    week.managerWage += building ? 0 : managerWage;
     week.utilities += util;
     week.groups += demand;
     week.served += served;
@@ -811,6 +933,11 @@ class OutletSim {
     cash -= week.wages + week.managerWage;
     week.rent = b.i('WEEKLY_RENT');
     cash -= week.rent;
+    for (final e in equipment.where((e) => e.leased)) {
+      week.equipLease +=
+          (_eqD(e.type, 'price') * b.d('EQUIP_LEASE_WEEKLY')).round();
+    }
+    cash -= week.equipLease;
     final pay = weeklyInstalment;
     if (pay > 0) {
       final interest = (loanOutstanding * b.d('LOAN_WEEKLY_RATE')).round();
@@ -842,7 +969,13 @@ class OutletSim {
     competition = op > 0 && reputation >= 4.0
         ? math.min(b.d('COMPETITION_MAX'), competition + b.d('COMPETITION_UP'))
         : math.max(0, competition - b.d('COMPETITION_DOWN'));
-    lossWeeks = op < 0 ? lossWeeks + 1 : 0;
+    if (opening &&
+        !building &&
+        (op > 0 || tradingDay >= 7 * b.i('OPENING_GRACE_WEEKS'))) {
+      opening = false;
+      openingEndWeek = weeks.length + 1;
+    }
+    lossWeeks = opening ? 0 : (op < 0 ? lossWeeks + 1 : 0);
     weeks.add(week);
     week = WeekStats();
   }

@@ -2,6 +2,122 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 7 — building from scratch measured; as written it beat buying on every count
+
+Source: `prototype/economy_loop/results.txt`, new **Opening routes** table (200 seeds × 104
+weeks, competent owner who visits weekly unless stated). The prototype now models doc 02
+§15.9 route B: medium size, 3-year lease, rent from signing, fit-out and build days, new /
+second-hand / leased equipment, crew hired at skill 45–65 (company rating 3.5), manager
+and crew paid from opening day, rating 3.0 moving twice as fast for 28 days, the 2,000
+launch campaign. Both routes are paid from company cash. Payback counts from the decision
+day, so the build weeks are included; the lease deposit is in "up front" but not in
+payback, because it comes back.
+
+### Finding 1 — the spec has no slow start, so scratch dominated
+
+Doc 02 §15.9 promises "a slow ramp" but no rule produces one: footfall belongs to the
+location, so a new outlet at rating 3.0 with buzz 0.8, fresh menu 1.0 and the launch
+boost gets almost the same customers as a takeover from its first day.
+
+| Senior, spec as written | Up front | First profitable week | Payback | Net at wk 52 | Net at wk 104 |
+|---|---|---|---|---|---|
+| Buy running (75,000) | 75.0k | 1 | 45 | +21.0k | +156k |
+| Standard fit-out, new kit | 58.5k | 3 | 34 | +57.7k | +247k |
+| Basic, second-hand kit | 36.9k | 2 | 38 | +33.4k | +175k |
+| Basic, leased kit | 22.2k | 2 | 11 | +63.8k | +224k |
+
+Same picture for Capable and Veteran and for an owner who never visits. Standard + new
+kit was cheaper, paid back sooner, earned more per week and was no riskier. Buying won
+nothing but the first two weeks.
+
+### Finding 2 — the steady-state gap is not about the price
+
+Even once trading normally, a scratch outlet earns about 0.6k a week more than a bought
+one (Senior, weeks 27–52: 2.8k vs 2.2k). Adding the scratch advantages one at a time to a
+takeover (Senior, weeks 27–52, takeover 2.19k):
+
+| Change | Weeks 27–52 a week |
+|---|---|
+| Crew skill 45–65 instead of 40–65 | +0.43k (most of it: a head chef below 50 cannot rework the menu, doc 02 §13, so 38% of takeovers can never refresh it; the bot never replaces the chef) |
+| New equipment | +0.16k (upkeep 430 → 190 a week) |
+| Buzz 0.8, freshness 1.0 | +0.08k |
+| Hygiene 95, rating 3.0 | ≈ 0 (both converge within weeks) |
+
+So a lower takeover price cannot close it: at 60,000 (× 0.4) buying still trails
+standard + new by 43k at week 104. Recorded, not tuned (see "Still open").
+
+### Finding 3 — a 3-year-old machine cannot be serviced
+
+`maxCondition = 95 − 5 × floor(age / 168)` (doc 11 §A.3) is 65 at three years, which is
+exactly `MAINTENANCE_THRESHOLD`. Servicing then cannot lift a unit out of the band where
+it breaks down, so the bot keeps buying new replacements. This made second-hand kit
+(spec: 3 years old) a dead option, worse than leasing at every grade, and it also drags
+on takeovers (their kit is 1–3 years old).
+
+### Constants and rules (doc 02 edited in the same change)
+
+| Change | Old → new | Reason |
+|---|---|---|
+| `awareness` (new, doc 02 §15.9): demand × awareness; a takeover is 1 | — | Gives route B the slow start the spec describes |
+| `SCRATCH_START_AWARENESS` | — → 0.45 | Standard + new: first profitable week 9, payback 45 (Senior) |
+| `AWARENESS_GAIN` per trading day, × (0.5 + buzz) × min(1.5, rating / 3.5) | — → 0.01 | Full awareness in about 7–10 weeks; ads and a good rating speed it up |
+| Opening period (doc 02 §15.7): a new outlet's losing weeks do not count toward `lossWeeks` until its first profitable week or `OPENING_GRACE_WEEKS` | — → 12 | Without it every scratch outlet entered crisis and drew `inc_location_failing` during its ramp |
+| Second-hand equipment age (doc 02 §15.9 step 3) | 3 years → 2 years (max condition 75) | Finding 3; at 3 years second-hand lost to leasing on every measure |
+
+Swept: start awareness 0.4 / 0.45 / 0.5 / 0.6 × gain 0.005 / 0.01. Gain 0.005 stretches
+the first profitable week to 12–22 (outside every band). With gain 0.01: 0.4 puts Senior
+standard + new payback at 46, just outside 30–45; 0.5 gives payback 42 and first profit
+week 8; 0.6 is nearly no ramp (first profit week 3). 0.45 is the slowest start that keeps
+payback inside the band.
+Second-hand price 0.5 → 0.4 and condition 55 → 65 at 3 years were tried and changed
+almost nothing; the age is the lever.
+
+### Result (competent owner, visits weekly)
+
+| Senior | Up front | Most cash tied up | First profit wk | Payback | Paid back by wk 52 | Crisis by wk 26 | Net wk 52 | Net wk 104 |
+|---|---|---|---|---|---|---|---|---|
+| Buy running | 75.0k | 75.0k | 1 | 45 | 68% | 6.5% | +21.0k | +156k |
+| Standard + new | 58.5k | 79.2k | 9 | 45 | 83% | 4.5% | +26.4k | +214k |
+| Basic + second-hand | 36.9k | 60.0k | 9 | 41 | 87% | 8.5% | +32.9k | +179k |
+| Basic + leased | 22.2k | 50.4k | 10 | 43 | 77% | 30.5% | +26.9k | +188k |
+
+Veteran: payback 38 / 38 / 35 / 37. Capable: 79 / 65 / 61 / 71. The ramp turns the
+"cheaper" scratch routes into about the same peak cash as buying once the losses are
+counted (79k for standard + new against 75k), which is the honest version of
+"buying is faster, scratch is cheaper".
+
+Against doc 06 §4: first profitable week passes for both scratch routes (9 in 6–10,
+9–10 in 8–14); payback passes for Senior and Veteran on every route; crisis for basic +
+leased (30.5%) and basic + second-hand (8.5%) bracket the 25–40% band; buying with a
+Capable manager is at 28.5%, above its 10–20%.
+
+### Still open
+
+- **Buying still loses on money by week 52 for Senior and Veteran** (net at week 52:
+  buy 21.0k vs 26–33k for scratch). The gap is the inherited crew and kit (finding 2),
+  which a player would fix and the bot cannot. Two follow-ups before touching the price:
+  let the competent bot replace a head chef below 50 and the oldest kit, and decide
+  whether servicing should work relative to `maxCondition` (finding 3) for all outlets —
+  that second change moves every earlier table, so it needs its own entry.
+- **Leasing flatters payback.** The lease fee (2.5% a week, 130% a year) is a running
+  cost, so "payback" on basic + leased looks fine while it ends 26k behind standard +
+  new at week 104. Doc 06 now judges routes on net position and peak cash too.
+- Hidden problems (route A) are still not modelled; they will make buying worse, not
+  better.
+
+### On the 150,000 start price vs the 75,000 later price (opinion, nothing changed)
+
+The start price cannot simply drop: doc 01 §4.3 sets the loan as price − 80,000, so a
+75,000 Good start would have no loan and change the whole Phase 1 opening. But the
+current defence ("priced for an owner who works the floor") reads as a special case.
+It is really one rule: both prices are about 45 weeks of what the buyer will earn
+(owner-run Good ≈ 3.4k a week → 150k; Senior-run, first year ≈ 1.75k → 75k). Proposal:
+write that rule into doc 02 §15.9 and show it on every offer ("asking ≈ 45 weeks of its
+profit after a manager's wage"), so players see a rule, not a discount. It does not
+cover Bad and Worst offers, which lose money; those keep fixed prices. Entry 7 also shows
+the price is not the lever for route balance (finding 2), so it should not be moved
+again to fix that.
+
 ## Entry 6 — dearer advertising, cheaper later takeovers, two targets restated
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; the new "Second

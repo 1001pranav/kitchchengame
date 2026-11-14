@@ -230,4 +230,67 @@ void main() {
     expect(c.discountGiven, greaterThan(0));
     expect(c.spend, c.discountGiven);
   });
+
+  group('from-scratch opening (doc 02 §15.9 route B)', () {
+    const std = ScratchPlan('std', 'standard', EquipMode.buyNew);
+    const leased = ScratchPlan('lease', 'basic', EquipMode.lease);
+
+    test('shut for the build, rent and no wages, then opens', () {
+      final s = OutletSim(load(), 1, managerGrade: Grade.senior, scratch: std)
+        ..cash += 1000000;
+      expect(s.openDay, 14);
+      expect(s.investment, 15000 + 29300 + 1000 + 2000);
+      expect(s.deposit, 4 * 2800);
+      while (s.day < 14) {
+        s.step();
+      }
+      for (final w in s.weeks) {
+        expect(w.revenue, 0);
+        expect(w.wages + w.managerWage, 0);
+        expect(w.rent, 2800);
+      }
+      s.step();
+      expect(s.days.last.served, greaterThan(0));
+    });
+
+    test('awareness starts low and word of mouth fills it in', () {
+      final s = OutletSim(load(), 2, managerGrade: Grade.senior, scratch: std)
+        ..cash += 1000000;
+      while (s.day < 14) {
+        s.step();
+      }
+      expect(s.awareness, closeTo(0.45, 1e-9));
+      while (s.day < 14 + 70) {
+        s.step();
+      }
+      expect(s.awareness, 1.0);
+      expect(
+          OutletSim(load(), 2).awareness, 1.0); // a takeover keeps its regulars
+    });
+
+    test('leased kit costs a weekly fee and never drops below 70', () {
+      final s =
+          OutletSim(load(), 3, managerGrade: Grade.senior, scratch: leased)
+            ..cash += 1000000;
+      expect(s.investment, 8000 + 1000 + 2000);
+      while (s.day < 7 * 30) {
+        s.step();
+      }
+      expect(s.weeks.last.equipLease,
+          closeTo(29300 * 0.025, 5)); // rounded per unit
+      for (final e in s.equipment) {
+        expect(e.condition, greaterThanOrEqualTo(70));
+      }
+    });
+
+    test('losing weeks during the opening ramp are not a crisis', () {
+      final s = OutletSim(load(), 4, managerGrade: Grade.capable, scratch: std)
+        ..cash += 1000000;
+      while (s.day < 7 * 4) {
+        s.step();
+      }
+      expect(s.weeks.every((w) => w.operatingProfit < 0), isTrue);
+      expect(s.lossWeeks, 0);
+    });
+  });
 }

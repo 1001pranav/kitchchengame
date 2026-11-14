@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:io';
 
 import 'package:economy_loop/economy_loop.dart';
@@ -25,6 +26,7 @@ void main(List<String> args) {
   }
   final b = Balance(m);
   final only = args.contains('--grades-only');
+  final routesOnly = args.contains('--routes-only');
 
   int median(List<int> xs) => (xs..sort())[xs.length ~/ 2];
   double avg(Iterable<num> xs) =>
@@ -37,6 +39,104 @@ void main(List<String> args) {
 
   String pct(int n, int d) =>
       d == 0 ? '-' : '${(100 * n / d).toStringAsFixed(1)}%';
+
+  // Opening routes (doc 02 §15.9, doc 06 §4 opening-route targets): the same bot opens a
+  // later outlet by buying a running Good outlet or by building one from scratch.
+  // Paid from company cash (no loan, no bankruptcy). "Cash up front" includes the
+  // scratch lease deposit; payback and net position leave it out because it comes back.
+  // Weeks count from the decision day, so a scratch build's closed weeks are included.
+  void openingRoutes() {
+    if (!b.has('SCRATCH_FITOUT')) return;
+    const horizon = 104;
+    final price =
+        (b.i('TAKEOVER_PRICE_GOOD') * b.d('TAKEOVER_MARKET_PRICE_FACTOR'))
+            .round();
+    final routes = <(String, ScratchPlan?)>[
+      ('buy running', null),
+      ('std + new', const ScratchPlan('std+new', 'standard', EquipMode.buyNew)),
+      (
+        'basic + 2nd-hand',
+        const ScratchPlan('basic+2nd', 'basic', EquipMode.secondHand)
+      ),
+      (
+        'basic + leased',
+        const ScratchPlan('basic+lease', 'basic', EquipMode.lease)
+      ),
+    ];
+    stdout.writeln(
+        '\nOpening routes: a later Good-size outlet from company cash, '
+        '$seeds seeds x $horizon weeks (buy price ${k(price)})\n');
+    stdout.writeln(
+        'owner      manager   route             up-front  1st profit wk  '
+        'max tied up  w1-26/wk  w27-52/wk  payback wk  paid by 52  crisis<=26  net wk52  net wk104');
+    for (final owner in [CompetentOwner(), if (!routesOnly) RemoteOwner()]) {
+      for (final g in [Grade.capable, Grade.senior, Grade.veteran]) {
+        for (final (label, plan) in routes) {
+          final paybacks = <int>[], firstProfit = <int>[];
+          final net52 = <int>[], net104 = <int>[], tiedUp = <int>[];
+          final first = <int>[], second = <int>[];
+          var crisis = 0, upFront = 0;
+          for (var seed = 1; seed <= seeds; seed++) {
+            final s = OutletSim(b, seed, managerGrade: g, scratch: plan);
+            s.cash += 10000000;
+            while (s.day < horizon * 7 && s.gameOver == null) {
+              owner.act(s);
+              s.step();
+            }
+            final invested = plan == null ? price : s.investment;
+            upFront = plan == null ? price : s.investment + s.deposit;
+            final ws = s.weeks.map((w) => w.operatingProfit).toList();
+            first.addAll(ws.take(26));
+            second.addAll(ws.skip(26).take(26));
+            var cum = 0, wk = 999, worst = 0;
+            for (var i = 0; i < ws.length; i++) {
+              cum += ws[i];
+              worst = math.min(worst, cum);
+              if (cum >= invested && wk == 999) wk = i + 1;
+              if (i == 51) net52.add(cum - invested);
+            }
+            net104.add(cum - invested);
+            // Most company cash the outlet ever has tied up: up-front money (deposit
+            // included) plus the deepest dip in its running profit.
+            tiedUp.add(upFront - worst);
+            paybacks.add(wk);
+            final fp = ws.indexWhere((p) => p > 0);
+            firstProfit.add(fp < 0 ? 999 : fp + 1);
+            // Crisis (doc 02 §15.7): 4 losing weeks in a row by week 26, after the
+            // opening period (a scratch outlet's ramp is not a crisis).
+            var run = 0, hit = false;
+            for (var i = s.openingEndWeek; i < math.min(26, ws.length); i++) {
+              run = ws[i] < 0 ? run + 1 : 0;
+              if (run >= 4) hit = true;
+            }
+            if (hit) crisis++;
+          }
+          String wk(int w) => w > horizon ? '>$horizon' : '$w';
+          stdout.writeln([
+            owner.name.padRight(10),
+            g.name.padRight(9),
+            label.padRight(17),
+            k(upFront).padLeft(8),
+            wk(median(List.of(firstProfit))).padLeft(14),
+            k(median(tiedUp)).padLeft(12),
+            k(avg(first)).padLeft(9),
+            k(avg(second)).padLeft(10),
+            wk(median(List.of(paybacks))).padLeft(11),
+            pct(paybacks.where((w) => w <= 52).length, seeds).padLeft(11),
+            pct(crisis, seeds).padLeft(11),
+            k(median(net52)).padLeft(9),
+            k(median(net104)).padLeft(10),
+          ].join(' '));
+        }
+      }
+    }
+  }
+
+  // --routes-only: just the opening-routes table, competent owner (for lever sweeps).
+  if (routesOnly) {
+    openingRoutes();
+    return;
+  }
 
   stdout.writeln('Good tier, average location, $seeds seeds x $weeks weeks\n');
   stdout.writeln(
@@ -137,9 +237,10 @@ void main(List<String> args) {
   // bankrupt on its own and pays no loan; payback = first week its cumulative operating
   // profit covers the purchase price. Hidden problems are not modelled, so real payback
   // will be somewhat slower.
-  if (!only) {
+  if (!only && b.has('TAKEOVER_PRICE_GOOD')) {
     final price =
-        (b.i('TAKEOVER_PRICE_GOOD') * b.d('TAKEOVER_MARKET_PRICE_FACTOR')).round();
+        (b.i('TAKEOVER_PRICE_GOOD') * b.d('TAKEOVER_MARKET_PRICE_FACTOR'))
+            .round();
     const horizon = 104;
     stdout.writeln(
         '\nSecond outlet: buy a running Good outlet for ${k(price)} from company cash, $horizon weeks\n');
@@ -178,9 +279,12 @@ void main(List<String> args) {
           k(avg(first)).padLeft(6),
           k(avg(second)).padLeft(8),
           (med > horizon ? '>$horizon' : '$med').padLeft(18),
-          pct(paybacks.where((w) => w <= 52).length, paybacks.length).padLeft(19),
+          pct(paybacks.where((w) => w <= 52).length, paybacks.length)
+              .padLeft(19),
         ].join(' '));
       }
     }
   }
+
+  if (!only) openingRoutes();
 }
