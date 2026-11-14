@@ -62,7 +62,7 @@ void main() {
   test('forecast at neutral health is footfall × rep × dow (doc 02 §5.1)', () {
     final s = OutletSim(load(), 1);
     // day 0: Monday 0.80, spring 1.00, rep 3.5 -> 1.125, buzz 0.5 & freshness 0.6 -> 1.0
-    expect(s.forecast(), closeTo(55 * 1.125 * 0.8, 1e-9));
+    expect(s.forecast(), closeTo(s.b.d('BASE_FOOTFALL') * 1.125 * 0.8, 1e-9));
   });
 
   test(
@@ -316,6 +316,110 @@ void main() {
       }
       expect(s.weeks.every((w) => w.operatingProfit < 0), isTrue);
       expect(s.lossWeeks, 0);
+    });
+  });
+
+  group('incidents and hidden problems (doc 05, doc 02 §11, §15.4)', () {
+    test('a Good takeover draws two hidden problems; a scratch build none', () {
+      final b = load();
+      expect(OutletSim(b, 1, ownerRun: true).incidents!.hidden.length, 2);
+      final scratch = OutletSim(b, 1,
+          managerGrade: Grade.senior,
+          scratch: const ScratchPlan('s', 'standard', EquipMode.buyNew));
+      expect(scratch.incidents!.hidden, isEmpty);
+    });
+
+    test('INCIDENTS = 0 turns the whole layer off', () {
+      final m = jsonDecode(File('data/balance.json').readAsStringSync())
+          as Map<String, dynamic>;
+      m['INCIDENTS'] = 0;
+      expect(OutletSim(Balance(m), 1, ownerRun: true).incidents, isNull);
+    });
+
+    test('the passive bot never maintains or repairs (doc 06 §6.1)', () {
+      final s = OutletSim(load(), 9, ownerRun: true);
+      final owner = PassiveOwner();
+      var everBroken = false;
+      while (s.day < 26 * 7 && s.gameOver == null) {
+        owner.act(s);
+        s.step();
+        if (s.equipment.any((e) => e.broken)) everBroken = true;
+        // Once broken, a unit stays broken: nobody orders the repair.
+        for (final e in s.equipment.where((e) => e.broken)) {
+          expect(e.readyDay, -1);
+        }
+      }
+      expect(everBroken, isTrue);
+    });
+
+    test('every card the passive owner-run bot gets resolves by default', () {
+      final s = OutletSim(load(), 11, ownerRun: true);
+      final owner = PassiveOwner();
+      while (s.day < 12 * 7 && s.gameOver == null) {
+        owner.act(s);
+        s.step();
+      }
+      expect(s.incidents!.raised, greaterThan(0));
+      expect(s.incidents!.defaults, s.incidents!.raised);
+    });
+
+    test('an attentive owner away cannot pick an in-person option', () {
+      final s = OutletSim(load(), 3, managerGrade: Grade.senior);
+      final notes = <String>[];
+      final card = Card(
+          't',
+          'upkeep',
+          'test',
+          [
+            Opt('in person', 0, (_) => 1000, (_) => s.flags['picked'] = 1 << 30,
+                inPerson: true),
+            Opt('default', 0, (_) => 0, (_) {}),
+          ],
+          'default');
+      s.incidents!.raise(card, false, notes);
+      expect(s.flag('picked'), isFalse);
+      s.incidents!.raise(card, true, notes);
+      expect(s.flag('picked'), isTrue);
+    });
+
+    test('a manager deciding for a passive owner stays within 500', () {
+      final s = OutletSim(load(), 3, managerGrade: Grade.veteran)
+        ..ownerAnswersCards = false
+        ..ownerDoesChores = false;
+      for (var i = 0; i < 50; i++) {
+        s.incidents!.raise(
+            Card(
+                't',
+                'upkeep',
+                'test',
+                [
+                  Opt('dear', 600, (_) => 5000,
+                      (_) => s.flags['dear'] = 1 << 30),
+                  Opt('cheap', 400, (_) => 3000,
+                      (_) => s.flags['cheap'] = 1 << 30),
+                  Opt('default', 0, (_) => 0, (_) {}),
+                ],
+                'default'),
+            false,
+            []);
+      }
+      expect(s.flag('dear'), isFalse);
+      expect(s.flag('cheap'), isTrue);
+    });
+
+    test('an inherited supplier debt costs cash, not operating profit', () {
+      // Find a seed that draws the supplier debt.
+      for (var seed = 1; seed < 100; seed++) {
+        final s = OutletSim(load(), seed, ownerRun: true);
+        if (!s.incidents!.hidden.contains('supplierDebt')) continue;
+        while (s.day < 5 * 7) {
+          s.step();
+        }
+        final debt = s.weeks.fold(0, (a, w) => a + w.inherited);
+        expect(debt, inInclusiveRange(8000, 20000));
+        return;
+      }
+      fail('no seed drew a supplier debt');
     });
   });
 }

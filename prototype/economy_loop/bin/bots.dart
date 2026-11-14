@@ -27,6 +27,8 @@ void main(List<String> args) {
   final b = Balance(m);
   final only = args.contains('--grades-only');
   final routesOnly = args.contains('--routes-only');
+  // --no-routes: skip the 104-week second-outlet and opening-routes tables.
+  final noRoutes = args.contains('--no-routes');
 
   int median(List<int> xs) => (xs..sort())[xs.length ~/ 2];
   double avg(Iterable<num> xs) =>
@@ -89,7 +91,8 @@ void main(List<String> args) {
             }
             final invested = plan == null ? price : s.investment;
             upFront = plan == null ? price : s.investment + s.deposit;
-            final ws = s.weeks.map((w) => w.operatingProfit).toList();
+            final ws =
+                s.weeks.map((w) => w.operatingProfit - w.inherited).toList();
             first.addAll(ws.take(26));
             second.addAll(ws.skip(26).take(26));
             var cum = 0, wk = 999, worst = 0;
@@ -147,6 +150,7 @@ void main(List<String> args) {
       'owner      manager   survive  fail-wk  cash-end  profit/wk  w1-4    w9-12   w23-26  demand wk5-8  rep-end  losing d/wk  day CV  mgr-decisions/wk  ads/run  flop%  bighit%  mkt%rev');
   final configs = <(OwnerPolicy, Grade?)>[
     if (!only) (PassiveOwner(), null),
+    if (!only) (ChoresOwner(), null),
     if (!only) (CompetentOwner(), null),
     if (!only) (AdaptiveOwner(), null),
     for (final o in [
@@ -158,12 +162,14 @@ void main(List<String> args) {
       for (final g in Grade.values) (o, g),
   ];
   final adPool = <Campaign>[];
+  final kept = <String, List<RunSummary>>{};
   for (final (owner, g) in configs) {
     {
       final runs = [
         for (var s = 1; s <= seeds; s++)
           runOne(b, s, g ?? Grade.capable, owner, weeks, ownerRun: g == null)
       ];
+      kept['${owner.name}/${g?.name ?? 'owner-run'}'] = runs;
       if (owner is CompetentOwner && owner is! RemoteOwner) {
         adPool.addAll(runs.expand((r) => r.settledCampaigns));
       }
@@ -208,6 +214,82 @@ void main(List<String> args) {
     }
   }
 
+  // Survival, incidents and hidden problems (doc 06 §4, doc 05).
+  if (!only && b.has('INCIDENTS') && b.d('INCIDENTS') > 0) {
+    stdout.writeln(
+        '\nSurvival, incidents and hidden problems ($seeds seeds x $weeks weeks)\n');
+    stdout.writeln(
+        'owner      manager   survive  fail-wk  min cash  tight d wk1-8  incidents/wk  by default');
+    const rows = [
+      'passive/owner-run',
+      'chores/owner-run',
+      'competent/owner-run',
+      'remote/senior',
+      'competent/senior',
+      'remote/veteran',
+      'competent/veteran',
+    ];
+    for (final key in rows) {
+      final runs = kept[key]!;
+      final fails =
+          runs.where((r) => !r.survived).map((r) => r.failWeek!).toList();
+      final inc = runs.fold(0, (a, r) => a + r.incidents);
+      final wks = runs.fold(0, (a, r) => a + r.weeklyProfit.length);
+      final parts = key.split('/');
+      stdout.writeln([
+        parts[0].padRight(10),
+        (parts[1] == 'owner-run' ? 'OWNER-RUN' : parts[1]).padRight(9),
+        pct(runs.where((r) => r.survived).length, runs.length).padLeft(7),
+        (fails.isEmpty ? '-' : median(fails).toString()).padLeft(8),
+        k(median(runs.map((r) => r.minCash).toList())).padLeft(9),
+        '${(avg(runs.map((r) => r.tightDays)) * 100).round()}%'.padLeft(14),
+        (inc / math.max(1, wks)).toStringAsFixed(1).padLeft(13),
+        pct(runs.fold(0, (a, r) => a + r.incidentDefaults), inc).padLeft(11),
+      ].join(' '));
+    }
+    stdout.writeln('\nSurvival by hidden problem drawn (Good tier draws 2)\n');
+    final names = kept['competent/owner-run']!
+        .expand((r) => r.hidden)
+        .toSet()
+        .toList()
+      ..sort();
+    stdout.writeln(
+        'owner      manager   ${names.map((n) => n.padLeft(15)).join(' ')}');
+    for (final key in rows) {
+      final runs = kept[key]!;
+      final parts = key.split('/');
+      stdout.writeln([
+        parts[0].padRight(10),
+        (parts[1] == 'owner-run' ? 'OWNER-RUN' : parts[1]).padRight(9),
+        for (final n in names)
+          () {
+            final with_ = runs.where((r) => r.hidden.contains(n)).toList();
+            return pct(with_.where((r) => r.survived).length, with_.length)
+                .padLeft(15);
+          }(),
+      ].join(' '));
+    }
+  }
+
+  // Manager targets (doc 06 §4): skill-80 manager, owner never visits.
+  if (!only) {
+    stdout.writeln(
+        '\nWeeks with negative operating profit, owner never visits (doc 06 §4 manager targets)\n');
+    stdout.writeln('owner      manager   weeks 1-12  weeks 13-26');
+    for (final key in ['remote/senior', 'remote/veteran']) {
+      final runs = kept[key]!;
+      String share(int a, int z) {
+        final ws =
+            runs.expand((r) => r.weeklyOperating.skip(a).take(z - a)).toList();
+        return pct(ws.where((w) => w < 0).length, ws.length);
+      }
+
+      final parts = key.split('/');
+      stdout.writeln('${parts[0].padRight(10)} ${parts[1].padRight(9)} '
+          '${share(0, 12).padLeft(10)} ${share(12, 26).padLeft(12)}');
+    }
+  }
+
   // Return on spend (doc 02 §13.2), pooled over the competent and adaptive owners.
   stdout.writeln(
       '\nAd returns: campaigns at least 8 weeks old, owners who market and visit\n');
@@ -241,7 +323,7 @@ void main(List<String> args) {
   // bankrupt on its own and pays no loan; payback = first week its cumulative operating
   // profit covers the purchase price. Hidden problems are not modelled, so real payback
   // will be somewhat slower.
-  if (!only && b.has('TAKEOVER_PRICE_GOOD')) {
+  if (!only && !noRoutes && b.has('TAKEOVER_PRICE_GOOD')) {
     final price =
         (b.i('TAKEOVER_PRICE_GOOD') * b.d('TAKEOVER_MARKET_PRICE_FACTOR'))
             .round();
@@ -261,7 +343,8 @@ void main(List<String> args) {
             owner.act(s);
             s.step();
           }
-          final ws = s.weeks.map((w) => w.operatingProfit).toList();
+          final ws =
+              s.weeks.map((w) => w.operatingProfit - w.inherited).toList();
           all.addAll(ws);
           first.addAll(ws.take(26));
           second.addAll(ws.skip(26).take(26));
@@ -290,5 +373,5 @@ void main(List<String> args) {
     }
   }
 
-  if (!only) openingRoutes();
+  if (!only && !noRoutes) openingRoutes();
 }

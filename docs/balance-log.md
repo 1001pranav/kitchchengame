@@ -2,6 +2,130 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 9 — incidents and hidden problems; the passive bot was never passive
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).
+The prototype now has an incident layer (`lib/src/incidents.dart`): the doc 05 incidents a
+day model can express, the doc 02 §11 roll, §15.4 decisions away from the owner (phone:
+no in-person options, chances −0.10; unanswered: the manager decides within the 500
+spending limit, §15.10, acting at all with probability clamp(0.4 + skill/100), §15.12),
+and two hidden problems per Good takeover (doc 05 §4). Per-tick service incidents are not
+modelled; the README lists what is in and how each is approximated.
+
+### Finding 1 — the 100% passive survival was the prototype doing chores for the bot
+
+Doc 06 §6.1's passive bot never maintains, never hires, does no floor work and takes
+every default (doc 05 #21's default is "leave it broken"). The prototype treated "owner
+at the outlet" as "owner does everything", so the passive owner-run bot was quietly
+maintaining, paying for proper repairs and covering absences. Applying §6.1 as written,
+**with incidents switched off**:
+
+| Passive owner-run, no incidents | Survive | Net a week |
+|---|---|---|
+| As before (maintains, repairs, covers) | 100% | +2.1k |
+| Repairs + covers, no maintenance | 99% | +1.0k |
+| Repairs + maintains, no cover | 100% | +1.2k |
+| Repairs only | 12% | +0.2k |
+| §6.1 as written | **0%** | −2.4k |
+
+So idling was never safe in the spec — only in the prototype. The open question from
+entries 6–8 was mis-framed: incidents were not needed to make neglect dangerous.
+
+### Finding 2 — the 60–80% band belongs to a different player
+
+A bot that does nothing at all dies whatever the incident costs, so it cannot carry a
+60–80% band. The band reads as written for someone who shows up and does the chores but
+never manages. New `chores` bot (doc 06 §6.1): maintains, pays for the cheap repair,
+covers one absent role, replaces leavers; every other card default; never markets,
+reworks or replaces ageing kit. Doc 06 §4 now puts 60–80% on chores and 0–10% on passive.
+**This is a target change and the design owner should confirm it** — the alternative is
+to keep one passive bot and drop its band to 0–10%.
+
+### Constants (incidents on)
+
+| Change | Old → new | Reason |
+|---|---|---|
+| `BASE_FOOTFALL` average (doc 02 §4) | 55 → 58 | At 55 incidents cost the competent owner-run outlet 0.9k a week (4.1k → 3.2k) and every managed grade 1.0–1.3k, which would have moved every table since entry 1. Lever 1 (doc 06 §5); 59–60 pushed the never-visits Trainee → Junior step over +1,000 |
+| `inc_price_spike` cooldown (doc 05 #15) | 14 → 42 days | Fired 10.8 times in 26 weeks (every cooldown): a permanent ~6% food-cost rise, not a spike |
+| `inc_plumbing_leak` cooldown (doc 05 #25) | 28 → 84 days | Fired 5 times in 26 weeks |
+| `inc_plumbing_leak` flood | — → the flood forces an emergency plumber (−900) and ends the leak | "until fixed" with nobody fixing it made one leak certain death for a bot that never answers |
+| Inherited supplier debt (doc 05 §4) | — → cash, not operating profit | It is part of what the outlet cost; counted in route payback and net position |
+
+Why the cooldowns, not the weights: under §11 a weight is about the chance per prep roll,
+two rolls a day, so anything weighted ≥ 0.1 fires days after its cooldown ends. Doc 05 §3
+now says so.
+
+Swept: footfall 58 / 59 / 60 → chores 74% / 79% / 83%, competent owner-run 3.7k / 4.0k /
+4.1k. 58 centres chores in its band and keeps every grade step under +1,000.
+
+### Result
+
+| Owner-run, Good | Survive | Fail wk | Net a week | Min cash (median) | Cash-tight days wk 1–8 |
+|---|---|---|---|---|---|
+| Passive | 0% | 7 | −2.7k | −4.4k | 27% |
+| Chores | 74% | 21 | +1.1k | 11.5k | 2% |
+| Competent | 100% | – | +3.8k | 18.5k | 0% |
+
+Incidents: 2.1 a week for attentive owners (6% by default), 3.8 for passive (all
+default). Chores survival by inherited problem: feud 92%, chef leaving 87%, lease 85%,
+fridge 85%, licence 83%, fake reviews 80%, supplier debt 79%, skimming 78%, health
+violation 48%, pests 7%. Every hidden problem is 100% survivable for the competent owner.
+
+Managed (net a week, markets + visits / markets, never visits): Trainee −0.5k / −1.7k,
+Junior +0.2k / −0.9k, Capable +1.0k / ≈ 0, Senior +1.6k / +0.8k, Veteran +2.0k / +1.5k.
+Grade steps about +700, +800, +650, +400 (never visits +850, +900, +750, +700): inside
++200 to +1,000. Survival, markets + visits: 7%, 29%, 61%, 81%, 91% (entry 8: 17, 53, 73,
+92, 99) — incidents are where a managed outlet's risk now comes from. Ads: local ad ×2.2,
+flyers ×2.8, weak ×1.1 / ×1.3, marketing 3.6–4.0% of revenue: all in band.
+
+### Finding 3 — the real tension gap is cash, not passive survival
+
+Doc 06 §4 asks for cash below one week of costs on 20–40% of days in weeks 1–8 for the
+competent Good player. Measured: **0%** (minimum cash about 18k against ~10k of weekly
+costs), with or without incidents. That is the "no tension when playing well" problem,
+and no incident tuning that leaves the competent owner profitable will fix it. Levers,
+for a later entry: Good-tier cash left (20,000, doc 01 §4.3), or front-loading the first
+loan instalments.
+
+### Finding 4 — hidden problems make buying lose to building
+
+Opening routes, Senior, refit bot: buying (75,000) now pays back in 38 weeks with +49.2k
+at week 52 and +173k at week 104, against +57.6k / +208k for standard + new and +65–69k /
++182–189k for the basic routes, and is riskier (crisis 3.5% vs 0.5–1%). Without hidden
+problems it would be +66.9k / +204k, entry 8's balance. Entry 8 kept × 0.5 partly
+because "hidden problems will cost buying something on top"; they cost about 18k by week
+52. Tested × 0.4 (60,000): payback 33, +64.2k / +188k — buying fastest, mid-pack at 52,
+level with the basic routes at 104. **Not applied**: the price is a design decision
+(entry 8), and due diligence (doc 01 §4.3, 2,000 to reveal half) is not modelled yet.
+
+### Entries 1–7 re-checked after the seed fix (incidents off, footfall 55)
+
+| Entry | What rested on menu freshness | Re-measured | Verdict |
+|---|---|---|---|
+| 1 | `BUZZ_DECAY` 0.02 → 0.01: one ad per 4 weeks "could not hold demand (−10%)" | At 0.02: demand weeks 5–8 −5% (0.01: +2%), owner-run 3.2k vs 4.1k, Senior 1.0k vs 1.8k | Stands, by a smaller margin |
+| 4 | `CAMPAIGN_FRESH_BONUS` (ad after a rework flops less) | It never applied before (freshness never reached 0.8). Now: flop 9–12% for owners who rework vs 11–15% with the bonus off | Works as designed; it puts competent flop rates just under the 10–18% band. Suggest widening to 8–18% rather than weakening the bonus: a player who keeps the menu fresh should flop less |
+| 6 | Skill-80 losing weeks: "≤ 1 in 8 over 26 weeks" split into ≤ 1 in 8 (wk 1–12) and ≤ 1 in 3 (wk 13–26) after measuring 7% / 33% | Veteran, never visits: 5% / 17% — the old single target (≤ 12.5% over 26 weeks) passes at 11.5% | The split was caused by the bug. With incidents it is 12.4% / 21.5% (17% overall), so the split is still needed, now for a real reason |
+| 6 | Capable never visited drifts to −0.5k | Settled in entry 8 | – |
+| 7 | `SCRATCH_START_AWARENESS` 0.45 = "the slowest start that keeps payback inside 30–45" (scratch head chefs could not rework either) | Senior standard + new payback: 0.40 → 38 / 37 (competent / refit), 0.45 → 37 / 35, 0.50 → 35 / 33; first profit week 8–9, 8, 7–8 | 0.45 is no longer the edge: 0.40 also passes. Kept at 0.45; the choice is now feel, not a band |
+| 7 | Finding 2 (chef below 50 explains the route gap) | Settled in entry 8 (refit bot) | – |
+| 2, 3, 5 | Hygiene rule, mastery, ad prices | Not freshness-dependent, or re-measured in entry 8 | Stand |
+
+### Rules that are now explicit (doc 06 §6.1, doc 05 §3)
+
+- Defaults that persist until someone acts (pests, leak, skimming, broken kit) are fatal
+  to a bot that never answers. Intended: the default is never the best option.
+- `inc_tax_audit`: "handle yourself" (30% × 2,000) beats the accountant (800) on cash
+  alone; it only loses once the owner's lost rest day is priced (300 here). Doc 05's
+  "default is never the best" holds only if the energy cost matters in the real sim.
+
+### Still open
+
+- Cash tension for the competent Good player (finding 3).
+- Takeover price × 0.5 vs × 0.4, and due diligence (finding 4).
+- Service incidents (per-tick) and the summer ×2 on power cuts are not modelled.
+- The passive bot's 1.5× ordering waste (doc 06 §6.1) is not modelled; the prototype
+  orders perfectly whenever the owner is present.
+
 ## Entry 8 — a seed bug gave every run the worst head chef; numbers re-measured
 
 Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; routes 104 weeks).

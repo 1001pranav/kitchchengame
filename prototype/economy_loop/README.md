@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 8) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 9) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -37,7 +37,8 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | Name | Does |
 |---|---|
-| passive | Nothing. Never markets, visits, reworks the menu or replaces equipment |
+| passive | Nothing at all (doc 06 §6.1): never markets, visits, reworks, replaces, maintains, repairs, hires or covers; every incident card takes its default. At an owner-run outlet the owner is there every day and still does none of it |
+| chores | Owner-run only: works the floor — maintains, pays for the cheap repair, covers one absent role, replaces leavers — but every other card takes its default and it never markets or reworks. Carries doc 06 §4's survival band |
 | remote | Markets (local ad every 4 weeks, menu rework every 8, prices 105%) and replaces flagged equipment, but never visits |
 | competent | As remote, plus one visit a week |
 | adaptive | As competent, and when a local ad flops or is weak, runs flyers the next day |
@@ -62,6 +63,8 @@ manager and the crew includes a cashier.
 | Working manager: no cashier in a managed crew; manager fills one gap a day | doc 02 §15.15 |
 | Mastery above skill 65: supplier negotiation, preventive care, crew development, retention | doc 02 §15.16 (weekly deals, supplier relations and deputies are not modelled) |
 | Break-even line | doc 02 §15.13 |
+| Incidents: the doc 05 cards below, rolled per doc 02 §11, decided by the owner, by phone (§15.4: no in-person options, chances −0.10), or by the manager when the owner never answers (§15.10 limit 500, §15.12 skill shift) | doc 05 §3, doc 02 §11, §15.4 |
+| Hidden problems: two per Good takeover (not for scratch builds), all ten of doc 05 §4; inherited supplier debt is cash, not operating profit | doc 01 §4.3, doc 05 §4 |
 | Return on spend per campaign: extra groups and profit from the boost and from the buzz it left | doc 02 §13.2 |
 | Opening from scratch: fit-out and build days, rent from signing, new / second-hand / leased kit, crew from the company pool, rating 3.0 moving twice as fast for 28 days, launch campaign, awareness ramp, opening period exempt from crisis | doc 02 §15.7, §15.9 route B |
 
@@ -84,32 +87,64 @@ There is no per-tick service, so these replace it. Each is a guess.
 
 A role with two people counts half a gap when one is missing.
 
+### Incidents (`lib/src/incidents.dart`)
+
+Modelled: wage demand, resignation, poaching, skimming (owner-run only: a managed crew
+has no cashier), price spike, delivery late / short / bad batch (supplier reliability
+0.93, doc 02 §9), fridge warm, plumbing leak, pests, power cut, landlord rent, inspection
+notice and deep clean, food poisoning, bad review, competitor opens, big booking,
+windfall, tax audit, licence overdue, and breakdowns (still handled by the repair rule in
+`sim.dart`). Not modelled: per-tick service incidents (complaints, conflicts, rowdy
+tables, critics, injuries), festivals, supplier deals, seasonal shortages, lifeline.
+
+Each card's options carry an expected value used by the attentive owner (doc 06 §6.1
+scoring: cash + 20,000 × rating + 50 × morale summed). Those estimates, and these keys,
+are stand-ins:
+
+| Key | Value | Replaces |
+|---|---|---|
+| `SUPPLIER_RELIABILITY` | 0.93 | `sup_standard` (doc 04 §4) for every delivery |
+| `BAD_BATCH_FOOD_PENALTY` | 6 | quality −30 on the share of dishes using the batch |
+| `ILL_FROM_BAD_BATCH` / `ILL_FROM_LOW_HYGIENE` | 0.10 / 0.02 | per-ticket food-poisoning rolls (doc 02 §6.7) |
+| `OWNER_DAY_VALUE` | 300 | the owner's lost rest day (tax audit) |
+| Power cut | weight 0.1 × 16/12, once a day | a service incident rolled every 30 ticks |
+
+In `play`, cards are answered for you with the same scoring and listed in the day's notes.
+`INCIDENTS = 0` switches the layer off. For ablation, `dart run -DOFF=inc_pests,hidden
+bin/bots.dart` disables named incidents (`hidden` = hidden problems).
+
 ## Results (200 seeds × 26 weeks, Good tier, average location)
 
-Average weekly net profit after the manager's wage (balance-log entry 8, after the seed fix):
+Average weekly net profit after the manager's wage (balance-log entry 9, incidents and
+hidden problems on):
 
 | Run by | passive | remote | competent |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +4.1k |
-| Trainee | −2.2k | −1.4k | −0.1k |
-| Junior | −1.4k | −0.6k | +0.6k |
-| Capable | −0.8k | +0.3k | +1.2k |
-| Senior | −0.4k | +1.0k | +1.8k |
-| Veteran | ≈ 0 | +1.7k | +2.3k |
+| Owner, no manager | −2.7k (chores +1.1k) | — | +3.8k |
+| Trainee | −2.7k | −1.7k | −0.5k |
+| Junior | −1.8k | −0.9k | +0.2k |
+| Capable | −1.1k | ≈ 0 | +1.0k |
+| Senior | −0.7k | +0.8k | +1.6k |
+| Veteran | −0.4k | +1.5k | +2.0k |
 
-The adaptive owner does +0.05k to +0.2k a week better than the competent one at every
-grade. The last four report columns are the ad measures: campaigns per run, flop %,
+Owner-run survival: passive 0%, chores 74%, competent 100%. The adaptive owner does
++0.1k to +0.3k a week better than the competent one at every grade. The last four report columns are the ad measures: campaigns per run, flop %,
 big-hit % and marketing as a share of revenue.
 
-`bots` ends with an **Ad returns** table: for each campaign type and outcome, average
+After the main table, **Survival, incidents and hidden problems** gives survival, median
+failure week, median lowest cash, the share of days in weeks 1–8 with cash below one
+week of costs, incidents a week and the share resolved by default; then survival by
+which hidden problem was drawn; then the skill-80 losing-weeks target.
+
+`bots` then prints an **Ad returns** table: for each campaign type and outcome, average
 spend, extra groups, extra profit and return. In `play`, the `ads` command lists every
 campaign you ran with the same figures. Current result: a local ad returns ×2.3 and
-flyers ×3.0 on average, and a weak response roughly breaks even (balance-log entry 8).
+flyers ×2.8 on average, and a weak response roughly breaks even (balance-log entry 9).
 
 The **Second outlet** table buys a running Good outlet at the later-market price
 (`TAKEOVER_PRICE_GOOD` × `TAKEOVER_MARKET_PRICE_FACTOR`) from company cash and reports
-weeks until operating profit has paid it back, over 104 weeks. Hidden problems are not
-modelled, so treat it as a best case.
+weeks until operating profit, less any inherited debt, has paid it back, over 104
+weeks. Hidden problems are modelled; due diligence is not.
 
 The last table, **Opening routes**, opens a later outlet four ways from company cash —
 buy running at the later price, standard fit-out with new kit, basic fit-out with
@@ -120,6 +155,7 @@ tied up, profit a week, payback week (deposit excluded, build weeks included), s
 paid back by week 52, share in crisis by week 26 after the opening period, and net
 position at weeks 52 and 104. `--routes-only` prints just this table for the competent
 owner, for quick sweeps (`--routes-only --set SCRATCH_START_AWARENESS=0.6`).
+`--no-routes` skips the two 104-week tables.
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).
@@ -153,3 +189,4 @@ The first run found eight problems in the docs. How each was resolved:
 - Per-person days off (doc 02 §7.7) and stand-in roles are not modelled (problem 5); wages are averaged over a six-day week.
 - One tier, one location class, one outlet.
 - The manager's till work is a flat penalty, not task durations.
+- Incidents are a subset (see above), and the passive bot's 1.5× ordering waste is not modelled: whenever the owner is present, ordering is perfect.

@@ -1,6 +1,6 @@
 {
   "_comment": "Current spec values (docs as of balance-log.md, latest entry). Keys starting PROTO_ are stand-ins for the per-tick service sim; see README.md.",
-  "BASE_FOOTFALL": 55,
+  "BASE_FOOTFALL": 58,
   "WEEKLY_RENT": 2800,
   "TABLES": 14,
   "START_CASH": 20000,
@@ -287,5 +287,22 @@
   "EQUIP_LEASE_MIN_CONDITION": 70,
   "SCRATCH_START_AWARENESS": 0.45,
   "OPENING_GRACE_WEEKS": 12,
-  "AWARENESS_GAIN": 0.01
+  "AWARENESS_GAIN": 0.01,
+  "_comment_incidents": "Incidents and hidden problems (doc 05; doc 02 §11, §15.4). INCIDENTS = 0 turns them off. See README for the stand-ins.",
+  "INCIDENTS": 1,
+  "INCIDENT_FREQ": 1.0,
+  "HIDDEN_PROBLEMS": 2,
+  "PHONE_PENALTY": 0.1,
+  "MANAGER_SPENDING_LIMIT": 500,
+  "SUPPLIER_RELIABILITY": 0.93,
+  "PESTS_HYGIENE": 8,
+  "LEAK_HYGIENE": 10,
+  "LEAK_COOLDOWN": 84,
+  "PRICE_SPIKE_COOLDOWN": 42,
+  "LEAK_FLOOD_CHANCE": 0.2,
+  "LEAK_FLOOD_COST": 900,
+  "BAD_BATCH_FOOD_PENALTY": 6,
+  "ILL_FROM_BAD_BATCH": 0.1,
+  "ILL_FROM_LOW_HYGIENE": 0.02,
+  "OWNER_DAY_VALUE": 300
 }

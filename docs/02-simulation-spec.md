@@ -76,7 +76,7 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 |---|---|---|---|
 | poor | 30 | 1,800 | 20/40/35/5 |
 | weak | 40 | 2,000 | 25/40/25/10 |
-| average | 55 | 2,800 | 30/35/20/15 |
+| average | 58 | 2,800 | 30/35/20/15 |
 | good | 65 | 3,800 | 35/30/15/20 |
 | prime | 85 | 5,200 | 35/25/10/30 |
 

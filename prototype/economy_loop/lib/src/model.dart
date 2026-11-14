@@ -128,7 +128,7 @@ class Manager {
 class Staff {
   final String role;
   double skill;
-  final int wage;
+  int wage;
   final double reliability;
   final double loyalty;
   bool vacant = false;
@@ -236,6 +236,9 @@ class WeekStats {
   int upkeep = 0; // maintenance + repairs + replacements
   int other = 0; // fines, licence, tax, severance
   int equipLease = 0; // leased equipment fees (doc 02 §15.9 step 3)
+  /// Debts inherited at takeover (hidden problem, doc 05 §4). Cash, but not operating
+  /// profit: it is part of what the outlet cost, not of how it is run.
+  int inherited = 0;
   int loanPaid = 0;
   int interest =
       0; // part of loanPaid; in net profit, not operating profit (doc 02 §14.2)
@@ -244,6 +247,8 @@ class WeekStats {
   int walkouts = 0;
   int ownerDays = 0;
   int losingDays = 0;
+  int incidents = 0; // incidents raised this week (doc 06 §4: 3–6)
+  int incidentDefaults = 0; // of which resolved by the default option
   final List<ManagerEvent> managerEvents = [];
 
   int get operatingProfit =>
