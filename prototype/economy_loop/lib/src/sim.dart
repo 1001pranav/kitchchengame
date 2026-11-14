@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'incidents.dart';
 import 'model.dart';
 import 'rng.dart';
 
@@ -80,6 +81,43 @@ class OutletSim {
   int openingEndWeek = 0;
   double patience = 1.0;
 
+  /// What the owner does while at the outlet (doc 06 §6.1). The passive bot does
+  /// neither: it is at its owner-run outlet every day, yet nothing is maintained,
+  /// repaired, covered or hired, and every card resolves by its default option.
+  /// The chores bot works the floor (maintains, repairs cheaply, covers, refills
+  /// vacancies) but still leaves every other card to its default.
+  bool ownerDoesChores = true;
+  bool ownerAnswersCards = true;
+
+  /// Incidents and hidden problems (doc 05, doc 02 §11, §15.4). Null when disabled
+  /// (INCIDENTS = 0 or missing in balance.json).
+  IncidentEngine? incidents;
+
+  /// Timed modifiers set by incident effects: (value, last day it applies).
+  final List<(double, int)> demandMods = []; // eventFactor, doc 02 §5.1
+  final List<(double, int)> menuLossMods = []; // extra share of the menu off
+  final List<(double, int)> ingredientMods = []; // ingredient price multiplier
+  final List<(double, int)> priceMods = []; // menu price multiplier
+  double menuLossToday = 0; // reset each morning
+  double foodPenaltyToday = 0; // food score points lost today (bad batch)
+  double revenueLossToday =
+      0; // share of today's takings lost (skimming, power cut)
+  bool illGroupToday = false; // feeds inc_food_poisoning tomorrow
+  double rentMult = 1.0; // landlord increases
+  final Map<String, int> flags = {}; // key -> last day it is set
+  final Set<String> forceBreak = {}; // equipment that fails tonight
+  final List<(int, double, int)> delayedDemandMods = []; // (from, mult, until)
+  bool flag(String k) => (flags[k] ?? -1) >= day;
+  int get weeklyRent => (b.i('WEEKLY_RENT') * rentMult).round();
+  double _active(List<(double, int)> mods, {bool add = false}) {
+    for (final d in delayedDemandMods.where((d) => d.$1 == day).toList()) {
+      demandMods.add((d.$2, d.$3));
+      delayedDemandMods.remove(d);
+    }
+    mods.removeWhere((m) => m.$2 < day);
+    return mods.fold(add ? 0.0 : 1.0, (a, m) => add ? a + m.$1 : a * m.$1);
+  }
+
   OutletSim(this.b, int seed,
       {Grade? managerGrade, this.ownerRun = false, this.scratch})
       : rng = SimRng(seed),
@@ -140,6 +178,9 @@ class OutletSim {
         : applicants.removeAt(0);
     inspectionDay = rng.nextInt(7, 27);
     if (scratch != null) _openFromScratch(scratch!);
+    if (b.has('INCIDENTS') && b.d('INCIDENTS') > 0) {
+      incidents = IncidentEngine(this);
+    }
   }
 
   Equipment _scratchUnit(String t) {
@@ -254,7 +295,7 @@ class OutletSim {
 
   /// Fixed cost per day, doc 02 §15.13 plus the manager's wage.
   double get fixedPerDay =>
-      (b.i('WEEKLY_RENT') +
+      (weeklyRent +
           crewDailyWage * b.i('PROTO_CREW_WORK_DAYS') +
           managerWage * 7 +
           weeklyInstalment +
@@ -264,7 +305,9 @@ class OutletSim {
   /// Expected groups today without the random term (doc 02 §3.1 step 6).
   double forecast({int? forDay}) {
     final d = forDay ?? day;
-    final pIdx = priceIndex * (promoDay == d ? b.d('PROMO_PRICE_MULT') : 1);
+    final pIdx = priceIndex *
+        (promoDay == d ? b.d('PROMO_PRICE_MULT') : 1) *
+        _active(priceMods);
     final priceFactor = clampD(1.5 - 0.5 * pIdx, 0.5, 1.3);
     return b.d('BASE_FOOTFALL') *
         repFactor *
@@ -275,6 +318,7 @@ class OutletSim {
         buzzFactor *
         freshnessFactor *
         competitionFactor *
+        _active(demandMods) *
         awareness;
   }
 
@@ -466,7 +510,10 @@ class OutletSim {
     // Weekly maintenance, Monday prep (doc 02 §15.2, §15.12 upkeep).
     var upkeepToday = 0;
     if (dow == 0) {
-      final pDo = present ? 1.0 : clampD(0.3 + manager.upkeep / 100, 0, 1);
+      // doc 06 §6.1: the passive bot never maintains.
+      final pDo = present
+          ? (ownerDoesChores ? 1.0 : 0.0)
+          : clampD(0.3 + manager.upkeep / 100, 0, 1);
       for (final e in equipment) {
         if (e.broken ||
             e.leased ||
@@ -479,7 +526,7 @@ class OutletSim {
           upkeepToday += c;
           e.condition =
               math.min(e.maxCondition, e.condition + b.d('MAINTENANCE_GAIN'));
-        } else {
+        } else if (!present) {
           _mgr('managerSkippedMaintenance', 0);
           notes.add('${manager.name} skipped servicing the ${e.type}.');
         }
@@ -499,6 +546,12 @@ class OutletSim {
       }
     }
 
+    menuLossToday = 0;
+    foodPenaltyToday = 0;
+    revenueLossToday = 0;
+    if (!building) incidents?.prep(present, notes);
+    illGroupToday = false;
+
     final closed = day < closedUntil;
     final crewWage = crewDailyWage;
     var wagesToday =
@@ -508,7 +561,8 @@ class OutletSim {
     double gaps = 0;
     var rotaError = false;
     if (!closed) {
-      var ownerCover = present ? 1 : 0;
+      // doc 06 §6.1: the passive bot does no floor work.
+      var ownerCover = present && ownerDoesChores ? 1 : 0;
       var mgrStepped = false;
       for (final s in crew) {
         s.absentToday = false;
@@ -598,13 +652,20 @@ class OutletSim {
       dev = rng.uniform(-1, 1) * (100 - manager.stock) / 200;
     }
     if (dev < 0) menuLoss += -dev;
+    if (!closed) menuLoss += menuLossToday + _active(menuLossMods, add: true);
     menuLoss = math.min(menuLoss, 0.8);
 
     final spend = b.d('PROTO_SPEND_PER_GROUP');
-    final pEff = priceIndex * (promoDay == day ? b.d('PROMO_PRICE_MULT') : 1);
+    final pEff = priceIndex *
+        (promoDay == day ? b.d('PROMO_PRICE_MULT') : 1) *
+        _active(priceMods);
     final lossShare = b.d('PROTO_MENU_LOSS_REVENUE_SHARE');
-    final revenue =
-        (served * spend * pEff * (1 - menuLoss * lossShare)).round();
+    final revenue = (served *
+            spend *
+            pEff *
+            (1 - menuLoss * lossShare) *
+            (1 - revenueLossToday))
+        .round();
     final baseFood = served * spend * b.d('PROTO_FOOD_COST');
     // Mastery (doc 02 §15.16): a manager strong on stock negotiates supplier prices.
     final negotiation = ownerRun
@@ -615,7 +676,8 @@ class OutletSim {
                 b.d('PROTO_BASE_WASTE') +
                 math.max(0, dev) +
                 sl * b.d('PROTO_OVERPORTION_COST')) *
-            (1 - negotiation))
+            (1 - negotiation) *
+            _active(ingredientMods))
         .round();
     if (negotiation > 0) {
       _mgr('managerNegotiatedPrices', (baseFood * negotiation).round());
@@ -669,8 +731,10 @@ class OutletSim {
     }
 
     // Satisfaction -> stars (doc 02 §6.8 with PROTO_ food/wait inputs).
-    final food =
-        clampD(b.d('PROTO_FOOD_BASE') + 0.5 * crewKitchenSkill, 0, 100);
+    final food = clampD(
+        b.d('PROTO_FOOD_BASE') + 0.5 * crewKitchenSkill - foodPenaltyToday,
+        0,
+        100);
     final waitRatio = b.d('PROTO_WAIT_BASE') * moraleMult * (1 + sl) +
         b.d('PROTO_WAIT_PER_GAP') * gaps;
     final wait = clampD(100 * (1 - waitRatio), 0, 100);
@@ -723,7 +787,7 @@ class OutletSim {
       var p = b.d('BREAK_BASE') + math.max(0, 60 - e.condition) / 400;
       final refail = e.refailUntil >= day;
       if (refail) p += b.d('CHEAP_REPAIR_REFAIL') / b.i('PROTO_REFAIL_WINDOW');
-      if (!rng.chance(p)) continue;
+      if (!forceBreak.remove(e.type) && !rng.chance(p)) continue;
       e.broken = true;
       e.warned = false;
       if (e.leased) {
@@ -739,7 +803,14 @@ class OutletSim {
       final cheap = (price * b.d('CHEAP_REPAIR_PCT')).round();
       if (refail) _mgr('managerCheapRepairFailed', -cheap);
       upkeepToday += _eqD(e.type, 'spoilage').round();
-      if (present || (manager.upkeep >= 60 && cash >= proper)) {
+      // inc_breakdown (doc 05 #21), decided by the owner when present, else by the
+      // manager's upkeep rule (doc 02 §15.12).
+      incidents?.countForced(present && !ownerDoesChores);
+      if (present && !ownerDoesChores) {
+        e.readyDay = -1; // default: leave it broken
+        notes.add('The ${e.type} broke down; nobody had it repaired.');
+      } else if (present && ownerAnswersCards ||
+          !present && manager.upkeep >= 60 && cash >= proper) {
         upkeepToday += proper;
         e
           ..readyDay = day + 3
@@ -754,7 +825,7 @@ class OutletSim {
           ..condition = b.d('CHEAP_REPAIR_CONDITION')
           ..refailUntil = day + 1 + b.i('PROTO_REFAIL_WINDOW');
         notes.add(
-            'The ${e.type} broke down; ${manager.name} paid for a cheap fix ($cheap).');
+            'The ${e.type} broke down; ${present ? 'you' : manager.name} paid for a cheap fix ($cheap).');
       }
     }
 
@@ -773,6 +844,8 @@ class OutletSim {
     for (final e in equipment.where((e) => e.broken)) {
       hygiene -= _eqD(e.type, 'hygiene');
     }
+    if (flag('pests')) hygiene -= b.d('PESTS_HYGIENE');
+    if (flag('leak')) hygiene -= b.d('LEAK_HYGIENE');
     hygiene = clampD(hygiene, 0, 100);
 
     // Crew happiness (doc 02 §7.3, reduced to the factors this prototype has).
@@ -814,6 +887,12 @@ class OutletSim {
       final k = (stars > reputation ? b.d('REP_UP') : b.d('REP_DOWN')) *
           (fast ? 2 : 1);
       reputation = clampD(reputation + (stars - reputation) * k * w, 0, 5);
+    }
+
+    if (!building && !closed) {
+      incidents?.close(present, notes,
+          walkoutShare:
+              groupsLeft == 0 ? 0 : (walkouts + turnedAway) / groupsLeft);
     }
 
     // Buzz and freshness decay (doc 11 §A.1, §A.2).
@@ -947,7 +1026,7 @@ class OutletSim {
 
   void _weekly(List<String> notes) {
     cash -= week.wages + week.managerWage;
-    week.rent = b.i('WEEKLY_RENT');
+    week.rent = weeklyRent;
     cash -= week.rent;
     for (final e in equipment.where((e) => e.leased)) {
       week.equipLease +=
@@ -972,7 +1051,9 @@ class OutletSim {
     }
     // Vacancies: manager raises a hire request (§15.12); prototype auto-approves.
     for (final s in crew.where((s) => s.vacant)) {
-      if (rng.chance(clampD(0.4 + manager.people / 100, 0, 1))) {
+      // Owner-run: the owner hires, unless passive (doc 06 §6.1: never hires).
+      if (ownerRun && !ownerDoesChores) continue;
+      if (ownerRun || rng.chance(clampD(0.4 + manager.people / 100, 0, 1))) {
         s.vacant = false;
         notes.add('${manager.name} hired a new ${s.role}.');
       } else {

@@ -50,8 +50,9 @@ Groups/day = BASE_FOOTFALL × repFactor (other factors ≈ 1 on average).
 **Status of this table:** hand estimates, not yet corrected. A first prototype run
 (§3a) measured Good-tier revenue about 10% below the figure here at the original
 footfall, because the estimate ignored walk-outs and fading buzz. Average-location
-footfall was raised 50 → 55 to restore the intended ~4,000 a week; the other tiers have
-not been measured. "Operating profit" excludes all loan money (doc 02 §14.2).
+footfall was raised 50 → 55 to restore the intended ~4,000 a week, and 55 → 58 when
+incidents and hidden problems were added (balance-log entry 9: they cost a competent
+owner about 0.9k a week at 55); the other tiers have not been measured. "Operating profit" excludes all loan money (doc 02 §14.2).
 
 These are estimates; the first job of Phase 0 is to measure them (§6) and correct either
 the table or the constants.
@@ -79,18 +80,20 @@ the outlet:
 
 | Run by | Owner never markets or visits | Owner markets, never visits | Owner markets + visits weekly |
 |---|---|---|---|
-| Owner, no manager | +2.1k | — | +4.1k |
-| Trainee | −2.2k | −1.4k | −0.1k |
-| Junior | −1.4k | −0.6k | +0.6k |
-| Capable | −0.8k | +0.3k | +1.2k |
-| Senior | −0.4k | +1.0k | +1.8k |
-| Veteran | ≈ 0 | +1.7k | +2.3k |
+| Owner, no manager | −2.7k (passive) · +1.1k (chores) | — | +3.8k |
+| Trainee | −2.7k | −1.7k | −0.5k |
+| Junior | −1.8k | −0.9k | +0.2k |
+| Capable | −1.1k | ≈ 0 | +1.0k |
+| Senior | −0.7k | +0.8k | +1.6k |
+| Veteran | −0.4k | +1.5k | +2.0k |
 
-(Balance-log entry 8: re-measured after fixing a seed bug that gave every earlier run a
-skill-40 head chef who could not rework the menu.)
+(Balance-log entry 9: with incidents and hidden problems, footfall 58. "Passive" is doc
+06 §6.1's bot, which also stops maintaining, repairing and covering; "chores" works the
+floor but never answers a card or markets — see §6.1. Inherited supplier debt is cash,
+not profit, so it is not in these figures.)
 
-Senior, markets-but-never-visits, over time: +1.7k (weeks 1–4), +1.5k (weeks 9–12).
-Veteran: +2.2k, +2.2k.
+Senior, markets-but-never-visits, over time: +1.3k (weeks 1–4), +0.5k (weeks 9–12).
+Veteran: +1.9k, +1.3k.
 
 What this confirms: grade and owner attention both matter; an experienced manager keeps
 a sound outlet out of loss for months; a cheap one loses money unless the owner is
@@ -105,18 +108,22 @@ Measured by the balance bot over **200 seeds × 26 weeks** per tier on Normal.
 
 | Metric | Excellent | Best | Good | Bad | Worst |
 |---|---|---|---|---|---|
-| Survival to week 26, *passive* bot | 85–95% | 75–90% | 60–80%¹ | 25–45% | 0–10% |
+| Survival to week 26, *chores* bot (works the floor, never manages)¹ | 85–95% | 75–90% | 60–80% | 25–45% | 0–10% |
+| Survival to week 26, *passive* bot (doc 06 §6.1: does nothing at all)¹ | to measure | to measure | 0–10% | 0% | 0% |
 | Survival to week 26, *competent* bot | ≥ 98% | ≥ 95% | ≥ 92% | 70–85% | 40–60% |
 | Median week reaching Stage 2, competent bot | 5–7 | 6–9 | 8–12 | 14–20 | 20–26+ |
 | Median week reaching Stage 3 thresholds | 16–24 | 20–28 | 24–34 | 36–50 | 45–60 |
 
-¹ **At risk.** In the prototype a passive owner-run Good outlet survives 100% of runs at
-+2.1k a week, and its cash never falls below the 20,000 it started with. Only hidden
-problems and incidents (not modelled there) can bring it to 60–80%, and to do that they
-must cost about 20,000 inside the first month. Of the Good tier's two hidden problems only
-supplier debt (8,000–20,000, doc 05 §4) comes close. Measure this first with the real
-bot (task 0.21). If it holds, the honest fix is to lower this target or Good-tier
-starting cash, not to inflate incident costs.
+¹ **Restated in balance-log entry 9.** The band used to sit on the passive bot. The
+prototype's 100% for it was an artefact: being at the outlet silently gave it
+maintenance, proper repairs and absence cover, three things §6.1 says it never does.
+With §6.1 applied and no incidents at all, a passive Good outlet survives 0% of runs
+(nothing it breaks is ever repaired; with incidents it is bankrupt by week 7). So the band was
+moved to the player it was written for — one who turns up and does the chores but
+never manages — and the passive bot became a floor check. Measured (prototype, Good,
+incidents and hidden problems on): chores **74%**, passive **0%**, competent **100%**.
+What decides a chores run is which hidden problems it inherited: 79–92% survive the
+mild ones, 48% an early health violation, 7% inherited pests (never treated).
 
 General targets (all tiers, competent bot):
 
@@ -126,30 +133,30 @@ General targets (all tiers, competent bot):
 | Waste as % of ingredient spend | 3–8% |
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
 | Owner covering the absent role cuts that walk-out rate by | at least half |
-| Incidents per week | 3–6 |
-| Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 |
+| Incidents per week | 3–6 (prototype: 2.1–2.3, but it models only prep/close incidents and none of the per-tick service ones; passive bot 3.8) |
+| Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 (measured: flop 9–13%, lowest for owners who keep the menu fresh — the fresh-menu bonus only started working after the seed fix, see balance-log entry 9; big hit 9–13%) |
 | Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |
-| Average return on spend of a campaign (extra profit ÷ spend) | ×1.5 to ×3; a weak response should roughly break even (measured ×2.3 local ad, ×3.0 flyers; weak ×1.1 / ×1.3 — balance-log entry 8) |
-| Marketing as a share of revenue, competent bot | 2–4% (measured 3.5%) |
-| Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.05k to +0.2k after balance-log entry 8; Trainee is just under) |
+| Average return on spend of a campaign (extra profit ÷ spend) | ×1.5 to ×3; a weak response should roughly break even (measured ×2.2 local ad, ×2.8 flyers; weak ×1.1 / ×1.3 — balance-log entry 9) |
+| Marketing as a share of revenue, competent bot | 2–4% (measured 3.6–4.0%) |
+| Gain from switching channel after a bad ad, versus repeating the same ad | +0.1k to +0.4k a week (measured +0.1k to +0.3k in entry 9; Trainee is just under) |
 | Staff turnover | 1 leaver per 6–10 weeks at outlet happiness ≈ 55 (8-staff outlet) |
 | Share of leavers who go without notice (competent bot) | Easy 5–10%, Normal 15–25%, Hard 30–45% |
 | Outlet happiness, competent bot, steady state | 55–70; passive bot drifts to 35–45 by week 12 |
 | Equipment breakdowns | 1 per 3–5 weeks at condition ≈ 55 with no maintenance; < 1 per 12 weeks with weekly maintenance |
-| Days where cash decision matters (cash < 1 week of costs) | 20–40% of days in the first 8 weeks for Good tier |
+| Days where cash decision matters (cash < 1 week of costs) | 20–40% of days in the first 8 weeks for Good tier (**fails: prototype measures 0%** for the competent owner-run bot, whose cash never drops below ~18k; it is 27% for the passive bot. This, not passive survival, is where the Good start lacks tension — see balance-log entry 9) |
 
 Manager targets (Phase 2; a Good-tier outlet in an average location, owner never visits, default standing orders):
 
 | Metric | Target |
 |---|---|
-| Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 over the first 12 weeks; ≤ 1 in 3 over weeks 13–26 (measured 7% and 33%, Veteran grade, prototype). The old 26-week "≤ 1 in 8" contradicted §15.14's "fading to break-even", since a fading outlet near break-even loses about every other week. |
+| Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 over the first 12 weeks; ≤ 1 in 3 over weeks 13–26 (measured 12.4% and 21.5%, Veteran grade, prototype with incidents — balance-log entry 9; without incidents 5% and 17%, which would also pass the old single "≤ 1 in 8 over 26 weeks": the split in entry 6 came from the seed bug, and incidents are what keep it necessary). |
 | Manager sub-skills all 80: still profitable on average after 12 weeks unvisited | yes |
 | Manager sub-skills all 35: first 4-week period with negative total profit | within weeks 3–8 |
 | Weekly profit gap between the two (after their wage difference) | 1,000 – 2,500 in favour of the experienced manager (the outlet's whole profit is ~4,000, so the earlier 1,500–4,000 band was impossible) |
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |
-| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured about +600, +650, +600, +500; owner never visits: about +850, +850, +700, +700 — balance-log entry 8) |
+| Each grade step up (Trainee → Junior → Capable → Senior → Veteran), weekly profit gain after the extra wage | +200 to +1,000 per step; never negative (measured about +700, +800, +650, +400; owner never visits: about +850, +900, +750, +700 — balance-log entry 9) |
 | Same-grade managers, matching vs mismatched profile for the outlet's main problem | 300–900 per week difference |
 | Trainee with potential ≥ 75, coached weekly | reaches Capable in 20–30 weeks |
 
@@ -167,25 +174,26 @@ Neither route should dominate: buying is safer and faster, scratch is cheaper an
 leasing, whose fee is a running cost): weeks to first profit, most company cash tied up
 (up front + the deepest dip in running profit), net position at week 52 and at week 104.
 
-Measured (prototype, `bots` "Opening routes" table, balance-log entry 8; company cash, no
+Measured (prototype, `bots` "Opening routes" table, balance-log entry 9; company cash, no
 loan, owner visits weekly and fixes a weak head chef and unserviceable kit on day one —
-the `refit` bot; **hidden problems not modelled**):
+the `refit` bot; **incidents and two hidden problems per takeover now modelled**, due
+diligence is not):
 
 | Senior manager | Up front | Most cash tied up | First profit wk | Payback wk | Crisis by wk 26 | Net wk 52 | Net wk 104 |
 |---|---|---|---|---|---|---|---|
-| Buy running (75,000) | 75.0k | 82.5k | 2 | 33 | 0% | +73.2k | +251k |
-| Standard + new | 58.5k | 78.9k | 8 | 35 | 0% | +65.3k | +251k |
-| Basic + second-hand | 36.9k | 58.6k | 7 | 30 | 0.5% | +74.3k | +222k |
-| Basic + leased | 22.2k | 45.8k | 8 | 27 | 1% | +77.3k | +239k |
+| Buy running (75,000) | 75.0k | 84.1k | 2 | 38 | 3.5% | +49.2k | +173k |
+| Standard + new | 58.5k | 77.1k | 8 | 35 | 0.5% | +57.6k | +208k |
+| Basic + second-hand | 36.9k | 56.5k | 7 | 30 | 1% | +68.9k | +182k |
+| Basic + leased | 22.2k | 44.2k | 7 | 30 | 1% | +65.4k | +189k |
 
-Veteran payback 29 / 31 / 25 / 23; Capable 40 / 42 / 38 / 36. A competent owner who
-does not refit: buy 34, standard + new 37 (Senior).
+Veteran payback 34 / 31 / 25 / 23. Without hidden problems buying would be at +66.9k /
++204k (Senior), i.e. back to entry 8's balance: the two hidden problems cost a buyer
+about 18k by week 52 and 31k by week 104.
 
-Status: **no route dominates.** Buying gets income about six weeks sooner; basic +
-leased ties up the least cash and is best at week 52; standard + new ties with buying at
-week 104. Crisis is near 0 everywhere, so the "safer" half of "buying is safer" has to
-come from hidden problems, which are not modelled yet. Price × 0.6 was tested: payback
-returns to 35–50 but standard + new then beats buying at both horizons (entry 8).
+Status: **buying is now dominated** on money and is no longer safer (crisis 3.5% vs
+0.5–1%); its only edge is income six weeks sooner. Not tuned here. Tested: price × 0.4
+(60,000) gives Senior payback 33, net +64.2k at week 52 (mid-pack) and +188k at week
+104 (level with the basic routes, 20k behind standard + new). See balance-log entry 9.
 
 Other gaps against the bands: up-front cash for basic + second-hand is 36.9k (25.7k
 without the deposit) against 20–30k, so the band only holds if it excludes the 4-week
@@ -217,10 +225,18 @@ summary table of the §4 metrics with PASS/FAIL per band.
 
 ### 6.1 Bot policies
 
-**Passive bot** — the "player who does nothing clever":
+**Passive bot** — the player who does nothing at all (a floor check, not a target player):
 - Rota: default. Orders: each close, top up every menu ingredient to 1.5 × yesterday's use from `sup_standard`.
-- Incidents: always the default option. Never maintains, hires, trains or changes prices.
+- Incidents: always the default option (so a breakdown stays broken, doc 05 #21). Never maintains, hires, trains or changes prices.
 - Owner: no floor work.
+
+**Chores bot** — the "player who does nothing clever": turns up and keeps the lights on,
+never manages (added in balance-log entry 9; carries the §4 survival band):
+- As passive, except: maintains any unit below the threshold each week, pays for the
+  cheap repair when something breaks, covers one absent role on the floor, and replaces
+  leavers.
+- Every other incident card: default. Never markets, reworks the menu, replaces ageing
+  equipment or trains.
 
 **Competent bot** — a sensible but not optimal player:
 - Orders: par = 1.3 × trailing-7-day average use (chilled), 3 × (dry/frozen); cheapest supplier with reliability ≥ 0.9.

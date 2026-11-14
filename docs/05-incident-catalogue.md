@@ -109,6 +109,22 @@ the roll succeeds; `else` may hold alternative effects.
 
 ## 3. Catalogue (MVP: 41 incidents)
 
+**How often things happen.** Under doc 02 §11 the chance that a prep roll fires is
+`min(0.9, Σ eligible weights)` and the incident is then picked by weight, so a weight is
+roughly that incident's chance per roll, and there are up to two prep rolls a day. Any
+eligible prep incident with a weight of 0.1 or more therefore fires within days of its
+cooldown ending: **for those the cooldown, not the weight, sets the frequency.** Choose
+cooldowns as "about how often should this happen", e.g. 42 days ≈ four times a year.
+(Balance-log entry 9: at 14 and 28 days, the price spike and the leak fired about 11 and
+5 times in 26 weeks.)
+
+**Defaults are what an ignored card does.** The passive bot (doc 06 §6.1) takes every
+default, including "leave it broken" (#21), "ignore" the pests (#26) and "bucket" (#25).
+Several defaults persist until someone acts, so for a player who never answers they are
+fatal (balance-log entry 9: inherited pests → 7% survival for an owner who works the
+floor but never answers a card). That is intended; a default must never be the best
+option, and an owner who reads the card can always do better.
+
 Format per incident — **id** · timing · trigger · weight / cooldown days, then options
 `(letter) label — effects`. `*` marks the default option. "S" = the bound subject.
 Percentages after an effect are chances. Amounts are coins.
@@ -165,7 +181,7 @@ Percentages after an effect are chances. Amounts are coins.
 14. **inc_bad_batch** · prep · forced when a delivery rolls "bad batch" · — / 0
     (a) Reject it — batch removed, no charge, relationship −5. (b)* Use it anyway — keep (quality −30).
     (c) Use for staff meals only — batch removed, all morale +2, pay half.
-15. **inc_price_spike** · prep · random ingredient category · 0.2 / 14
+15. **inc_price_spike** · prep · random ingredient category · 0.2 / 42
     Category price index ×1.5 for 7 days. (a)* Absorb it. (b) Raise affected dish prices 10%
     — applied automatically. (c) 86 the costliest dishes for a week.
 16. **inc_fridge_warm** · prep · fridge condition < 50 · 0.4 / 7
@@ -196,8 +212,9 @@ Percentages after an effect are chances. Amounts are coins.
     groups walk out. (c) Rent a generator now — cash −800, 20-tick outage.
 24. **inc_gas_out** · service · flag gas_low (set randomly, 5%/day) · forced / 10
     (a) Rush delivery — cash −400, stove/wok/tandoor/grill off 20 ticks. (b)* Wait — off 80 ticks.
-25. **inc_plumbing_leak** · prep · any · 0.08 / 28
-    (a) Plumber now — cash −600. (b)* Bucket — hygiene −10/day until fixed; 20%/day floods: close 1 day.
+25. **inc_plumbing_leak** · prep · any · 0.08 / 84
+    (a) Plumber now — cash −600. (b)* Bucket — hygiene −10/day until fixed; 20%/day floods: close 1 day,
+    and the flood forces an emergency plumber (cash −900), which ends the leak.
 26. **inc_pests** · prep · hygiene < 55 · 0.3 / 21
     (a) Professional treatment — cash −1,200, close 1 day, hygiene +20. (b) DIY traps — cash −150;
     50%: solved; else flag pests. (c)* Ignore — flag pests; inspection in 7 days (50%).
@@ -256,7 +273,7 @@ list and may act first).
 
 | Hidden problem | Implementation |
 |---|---|
-| Supplier debt | `payable` of 8,000–20,000 due day 14–28; then inc_supplier_cash_only |
+| Supplier debt | `payable` of 8,000–20,000 due day 14–28; then inc_supplier_cash_only. Booked as an inherited cost: it leaves cash but is not operating profit (part of what the outlet cost, not of how it is run) |
 | Pending health violation | inc_inspection scheduled day 7–14; starting hygiene −20 |
 | Head chef leaving | Head chef loyalty 10, morale 30; inc_resignation scheduled day 10–20 (cancelled if morale ≥ 60 by then) |
 | Pests starting | flag pests from day 5 |

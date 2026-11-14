@@ -9,12 +9,26 @@ abstract class OwnerPolicy {
   void act(OutletSim s);
 }
 
-/// Never markets, never visits, never reworks the menu, never replaces anything.
+/// doc 06 §6.1: never markets, visits, reworks the menu, maintains, repairs, hires or
+/// covers a role; every incident card resolves by its default option.
 class PassiveOwner implements OwnerPolicy {
   @override
   String get name => 'passive';
   @override
-  void act(OutletSim s) {}
+  void act(OutletSim s) => s
+    ..ownerDoesChores = false
+    ..ownerAnswersCards = false;
+}
+
+/// An owner-run outlet whose owner works the floor and keeps the lights on —
+/// maintains, covers absences, pays for the cheap repair, refills vacancies — but never
+/// markets, reworks the menu, replaces ageing kit or answers any other card (default).
+/// The "does nothing clever" player of doc 06 §4's passive survival band.
+class ChoresOwner implements OwnerPolicy {
+  @override
+  String get name => 'chores';
+  @override
+  void act(OutletSim s) => s.ownerAnswersCards = false;
 }
 
 /// doc 11 §A.6: one local ad per 4 weeks, a menu rework per 8 weeks, prices at 105%,
@@ -114,7 +128,23 @@ class RunSummary {
 
   /// Campaigns old enough (8 weeks) for their buzz tail to have played out.
   final List<Campaign> settledCampaigns;
+
+  /// Operating profit per week (losing-weeks targets, doc 06 §4 manager table).
+  final List<int> weeklyOperating;
+  final int minCash;
+
+  /// Share of days in weeks 1–8 with cash below one week of costs (doc 06 §4).
+  final double tightDays;
+  final int incidents;
+  final int incidentDefaults;
+  final List<String> hidden;
   RunSummary({
+    required this.weeklyOperating,
+    required this.minCash,
+    required this.tightDays,
+    required this.incidents,
+    required this.incidentDefaults,
+    required this.hidden,
     required this.survived,
     required this.failWeek,
     required this.finalCash,
@@ -140,10 +170,16 @@ RunSummary runOne(
     {bool ownerRun = false}) {
   final s = OutletSim(b, seed, managerGrade: grade, ownerRun: ownerRun);
   final reps = <double>[];
+  var minCash = s.cash, tight = 0, tightOf = 0;
   while (s.day < weeksToRun * 7 && s.gameOver == null) {
     owner.act(s);
     s.step();
     if (s.dow == 0) reps.add(s.reputation);
+    minCash = math.min(minCash, s.cash);
+    if (s.day <= 56) {
+      tightOf++;
+      if (s.cash < s.fixedPerDay * 7) tight++;
+    }
   }
   final profits = s.days
       .where((d) => !d.closed)
@@ -184,5 +220,11 @@ RunSummary runOne(
     marketingSpend: s.weeks.fold(0, (a, w) => a + w.marketing),
     revenue: s.weeks.fold(0, (a, w) => a + w.revenue),
     settledCampaigns: s.campaignLog.where((c) => c.day + 56 <= s.day).toList(),
+    weeklyOperating: s.weeks.map((w) => w.operatingProfit).toList(),
+    minCash: minCash,
+    tightDays: tightOf == 0 ? 0 : tight / tightOf,
+    incidents: s.incidents?.raised ?? 0,
+    incidentDefaults: s.incidents?.defaults ?? 0,
+    hidden: s.incidents?.hidden ?? const [],
   );
 }
