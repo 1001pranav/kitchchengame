@@ -7,6 +7,41 @@ Open `index.html` in a phone browser (it is a single file with no build step). I
 **not** the game and not `sim_core`; it is plain HTML and JavaScript so it can be put in
 front of someone in seconds. Delete it once the real service screen (tasks 1.5–1.6) exists.
 
+## Version 2 — after the first play
+
+The first version made the owner an extra pair of hands: staff did everything, and one
+tap on "fill in" covered a missing role. The first tester's verdict was **"a little
+boring, my input was very small, I should be involved."** Version 2 makes the owner run
+the shift instead:
+
+| Change | Rule in the test |
+|---|---|
+| Stand somewhere | Door & till / Tables / Pass / Dishes. The owner takes that area's jobs **and staff doing them work 25% faster** (at the pass, cooking is 20% faster) |
+| Favours | Three, one returning every 50 ticks. **Rush** a table's order (waiting tickets jump the queue, cooking ones finish in half the time) or **Treat** a waiting party (8 coins, +10 ticks of patience) |
+| Bring the bill | Ends a table's meal early to free it; they rate the visit lower |
+| Move the team | Any floor staff member can be switched between serving, till, dishes and cleaning; 15 skill lower outside their own job |
+| A target | Each shift has "lose no more than N parties", with a live count |
+| Skip quiet spells | Time runs four times faster whenever nothing is waiting |
+| Removed | Owner cooking (it barely helped) and the three-slot job list display |
+
+None of this is in doc 02 yet. If version 2 tests well it replaces doc 02 §8.2
+(owner task selection) and adds the favours, treat, early bill and mid-shift role moves.
+
+Headless (200 runs): parties lost with an owner who does nothing / only repositions /
+uses everything, against the target.
+
+| Shift | Nothing | Repositions | Everything (scripted) | Target |
+|---|---|---|---|---|
+| Quiet Tuesday | 1.9% | 1.6% | 0.1% | 1 party |
+| Friday, a server off | 24.1% | 9.5% | 7.8% | 8 |
+| Saturday, no cashier, no dishwasher | 44.9% | 16.3% | 19.6% | 16 |
+| Friday, a cook off, oven fails | 30.1% | 13.3% | 16.0% | 12 |
+
+The scripted "everything" player brings bills early whenever anyone is at the door, and
+on the two hardest shifts that makes it *worse* than only repositioning — so the actions
+are real choices, not free wins. A first automated play-through with every control used
+met the Friday target (lost 6 of 76).
+
 ## What it contains
 
 A slice of doc 02 §6 and §8 for one Good-tier Italian outlet: 14 tables, arrivals by the
