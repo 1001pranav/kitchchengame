@@ -161,7 +161,7 @@ Stage 2 adds *Marketing* here: each campaign card shows cost, expected effect, a
 fit in words (poor / fair / good) and any active modifier before buying; the result card
 the next morning shows the outcome with its reason, and past campaigns keep their outcome badge.
 *Campaign history* (below the campaign cards), newest first, one row each:
-`Local ad · 3 weeks ago · Worked well · spent 1,500 · +212 parties · brought back 7,400 · ×4.9`.
+`Local ad · 3 weeks ago · Worked well · spent 3,000 · +212 parties · brought back 7,400 · ×2.5`.
 The return is green at ×1 or more, red below, with "so far" while the campaign is still
 working. Tapping a row shows the split between customers during the campaign and
 customers from the buzz it left, and for a promotion day the discount given to regulars.
@@ -210,7 +210,7 @@ the actual effects, then **OK**.
   contribution per week (bar chart, negative weeks red), and a sentence such as
   "Branch 1 paid for 64% of Branch 3's opening."
 - **Open a new outlet** flow: first screen compares the two routes side by side (doc 02
-  §15.9 table). *Buy running* → the takeover market as at game start. *Start from
+  §15.9 table). *Buy running* → the takeover market (game-start generator, later-market price, doc 02 §15.9). *Start from
   scratch* → five steps (Site and lease · Fit-out · Equipment · People · Launch) with a
   **running budget bar** always visible: spent so far, weekly cost once open, cash
   left, weeks of reserve, estimated weeks to break even. Equipment step lists each unit

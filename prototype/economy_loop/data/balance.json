@@ -75,7 +75,7 @@
   "COMPETITION_MAX": 0.5,
   "CAMPAIGNS": {
     "flyers": {
-      "cost": 400,
+      "cost": 900,
       "boost": 0.08,
       "days": 3,
       "buzz": 0.1,
@@ -85,7 +85,7 @@
       ]
     },
     "localAd": {
-      "cost": 1500,
+      "cost": 3000,
       "boost": 0.15,
       "days": 7,
       "buzz": 0.25,
@@ -259,5 +259,7 @@
       "mult": 3.5,
       "label": "BIG HIT"
     }
-  ]
+  ],
+  "TAKEOVER_PRICE_GOOD": 150000,
+  "TAKEOVER_MARKET_PRICE_FACTOR": 0.5
 }

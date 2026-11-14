@@ -132,4 +132,55 @@ void main(List<String> args) {
       row('', o, cs.where((c) => c.outcome == o));
     }
   }
+  // Buying a running Good outlet as a later outlet (doc 02 §15.9 route A, doc 06 §4
+  // opening-route targets). The company funds it from cash, so the outlet never goes
+  // bankrupt on its own and pays no loan; payback = first week its cumulative operating
+  // profit covers the purchase price. Hidden problems are not modelled, so real payback
+  // will be somewhat slower.
+  if (!only) {
+    final price =
+        (b.i('TAKEOVER_PRICE_GOOD') * b.d('TAKEOVER_MARKET_PRICE_FACTOR')).round();
+    const horizon = 104;
+    stdout.writeln(
+        '\nSecond outlet: buy a running Good outlet for ${k(price)} from company cash, $horizon weeks\n');
+    stdout.writeln(
+        'owner      manager   op profit/wk  w1-26   w27-52  median payback wk  paid back by wk 52');
+    for (final owner in [RemoteOwner(), CompetentOwner()]) {
+      for (final g in [Grade.capable, Grade.senior, Grade.veteran]) {
+        final paybacks = <int>[];
+        final all = <int>[], first = <int>[], second = <int>[];
+        for (var seed = 1; seed <= seeds; seed++) {
+          final s = OutletSim(b, seed, managerGrade: g);
+          s.cash += 10000000;
+          while (s.day < horizon * 7 && s.gameOver == null) {
+            owner.act(s);
+            s.step();
+          }
+          final ws = s.weeks.map((w) => w.operatingProfit).toList();
+          all.addAll(ws);
+          first.addAll(ws.take(26));
+          second.addAll(ws.skip(26).take(26));
+          var cum = 0, wk = 999;
+          for (var i = 0; i < ws.length; i++) {
+            cum += ws[i];
+            if (cum >= price) {
+              wk = i + 1;
+              break;
+            }
+          }
+          paybacks.add(wk);
+        }
+        final med = median(List.of(paybacks));
+        stdout.writeln([
+          owner.name.padRight(10),
+          g.name.padRight(9),
+          k(avg(all)).padLeft(13),
+          k(avg(first)).padLeft(6),
+          k(avg(second)).padLeft(8),
+          (med > horizon ? '>$horizon' : '$med').padLeft(18),
+          pct(paybacks.where((w) => w <= 52).length, paybacks.length).padLeft(19),
+        ].join(' '));
+      }
+    }
+  }
 }

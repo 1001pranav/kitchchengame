@@ -503,10 +503,13 @@ reputation −0.5.
 
 | Campaign | Cost | Boost | Duration |
 |---|---|---|---|
-| flyers | 400 | +0.08 | 3 days |
-| localAd | 1,500 | +0.15 | 7 days |
+| flyers | 900 | +0.08 | 3 days |
+| localAd | 3,000 | +0.15 | 7 days |
 | promoDay | 0 (all prices −25% that day) | +0.50 | 1 day |
 | blogger | 3,000 | visit within 3 days; if that group's stars ≥ 4: reputation +0.3, else −0.2 | — |
+
+(Flyers were 400 and the local ad 1,500; at those prices even a weak response doubled the
+money, so advertising was not a gamble — balance-log entry 6.)
 
 Boosts add up, capped at +0.6 total. The boost and buzz figures are what a campaign
 does **when it goes as expected**; what it actually does is rolled per §13.1.
@@ -781,9 +784,19 @@ no cash moves between accounts. They feed `explain` and the Company screen.
 Two routes. Both end with the outlet in `locations`; a manager must be appointed before
 the first day the owner is not there.
 
-**Route A — Buy a running restaurant.** Same generator, tiers and pricing as the start
-of the game (doc 01 §4.3), including hidden problems and due diligence. Offers refresh
-every 28 days. Trading starts the next day.
+**Route A — Buy a running restaurant.** Same generator and tiers as the start of the
+game (doc 01 §4.3), including hidden problems and due diligence, but the price is the
+start price × `TAKEOVER_MARKET_PRICE_FACTOR (0.5)` (Good tier: 75,000). Offers refresh
+every 28 days. Trading starts the next day. No starting loan comes with a later
+takeover; it is paid from company cash.
+
+*Why later takeovers are cheaper.* A later outlet always needs a manager, and the
+manager's wage takes 1.5–2k of a Good outlet's ~4k a week. At the start price a
+Senior-run Good outlet paid back in about 80 weeks and a Veteran-run one in about 63
+(prototype, owner visits weekly), against the 35–50 target in doc 06 §4. In the story,
+the later market is owners selling up, priced on what the place earns for a buyer who
+has to pay someone to run it; the game-start offer is priced for an owner who works
+the floor.
 
 **Route B — Start from scratch.** The player assembles the outlet in five steps; nothing
 is inherited, so there are no hidden problems, no staff, no customers and no reputation.

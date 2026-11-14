@@ -2,7 +2,67 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
-## Entry 5 — return on spend measured; advertising is too cheap (OPEN DECISION)
+## Entry 6 — dearer advertising, cheaper later takeovers, two targets restated
+
+Source: `prototype/economy_loop/results.txt` (200 seeds × 26 weeks; the new "Second
+outlet" table runs 104 weeks).
+
+### Constants
+
+| Constant | Old → new | Reason | Measured effect |
+|---|---|---|---|
+| flyers cost (doc 02 §13) | 400 → 900 | Entry 5: return ×5.9, weak response ×2.6 | Return ×2.6, weak ×1.15 |
+| localAd cost (doc 02 §13) | 1,500 → 3,000 | Entry 5: return ×4.3, weak response ×2.0 | Return ×2.2, weak ×1.0 (breaks even) |
+| `TAKEOVER_MARKET_PRICE_FACTOR` (new, doc 02 §15.9) | 1.0 → 0.5 | A bought Good outlet with a manager paid back in 63–80 weeks against 35–50 | Senior 45, Veteran 38 weeks |
+
+Marketing is now 3.4% of revenue for the competent owner (target 2–4%). Every owner who
+markets earns about 0.3–0.4k a week less:
+
+| Owner markets + visits weekly | Owner-run | Trainee | Junior | Capable | Senior | Veteran |
+|---|---|---|---|---|---|---|
+| Before | +3.8k | −0.2k | +0.3k | +0.9k | +1.5k | +2.0k |
+| After | +3.4k | −0.5k | ≈ 0 | +0.6k | +1.2k | +1.6k |
+
+### Second outlet payback (new bot table)
+
+The bot now buys a running Good outlet from company cash (so no loan and no bankruptcy)
+and counts the weeks until its operating profit covers the price. Hidden problems are not
+modelled.
+
+| Price | Capable, weekly visit | Senior, weekly visit | Veteran, weekly visit | Veteran, never visits |
+|---|---|---|---|---|
+| 150,000 (start price) | > 104 | 80 | 63 | 98 |
+| 90,000 (× 0.6) | 89 | 50 | 43 | 71 |
+| **75,000 (× 0.5)** | 79 | 45 | 38 | 59 |
+
+× 0.6 puts Senior exactly on the 50-week edge before hidden problems, so × 0.5 was chosen.
+Managed outlets earn more in their second half-year than their first (Senior +1.3k →
++2.2k a week as the manager learns), which is why payback beats a straight division.
+
+**Cost of this choice.** The same Good outlet costs 150,000 at game start and 75,000
+later. That is defended in doc 02 §15.9 (the start offer is priced for an owner who works
+the floor), but players will notice it. The alternative, cutting start prices, would
+remove the Good tier's starting loan and change the whole Phase 1 opening, so it was not
+taken.
+
+### Targets restated (doc 06 §4), not tuned
+
+- **Skill-80 manager, unvisited, weeks with negative operating profit ≤ 1 in 8.** Measured
+  21% over 26 weeks (7% in weeks 1–12, 33% in weeks 13–26). The grade table (doc 02
+  §15.14) asks the same manager to fade to break-even, and an outlet near break-even loses
+  about every other week, so the two targets contradicted each other. Restated as ≤ 1 in 8
+  over weeks 1–12 and ≤ 1 in 3 over weeks 13–26.
+- **Passive owner-run Good survival 60–80%.** Measured 100%; the passive owner's cash never
+  drops below its starting 20,000. The prototype has no incidents or hidden problems, so
+  this cannot be settled here. It is flagged in doc 06 §4 as at risk rather than forced.
+
+### Still open
+
+- Capable, owner never visits, now drifts to about −0.5k a week by weeks 9–26. The grade
+  table says "roughly break-even", so this is borderline.
+- From-scratch payback (doc 06 §4) is not modelled.
+
+## Entry 5 — return on spend measured; advertising is too cheap (decided in entry 6)
 
 Source: `prototype/economy_loop/results.txt`, "Ad returns" table (campaigns at least 8
 weeks old, about 13,000 of them). New rule doc 02 §13.2 tracks, per campaign, the extra
