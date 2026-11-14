@@ -24,9 +24,15 @@ class CompetentOwner implements OwnerPolicy {
   String get name => 'competent';
   @override
   void act(OutletSim s) {
-    if (s.day == 0) s.setPrice(105);
-    if (s.day % 28 == 0) s.runCampaign('localAd');
-    if (s.day % 56 == 14) s.reworkMenu();
+    // Days counted from opening, so a scratch outlet is not advertised while shut.
+    final t = s.tradingDay;
+    if (t < 0) return;
+    if (t == 0) s.setPrice(105);
+    // A scratch outlet's launch campaign stands in for the opening-day ad.
+    if (t % 28 == 0 && !(t == 0 && s.scratch?.launchCampaign == true)) {
+      s.runCampaign('localAd');
+    }
+    if (t % 56 == 14) s.reworkMenu();
     if (s.dow == 4) s.planVisit();
     final buffer = s.fixedPerDay * 14;
     for (final e in s.equipment.where((e) => e.warned && !e.broken)) {

@@ -261,5 +261,31 @@
     }
   ],
   "TAKEOVER_PRICE_GOOD": 150000,
-  "TAKEOVER_MARKET_PRICE_FACTOR": 0.5
+  "TAKEOVER_MARKET_PRICE_FACTOR": 0.5,
+  "_comment_scratch": "Route B, start from scratch (doc 02 §15.9). Medium size, 3-year lease, average location.",
+  "SCRATCH_FITOUT": {
+    "basic": { "cost": 8000, "days": 7, "buzz": 0.6, "patience": 0.95 },
+    "standard": { "cost": 15000, "days": 14, "buzz": 0.8, "patience": 1.0 },
+    "premium": { "cost": 30000, "days": 21, "buzz": 1.0, "patience": 1.1 }
+  },
+  "SCRATCH_START_REP": 3.0,
+  "SCRATCH_START_HYGIENE": 95,
+  "SCRATCH_FAST_REP_DAYS": 28,
+  "SCRATCH_COMPANY_REP": 3.5,
+  "SCRATCH_CREW_SKILL_SPREAD": 10,
+  "LEASE_DEPOSIT_WEEKS": 4,
+  "OPENING_LICENCE": 1000,
+  "LAUNCH_CAMPAIGN_COST": 2000,
+  "LAUNCH_BOOST": 0.3,
+  "LAUNCH_DAYS": 7,
+  "SECOND_HAND_PRICE": 0.5,
+  "SECOND_HAND_CONDITION": 55,
+  "SECOND_HAND_AGE_DAYS": 672,
+  "SECOND_HAND_FAULT": 0.1,
+  "SECOND_HAND_FAULT_CONDITION": 35,
+  "EQUIP_LEASE_WEEKLY": 0.025,
+  "EQUIP_LEASE_MIN_CONDITION": 70,
+  "SCRATCH_START_AWARENESS": 0.45,
+  "OPENING_GRACE_WEEKS": 12,
+  "AWARENESS_GAIN": 0.01
 }

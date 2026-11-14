@@ -29,7 +29,7 @@ In `play`, press Enter to play a day, `week` to play to Sunday, `help` for owner
 
 | File | What |
 |---|---|
-| `data/balance.json` | Current spec values (docs after balance-log entry 6) |
+| `data/balance.json` | Current spec values (docs after balance-log entry 7) |
 | `data/balance-original.json` | The docs' numbers before any fix, for comparison |
 | `results.txt`, `results-original.txt` | Bot output for each |
 
@@ -62,6 +62,7 @@ manager and the crew includes a cashier.
 | Mastery above skill 65: supplier negotiation, preventive care, crew development, retention | doc 02 §15.16 (weekly deals, supplier relations and deputies are not modelled) |
 | Break-even line | doc 02 §15.13 |
 | Return on spend per campaign: extra groups and profit from the boost and from the buzz it left | doc 02 §13.2 |
+| Opening from scratch: fit-out and build days, rent from signing, new / second-hand / leased kit, crew from the company pool, rating 3.0 moving twice as fast for 28 days, launch campaign, awareness ramp, opening period exempt from crisis | doc 02 §15.7, §15.9 route B |
 
 ### Stand-ins (`PROTO_*` and a few others in balance.json)
 
@@ -104,10 +105,20 @@ spend, extra groups, extra profit and return. In `play`, the `ads` command lists
 campaign you ran with the same figures. Current result: a local ad returns ×2.2 and
 flyers ×2.6 on average, and a weak response roughly breaks even (balance-log entry 6).
 
-The last table, **Second outlet**, buys a running Good outlet at the later-market price
+The **Second outlet** table buys a running Good outlet at the later-market price
 (`TAKEOVER_PRICE_GOOD` × `TAKEOVER_MARKET_PRICE_FACTOR`) from company cash and reports
 weeks until operating profit has paid it back, over 104 weeks. Hidden problems are not
 modelled, so treat it as a best case.
+
+The last table, **Opening routes**, opens a later outlet four ways from company cash —
+buy running at the later price, standard fit-out with new kit, basic fit-out with
+second-hand kit, basic fit-out with leased kit (doc 02 §15.9 route B) — for Capable,
+Senior and Veteran managers, competent and remote owners, over 104 weeks. Columns: cash
+up front (lease deposit included), weeks to the first profitable week, most cash ever
+tied up, profit a week, payback week (deposit excluded, build weeks included), share
+paid back by week 52, share in crisis by week 26 after the opening period, and net
+position at weeks 52 and 104. `--routes-only` prints just this table for the competent
+owner, for quick sweeps (`--routes-only --set SCRATCH_START_AWARENESS=0.6`).
 
 With the original numbers every managed row was negative under every owner and no run
 survived (see `results-original.txt`).

@@ -163,12 +163,34 @@ Opening-route targets (Phase 2; competent bot, average location, medium size):
 | Chance the outlet is in crisis within 26 weeks | 10–20% | 15–25% | 25–40% |
 
 Neither route should dominate: buying is safer and faster, scratch is cheaper and slower.
+"Dominate" is judged on four numbers together, not payback alone (payback flatters
+leasing, whose fee is a running cost): weeks to first profit, most company cash tied up
+(up front + the deepest dip in running profit), net position at week 52 and at week 104.
 
-Measured payback for buying (prototype, `bots` "Second outlet" table, paid from company
-cash, owner visits weekly, **hidden problems not modelled**): Senior 45 weeks, Veteran 38,
-Capable 79. At the old 150,000 price: 80 and 63. Owner never visits: Veteran 59, Senior
-and below never within two years. Hidden problems will add a few weeks, so the Senior
-figure sits at the top of the band. From-scratch payback is not measured yet.
+Measured (prototype, `bots` "Opening routes" table, balance log entry 7; company cash, no
+loan, owner visits weekly; **hidden problems not modelled**):
+
+| Senior manager | Up front | Most cash tied up | First profit wk | Payback wk | Crisis by wk 26 | Net wk 52 | Net wk 104 |
+|---|---|---|---|---|---|---|---|
+| Buy running (75,000) | 75.0k | 75.0k | 1 | 45 | 6.5% | +21.0k | +156k |
+| Standard + new | 58.5k | 79.2k | 9 | 45 | 4.5% | +26.4k | +214k |
+| Basic + second-hand | 36.9k | 60.0k | 9 | 41 | 8.5% | +32.9k | +179k |
+| Basic + leased | 22.2k | 50.4k | 10 | 43 | 30.5% | +26.9k | +188k |
+
+Veteran payback 38 / 38 / 35 / 37; Capable 79 / 65 / 61 / 71. Owner never visits:
+Veteran 59 / 48 / 46 / 47, Senior and below mostly never.
+
+Status: buying now wins on speed and certainty (income from week 1, no ramp) but still
+loses on money by week 52, because an inherited crew and kit earn about 0.6k a week less
+than a chosen one and the bot never fixes them. **Open** — see balance log entry 7
+"Still open". A price cut does not fix it (tested at 60,000).
+
+Other gaps against the bands: up-front cash for basic + second-hand is 36.9k (25.7k
+without the deposit) against 20–30k, so the band only holds if it excludes the 4-week
+deposit (11.2k); basic + leased (22.2k) and standard + new (58.5k, 47.3k without the
+deposit) are inside theirs. Crisis for standard + new is 4.5% against 15–25%, and for a
+Capable-run takeover 28.5% against 10–20%; both are counted after the opening period
+(doc 02 §15.7), and the bands may simply have been guesses.
 
 Difficulty: Easy should lift every survival figure by roughly 10 points, Hard lower by 10–15.
 

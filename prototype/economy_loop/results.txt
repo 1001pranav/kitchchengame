@@ -50,3 +50,31 @@ remote     veteran            1.5k   1.3k     1.3k                 59           
 competent  capable            1.1k    674     1.4k                 79               22.5%
 competent  senior             2.1k   1.3k     2.2k                 45               67.5%
 competent  veteran            2.7k   1.8k     2.7k                 38               89.5%
+
+Opening routes: a later Good-size outlet from company cash, 200 seeds x 104 weeks (buy price 75.0k)
+
+owner      manager   route             up-front  1st profit wk  max tied up  w1-26/wk  w27-52/wk  payback wk  paid by 52  crisis<=26  net wk52  net wk104
+competent  capable   buy running          75.0k              1        75.0k       674       1.4k          79       22.5%       28.5%    -22.4k      35.3k
+competent  capable   std + new            58.5k              9        83.5k      -566       1.6k          65       27.0%       21.5%    -18.5k      87.3k
+competent  capable   basic + 2nd-hand     36.9k             10        68.8k      -953       1.4k          61       32.5%       37.0%    -12.1k      66.9k
+competent  capable   basic + leased       22.2k             11        60.6k     -1.3k       1.1k          71       33.5%       61.0%    -17.7k      66.8k
+competent  senior    buy running          75.0k              1        75.0k      1.3k       2.2k          45       67.5%        6.5%     21.0k     156.3k
+competent  senior    std + new            58.5k              9        79.2k        64       2.8k          45       82.5%        4.5%     26.4k     214.4k
+competent  senior    basic + 2nd-hand     36.9k              9        60.0k      -257       2.6k          41       87.0%        8.5%     32.9k     178.8k
+competent  senior    basic + leased       22.2k             10        50.4k      -725       2.2k          43       76.5%       30.5%     26.9k     187.8k
+competent  veteran   buy running          75.0k              1        75.0k      1.8k       2.7k          38       89.5%        2.5%     46.7k     207.5k
+competent  veteran   std + new            58.5k              8        77.5k       561       3.5k          38      100.0%        0.0%     63.3k     258.3k
+competent  veteran   basic + 2nd-hand     36.9k              8        57.1k       136       3.3k          35       99.5%        1.5%     63.4k     228.1k
+competent  veteran   basic + leased       22.2k              9        46.2k      -313       2.9k          37       98.5%        9.0%     55.6k     229.1k
+remote     capable   buy running          75.0k              1       159.0k      -571       -628        >104        0.0%       87.0%   -106.1k    -154.4k
+remote     capable   std + new            58.5k             10       143.5k     -1.7k       -274        >104        0.0%       88.0%    -97.1k    -118.2k
+remote     capable   basic + 2nd-hand     36.9k             11       167.0k     -2.2k       -574        >104        0.5%       91.5%   -101.4k    -147.4k
+remote     capable   basic + leased       22.2k             19       150.2k     -2.4k       -666        >104        0.0%       99.0%    -90.3k    -135.8k
+remote     senior    buy running          75.0k              1        76.3k       476        410        >104        5.5%       54.0%    -50.7k     -35.8k
+remote     senior    std + new            58.5k              9        85.6k      -751        944          91       13.5%       57.0%    -41.3k      34.2k
+remote     senior    basic + 2nd-hand     36.9k              9        78.5k     -1.2k        679        >104       17.0%       73.0%    -39.3k      -9.6k
+remote     senior    basic + leased       22.2k             10        73.4k     -1.5k        400          95       12.5%       87.5%    -40.3k      12.7k
+remote     veteran   buy running          75.0k              1        75.0k      1.3k       1.3k          59       42.5%       25.0%     -7.2k      86.8k
+remote     veteran   std + new            58.5k              8        79.0k        25       2.2k          48       63.5%       16.0%     11.6k     145.8k
+remote     veteran   basic + 2nd-hand     36.9k              9        59.2k      -429       1.8k          46       61.5%       25.0%     11.3k     104.5k
+remote     veteran   basic + leased       22.2k              9        50.2k      -849       1.6k          47       64.0%       57.0%      7.9k     120.8k

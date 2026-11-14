@@ -767,6 +767,11 @@ owner must be present that day) reveals who.
 - Closing: equipment sold at resale value, severance for all staff, lease-break fee
   4 × weekly rent, brand reputation −0.1 (Stage 4+).
 - A profitable week resets `lossWeeks` to 0 and ends crisis.
+- **Opening period.** An outlet opened from scratch (§15.9 route B) does not count losing
+  weeks toward `lossWeeks` until its first profitable week, or until
+  `OPENING_GRACE_WEEKS (12)` weeks of trading, whichever comes first. Its ramp is
+  expected; without this every new outlet would enter crisis and draw
+  `inc_location_failing` before it had a chance to become known.
 
 ### 15.8 Company cash and outlet contribution
 There is a single `company.cash`. Each location keeps a ledger:
@@ -836,7 +841,7 @@ dish machine, AC and generator are optional (with the usual consequences of lack
 | Way | Cost | Condition / age | Arrives | Notes |
 |---|---|---|---|---|
 | Buy new | 100% of price | 100 / 0 | 2 days | Full resale value |
-| Buy second-hand | 50% of price | 55 / 3 years | 1 day | `SECOND_HAND_FAULT (0.10)` chance of a hidden fault: true condition 35, revealed at first breakdown or after 7 days |
+| Buy second-hand | 50% of price | 55 / 2 years (max condition 75) | 1 day | `SECOND_HAND_FAULT (0.10)` chance of a hidden fault: true condition 35, revealed at first breakdown or after 7 days |
 | Lease | `EQUIP_LEASE_WEEKLY (2.5%)` of price per week | kept ≥ 70 | 2 days | Servicing free; breakdowns fixed free by next day; no resale value; cancel by paying 2 weeks' fee |
 
 Leasing and the second-hand fault rule apply to equipment at **every** outlet from
@@ -858,6 +863,14 @@ period). Menu and prices chosen as usual. Optional launch campaign 2,000 coins: 
 28 trading days `REP_UP` and `REP_DOWN` are doubled — a new place has few reviews, so
 each early customer counts twice. Opening may be postponed (rent keeps running).
 
+*Awareness (the slow start).* A new outlet has `awareness` ∈ [0, 1], a factor on demand
+(doc 02 §5.1, after competition): the share of the location's footfall that knows the
+place exists. It starts at `SCRATCH_START_AWARENESS (0.45)` and each trading day rises by
+`AWARENESS_GAIN (0.01) × (0.5 + buzz) × min(1.5, reputation / 3.5)`, capped at 1, so
+the launch campaign, ads and a good rating all shorten the ramp. A taken-over outlet
+has awareness 1: its regulars come with it. Without this rule a new outlet drew almost
+as many customers as a takeover from its first day (balance log entry 7).
+
 **Reserve check (both routes).** The purchase or lease is refused if cash afterwards
 would be below `OPENING_RESERVE_WEEKS (2)` × the outlet's estimated weekly fixed costs
 (rent + wages + equipment leases); the UI recommends 4 weeks and shows the estimated
@@ -868,7 +881,7 @@ weeks until break-even.
 | | Buy a running restaurant | Start from scratch |
 |---|---|---|
 | Money up front | High (pays for goodwill) | Lower, and adjustable (basic fit-out, second-hand or leased equipment) |
-| Income from | Day 1 | After 1–3 weeks of rent with no sales, then a slow ramp |
+| Income from | Day 1 | After 1–3 weeks of rent with no sales, then a slow ramp (awareness 0.45 → 1 over about 7–10 weeks) |
 | Staff | Inherited, unknown quality | Chosen by you; nobody knows the place |
 | Customers and rating | Inherited (good or bad) | None; starts at 3.0 and moves fast |
 | Equipment | Inherited age and wear | Your choice of new, second-hand or leased |

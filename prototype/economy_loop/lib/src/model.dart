@@ -12,6 +12,7 @@ class Balance {
     return _m[k];
   }
 
+  bool has(String k) => _m.containsKey(k);
   double d(String k) => (_get(k) as num).toDouble();
   int i(String k) => (_get(k) as num).toInt();
   Map<String, dynamic> map(String k) =>
@@ -143,6 +144,8 @@ class Equipment {
   int readyDay = -1;
   int refailUntil = -1;
   bool warned = false;
+  bool leased =
+      false; // doc 02 §15.9 step 3: serviced and repaired by the lessor
   Equipment(this.type, this.condition, this.ageDays);
 
   /// doc 11 §A.3
@@ -231,6 +234,7 @@ class WeekStats {
   int marketing = 0;
   int upkeep = 0; // maintenance + repairs + replacements
   int other = 0; // fines, licence, tax, severance
+  int equipLease = 0; // leased equipment fees (doc 02 §15.9 step 3)
   int loanPaid = 0;
   int interest =
       0; // part of loanPaid; in net profit, not operating profit (doc 02 §14.2)
@@ -250,8 +254,22 @@ class WeekStats {
       utilities -
       marketing -
       upkeep -
-      other;
+      other -
+      equipLease;
 
   /// Operating profit minus loan interest (doc 02 §14.2). "Profitable week" means this > 0.
   int get netProfit => operatingProfit - interest;
+}
+
+/// How equipment is obtained for a from-scratch outlet (doc 02 §15.9 route B, step 3).
+enum EquipMode { buyNew, secondHand, lease }
+
+/// A from-scratch opening (doc 02 §15.9 route B). Medium size, 3-year lease.
+class ScratchPlan {
+  final String name;
+  final String fitOut; // key into SCRATCH_FITOUT: basic | standard | premium
+  final EquipMode equip;
+  final bool launchCampaign;
+  const ScratchPlan(this.name, this.fitOut, this.equip,
+      {this.launchCampaign = true});
 }
