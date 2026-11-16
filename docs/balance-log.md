@@ -2,7 +2,28 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
-## Entry 11 — first per-tick service measurements (FINDINGS, nothing applied)
+## Entry 12 — owner runs the shift; kitchen and door-patience proposal adopted
+
+Decided by the design owner after playing both versions of `prototype/service_feel`
+("version 2 looks good"; version 1 was "a little boring, my input was very small").
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Owner during service (doc 02 §8) | queue + cover a role → stand in an area with a staff boost, favours (rush / treat), bring the bill, mid-shift staff moves, shift target | Played test; headless: a server off on a Friday, parties lost 24.1% (owner idle) → 9.5% (owner repositions) → 7.8% (scripted use of every action) |
+| Owner cooking | any time at skill 35 → only when no cook is working | Kitchen cover moved losses 29.8% → 23.2% for all the owner's energy; expediting from the Pass replaces it |
+| Main cooking station, Good tier and above (doc 04 §3) | one unit → two | Italian, quiet fully staffed day: 4.5% → 0.1% lost waiting for food |
+| `PATIENCE.waitTable` | 10 → 18 ticks | Fully staffed Friday: 12.5% → 7.7% lost at the door |
+| Stand-in roles (doc 02 §6.2) | optional reading → required | No dishwasher and no stand-in: 65% of parties left without food |
+
+Parties lost with the adopted values, fully staffed, owner idle: Tuesday 1.9%, Friday
+8.0%, Saturday 11.7%.
+
+Not measured: the other three cuisines' kitchens (same reasoning applied); the shift
+target's happiness reward; the owner cooking as a last resort; the tier prices now that
+Good-tier kitchens hold one more machine. Served parties still rate about 3.2 stars on a
+well-run day against a 3.5 starting reputation — open, to check in task 0.11.
+
+## Entry 11 — first per-tick service measurements (findings; adopted in entry 12)
 
 Source: `prototype/service_feel/` — a tappable test of the service screen whose
 simulation follows doc 02 §6 and §8 tick by tick (200 headless runs per shift). This is

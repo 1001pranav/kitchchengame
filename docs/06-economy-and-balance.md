@@ -133,7 +133,7 @@ General targets (all tiers, competent bot):
 | Food cost % | 28–36% |
 | Waste as % of ingredient spend | 3–8% |
 | Walk-out rate | 3–10% of groups on a normal day; 15–30% when one key role is absent and the owner does not cover |
-| Owner covering the absent role cuts that walk-out rate by | at least half |
+| Owner standing at the busiest area cuts that walk-out rate by | at least half (measured per tick: 24% → 9.5% with a server off on a Friday) |
 | Incidents per week | 3–6 (prototype: 2.1–2.3, but it models only prep/close incidents and none of the per-tick service ones; passive bot 3.8) |
 | Campaign outcomes over many runs | flop 10–18%, big hit 5–14%, average multiplier 0.95–1.2 (measured: flop 9–13%, lowest for owners who keep the menu fresh — the fresh-menu bonus only started working after the seed fix, see balance-log entry 9; big hit 9–13%) |
 | Cost of ad uncertainty to a steady advertiser | under 5% of weekly profit on average (measured ≈ −0.1k) |

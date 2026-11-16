@@ -211,7 +211,7 @@ Order:     id, supplierId, lines: [{ingredientId, qty: int, unitPrice: double}],
 locationId?: string (null while travelling)   travelToLocationId?: string   arrivesTick?: int
 ticksAtLocationToday: {locationId: int}
 energy: double   exhaustedDays: int   restingToday: bool
-coverRole?: "server" | "till" | "kitchen" | "dishes"
+area?: "door" | "tables" | "pass" | "dishes"   favours: int   lastFavourTick: int
 queue: int[] (task ids, max 3)   currentTaskId?: int   busyUntilTick?: int   idleTicks: int
 ```
 
@@ -220,7 +220,10 @@ queue: int[] (task ids, max 3)   currentTaskId?: int   busyUntilTick?: int   idl
 tick: int
 arrivals: [{tick: int, size: int, segment: string}]      (remaining, sorted)
 groups: [{id: int, size, segment, state, tableId?: int, waitTicks: {state: int},
-          patienceTotal: double, unavailableCount: int, tickets: int[], bill: int, ill: bool}]
+          patienceTotal: double, unavailableCount: int, tickets: int[], bill: int, ill: bool,
+          rushed: bool, treated: bool, treatBonus: int, hurried: bool}]
+serviceRoles: {staffId: role}     (mid-shift moves, §8.2c; cleared at close)
+target: int   lost: int
 tickets: [{id: int, groupId: int, dishId: string, state: "waiting"|"cooking"|"ready"|"cancelled",
            quality?: double}]
 tasks: [{id: int, type: string, groupId?: int, ticketId?: int, tableId?: int,
@@ -278,7 +281,11 @@ applies it or returns an error code. Commands are the **only** way state changes
 | SetParLevel | locationId, ingredientId, par, supplierId | prep, close (stage ≥ 2) |
 | StartService | — | prep |
 | OwnerQueueTask | taskId | service |
-| OwnerSetCover | role or null | prep, service |
+| OwnerStand | area or null | prep, service |
+| OwnerRush | groupId | service (spends a favour) |
+| OwnerTreat | groupId | service (spends a favour, costs coins) |
+| OwnerBringBill | groupId | service |
+| MoveStaff | staffId, role | service (until close) |
 | OwnerRest | — | prep |
 | ResolveIncident | instanceId, optionId | any |
 | EndDay | — | close |
@@ -295,7 +302,7 @@ wageBand, overtimeAllowed, incidentStance, spendingLimit, mayHire, mayGiveRaises
 `GameState.ownerLocationId` is the location the owner **starts the day at**;
 `owner.locationId` is where the owner is right now. All commands that take a
 `locationId` may be issued for any location regardless of where the owner is, except
-`OwnerQueueTask`, `OwnerSetCover` and `Audit`, which need the owner there.
+`OwnerQueueTask`, `OwnerStand`, `OwnerRush`, `OwnerTreat`, `OwnerBringBill` and `Audit`, which need the owner there.
 
 Error codes are an enum (`notEnoughCash`, `wrongPhase`, `unknownId`, `belowMinimumOrder`,
 `limitReached`, `locked`, `invalidValue`). The UI shows a localised message per code.

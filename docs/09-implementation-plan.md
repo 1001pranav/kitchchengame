@@ -26,7 +26,7 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 0.11 | Satisfaction, payment, tips, reputation update, `DayStats` | 02 §6.8 | Hand-computed satisfaction cases; reputation falls twice as fast as it rises |
 | 0.12 | Inventory: batches, FIFO, capacity, expiry, price index, orders, deliveries and delivery problems, payables, relationship | 02 §9 | Scenarios: over-order → waste recorded; unreliable supplier produces late/short/bad at expected rates |
 | 0.13 | Staff: wages, fatigue, morale, absence, lateness, quitting with notice, applicants, hire/fire/raise/train, stat reveal, traits | 02 §7, 04 §5 | Each formula unit-tested; each trait modifier has a test |
-| 0.14 | Owner: queue, cover roles, walking, energy, mistakes, rest day, forced rest | 02 §8 | Scenario: server absent + owner covers Server → walk-outs at least halve vs not covering (fixed seed set) |
+| 0.14 | Owner: areas and staff boost, reserved jobs, favours (rush, treat), bring the bill, mid-shift staff moves, shift target, walking, energy, mistakes, rest day, forced rest | 02 §8 | Scenario: a server absent on a Friday, owner standing at the busiest area → parties lost at least halve vs an owner who does nothing (fixed seed set; `prototype/service_feel` measured 24% → 9.5%) |
 | 0.15 | Equipment: wear, breakdown, maintenance, repair options, replace, sell; storage capacity effects | 02 §10, §9.1 | Breakdown frequency at condition 30 vs 80 matches formula over 10⁴ rolls |
 | 0.16 | Finance: daily flows, weekly payroll/rent/instalments, monthly utilities/tax, loan applications (bank checks, counter-offer, rejection reasons, secured, private lender), credit score, valuation, bankruptcy counters; hygiene and inspections | 02 §12, §14 (not §14.7) | Scenario: 3 missed instalments → game over; valuation formula test |
 | 0.17 | Incident engine: condition evaluator, effect applier, rolls, cooldowns, forced, follow-ups, countdown/default, subject binding | 05 §2, 02 §11 | Every condition key and effect type has a unit test; unknown key → validator error |
@@ -46,9 +46,9 @@ Legend: **Read** = sections needed for the task. **AC** = acceptance criteria.
 | 1.1 | App shell: theme, `AssetCatalog` with placeholders, localisation lookup, content loading, `GameController`, save service | 08 §6, 07 §2, §6 | App starts, loads content, creates a game, autosaves and restores after kill |
 | 1.2 | Title, New Game (difficulty, theme), Takeover Market, Offer Detail | 07 §4.2 | Can buy any tier; due diligence reveals issues; widget tests at both sizes |
 | 1.3 | Main shell: top bar, bottom tabs, "Why?" sheet | 07 §3, §4.1, §4.10 | Cash and reputation open explanations from `sim.explain` |
-| 1.4 | Prep board | 07 §4.3 | Attention items computed and deep-link; cover-role selection; Rest today; Open doors |
+| 1.4 | Prep board | 07 §4.3 | Attention items computed and deep-link; target shown and starting area chosen; Rest today; Open doors |
 | 1.5 | Service view (Flame) part 1: room, tables, figures, groups moving through states from events; clock and speed controls | 07 §4.4, 08 §6.2–6.3 | Runs a full service at 1×/2× at 60 fps on a mid device; pausing works |
-| 1.6 | Service view part 2: task markers, patience rings, owner queue and cover bar, kitchen strip, dish meter, popovers, auto-run | 07 §4.4 | Tapping a marker queues it; queue max 3; staff-taken markers dimmed |
+| 1.6 | Service view part 2: task markers, patience rings, selection and action row (rush, treat, bring bill), stand row, team row, target and favours, quiet-spell fast-forward, kitchen strip, dish meter, popovers, auto-run | 07 §4.4 | Tapping a marker queues it; queue max 3; staff-taken markers dimmed |
 | 1.7 | Incident card overlay + result line + deferred countdown | 07 §4.9, 05 §1 | All 41 incidents render with correct chips; disabled options explain why |
 | 1.8 | Close report (3 pages) + weekly and monthly statements; ranked causes from day events | 07 §4.5 | "What went wrong" lists the true top causes in three scripted scenarios |
 | 1.9 | Staff tab: list, detail, actions, Rota, Hire | 07 §4.6 | Every staff command reachable; coverage warnings correct |

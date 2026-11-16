@@ -153,12 +153,19 @@ Recipe notation: `ingredient×qty` (drop the `ing_` prefix here only; JSON uses 
 fridge, freezer, shelving, dish machine, hood, POS, AC (Bad and Worst have no AC;
 only Excellent and Best have a generator). Excellent and Best get a second fridge.
 
-| Theme | Base station set | Excellent adds |
-|---|---|---|
-| Italian | range ×1, oven ×1 | range ×1, oven ×1 |
-| Chinese | wok ×1, fryer ×1, range ×1 | wok ×1, fryer ×1 |
-| Mexican | grill ×1, fryer ×1, range ×1 | grill ×1, range ×1 |
-| Indian | tandoor ×1, range ×1, fryer ×1 | tandoor ×1, range ×1 |
+| Theme | Main station (most mains need it) | Base station set — Good tier and above | Bad and Worst | Excellent adds |
+|---|---|---|---|---|
+| Italian | oven | range ×1, **oven ×2** | range ×1, oven ×1 | range ×1, oven ×1 |
+| Chinese | wok | **wok ×2**, fryer ×1, range ×1 | wok ×1, fryer ×1, range ×1 | wok ×1, fryer ×1 |
+| Mexican | grill | **grill ×2**, fryer ×1, range ×1 | grill ×1, fryer ×1, range ×1 | grill ×1, range ×1 |
+| Indian | stove | tandoor ×1, **range ×2**, fryer ×1 | tandoor ×1, range ×1, fryer ×1 | tandoor ×1, range ×1 |
+
+A kitchen needs two units of the station most of its mains are cooked on. Measured for
+Italian only: with one oven (3 slots) about 60% of mains plus the garlic bread queue for
+it, and 4.5% of parties walked out waiting for food on a quiet, fully staffed day; with
+two the figure is 0.1% (balance-log entries 11–12). The other three themes follow the
+same reasoning and are **not yet measured**. Bad and Worst keep one unit: they have a
+third to a half of the customers, and a cramped kitchen is part of what makes them hard.
 
 Best gets the first item of the "Excellent adds" column only. In Worst, one random
 station unit starts `broken`.

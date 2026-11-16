@@ -70,8 +70,9 @@ Buttons: **Inspect (2,000)** (due diligence) and **View**. Offer Detail shows st
 │ DELIVERIES  City Foodservice ✓       │
 │ TODAY'S TEAM  7 of 8   Kitchen 3     │
 │   Floor 3  Till 1  Dishes 0 ⚠        │
-│ I WILL COVER: [Server][Till][Kitchen]│
-│               [Dishes][Nothing]      │
+│ TARGET  lose no more than 8 parties  │
+│ START AT: [Door & till][Tables]      │
+│           [Pass][Dishes]             │
 │                                      │
 │ [ Rest today ]      [ OPEN DOORS ▶ ] │
 └──────────────────────────────────────┘
@@ -95,8 +96,9 @@ forecast × dish popularity vs stock.
 │  task markers float over things      │
 │                                      │
 ├──────────────────────────────────────┤
-│ Queue: [Table 4 order][Bill T2][ — ] │
-│ Cover: (Server) Till Kitchen Dishes  │
+│ T7: [Rush food][Treat 8c][Bring bill]│
+│ Stand: Door&till (Tables) Pass Dishes│
+│ Team: Dev·dishes Ana·serving Mei·till│
 │ Waiting: order 3 · food 5 · bill 1   │
 └──────────────────────────────────────┘
 ```
@@ -104,6 +106,15 @@ forecast × dish popularity vs stock.
 - **Task markers** (icon bubbles, min 48 px): seat, take order, deliver, bill, clear,
   cook. Colour ring shows remaining patience (green → amber → red, plus a shrinking arc).
   Tapping one adds it to the owner queue; markers already taken by staff are dimmed.
+- **Top line** also shows the live target ("Lost 3 / 8", red once exceeded) and the
+  three favour dots.
+- **Selecting a party:** tapping a table or a party waiting at the door selects it and
+  fills the action row with Rush food, Treat and Bring bill; unavailable actions are greyed.
+- **Stand row:** four area buttons; the chosen one is highlighted and the owner figure
+  goes there. **Team row:** one chip per floor staff member showing what they are doing
+  tonight; tapping cycles their job, and a moved member is marked.
+- **Quiet spells:** when nothing is waiting the clock runs four times faster by itself
+  (a toggle, on by default), so most of the three minutes is the rushes.
 - **Owner** is a distinct figure; a dotted line shows the current destination.
 - **Kitchen strip:** one column per station with slot pips (filled = in use) and a count
   of waiting tickets; red when a station has no working unit. Dirty-dish meter beside it.
@@ -248,7 +259,12 @@ without explaining it**.
 | stand-in | Stand-in | Someone doing another role's work on that person's day off | Slower and less skilled than the real thing |
 | negotiation | Negotiated prices | Lower supplier prices won by a skilled manager | Cuts your biggest cost; lost if that manager leaves |
 | deputy | Deputy | A staff member your manager has trained to run a branch | A ready-made manager for your next outlet |
-| cover a role | Fill in | You do the work of a missing staff member | It saves the shift but tires you out |
+| area | Where you stand | The part of the restaurant you are working in | You do the jobs there and your staff there work faster |
+| favour | Favour | One of three special efforts you can call on in a shift | They come back slowly, so choose where they count |
+| rush | Rush | Telling the kitchen to cook one table's order first | Saves a table that is about to walk out |
+| treat | Treat | Something free for customers who are waiting | They wait longer, for a small cost |
+| bring the bill | Bring the bill | Ending a table's meal early | Frees the table for the queue, but they feel hurried |
+| shift target | Target | The most parties you can afford to lose this shift | Tells you whether the night went well |
 | owner energy | Your energy | How tired you are | Exhausted owners make mistakes and lose a day |
 | morale | Happiness | How happy a staff member is at work, from 0 to 100 | Unhappy staff are slower, call in sick and may quit without warning |
 | notice | Notice | Days a leaving staff member still works | Without notice you are short-handed tomorrow |
