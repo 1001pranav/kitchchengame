@@ -125,24 +125,33 @@ removed (reputation drops 0.5). Details in `05-incident-catalogue.md`.
 The owner is a character on the floor during service. The owner is in **one place at a
 time** but can travel between locations during the day (§5.4).
 
-### 5.1 Floor work
+### 5.1 Running the shift
 
-The owner can do any task: seat guests, take orders, deliver food, take payment, clear
-tables, wash dishes, cook. Two ways to direct the owner:
+During service the owner does not just lend a hand; the owner runs the room. A played
+test of "tap a job or fill in for a role" was found dull, so the owner's part is built on
+decisions instead:
 
-- **Tap a task marker** → it joins the owner's queue (max 3 queued). The owner walks
-  there and does it.
-- **Cover a role** → tap a role button (Server / Till / Kitchen / Dishes); the owner
-  automatically takes the oldest waiting task of that role until told otherwise.
+- **Where to stand.** Door & till, Tables, Pass or Dishes. The owner does the jobs there
+  and the staff there work about a quarter faster. The jam moves through the night — from
+  the door, to orders, to the kitchen, to the bills — and the owner moves with it.
+- **Favours.** The owner holds three and they return slowly. Spend one to **rush** a
+  table's order through the kitchen, or to **treat** waiting customers so they stay longer.
+- **Bring the bill** to a table that is lingering, to free it for the queue at the door —
+  they will rate the visit a little lower.
+- **Move the team.** Send the cleaner to serve or the cashier to the dishes for the rest
+  of the night; they are slower outside their own job.
+- **Do one job by hand** by tapping its marker, when a single table matters.
+- **A target every shift:** lose no more than a set number of parties, counted live.
 
-No timing or accuracy is tested. Owner skills are fixed: service 60, till 60,
-cleaning 50, **cooking 35** (slow and mediocre — a last resort when a cook is absent or
-the kitchen is swamped).
+No timing or accuracy is tested. With no cook in the kitchen at all, the owner at the
+Pass cooks, slowly and not very well — a last resort.
 
 ### 5.2 Costs of floor work
 
 - **Energy** (0–100). Working drains it; resting overnight restores it. Low energy
   causes mistakes; repeated exhaustion forces a rest day.
+- **Scarcity.** Three favours and one place to stand are never enough on a bad night;
+  choosing which table to save is the game.
 - **Attention.** While the owner has a task in progress, new incident cards wait with a
   countdown, and "observation" incidents (catching theft, spotting sloppy portioning)
   cannot trigger.

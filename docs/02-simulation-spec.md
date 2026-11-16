@@ -147,7 +147,8 @@ Table states: `free → occupied → dirty → free`.
 | clear | table dirty | server, cleaner | 2 | table free; dirtyDishes += group size × 2 |
 | wash | — (continuous, §6.6) | dishwasher | — | — |
 
-**Stand-in roles.** With one person per role and a six-day week, some role is unstaffed
+**Stand-in roles (required — without the dishes stand-in a missing dishwasher stops the
+kitchen within the hour; balance-log entry 11).** With one person per role and a six-day week, some role is unstaffed
 on most weekdays. When a role has nobody working, its tasks may be taken by a stand-in
 at ×1.5 time and skill −15: wash ← cleaner, prepCook; clean (hygiene at close, at half
 effect) ← dishwasher; cook ← prepCook; bill/seat ← server; takeOrder/deliver/clear ←
@@ -162,12 +163,12 @@ with seats ≥ group size; groups of 1 use two-seat tables.
 
 | Wait state | PATIENCE base ticks |
 |---|---|
-| waitTable | 10 |
+| waitTable | 18 |
 | waitOrder | 8 |
 | waitFood | 25 |
 | waitBill | 8 |
 
-`limit = base × segment.patienceMult × difficulty.patience × envMult` where
+`limit = base × segment.patienceMult × difficulty.patience × envMult + treatBonus` (§8.2a) where
 `envMult = 0.8` if AC is broken in summer, else 1. When a group's counter for its
 current wait state exceeds the limit: → walkedOut. Walk-out before food is delivered:
 no payment, tickets cancelled (ingredients already used are lost). Walk-out in
@@ -389,21 +390,76 @@ day off a week, on their own weekday**, so the team rests in turns.
 
 ## 8. Owner
 
-### 8.1 Skills and movement
-Skills: service 60, till 60, cleaning 50, cooking 35. The owner takes
-`OWNER_WALK_TICKS = 1` tick to start any task (walking), then the normal duration.
-The owner follows role priority rules as "any role", with `roleMult = 1`.
+The owner **runs the shift**. An earlier design made the owner an extra pair of hands
+(tap a job, or "cover" a role); a played test found that dull, with almost nothing to
+decide (`prototype/service_feel`, balance-log entries 11–12). The rules below are the
+version that tested well.
 
-### 8.2 Task selection
-If the manual queue (max 3) is non-empty: take its head. Else if a cover role is set:
-take the oldest waiting task for that role (Server: takeOrder/deliver/seat/clear;
-Till: bill/seat; Kitchen: cook; Dishes: acts as dishwasher, §6.6). Else idle. Staff are
-assigned first each tick; the owner only gets tasks no staff took, except manually
-queued tasks which are reserved for the owner as soon as queued.
+### 8.1 Where the owner stands
+
+During service the owner stands in one **area**, or nowhere. Changing area is instant.
+
+| Area | Owner does these jobs there | Effect on staff while the owner is there |
+|---|---|---|
+| Door & till | seat, bill | seat and bill tasks **started** now take × `ZONE_BOOST (0.75)` time |
+| Tables | takeOrder, clear | takeOrder and clear tasks × 0.75 |
+| Pass | deliver | deliver tasks × 0.75; cook tasks started now × `PASS_COOK_BOOST (0.80)` (the owner is expediting) |
+| Dishes | washes as a dishwasher of skill 50 (§6.6) | each working dishwasher's rate × 1 / 0.75 |
+
+Each tick, after staff have been assigned (§6.4), an owner with no task takes the oldest
+waiting task of their area's types that no staff member took. The boost applies to the
+task's duration at the moment it starts and is not revised if the owner moves.
+
+Owner skills: service 60 (seat, takeOrder, deliver), till 60 (bill), cleaning 50 (clear).
+Every owner task takes `OWNER_WALK_TICKS = 1` extra tick to start.
+
+**Last resort at the stove.** If no head chef or line cook is working at all, an owner
+standing at the Pass cooks one ticket at a time at skill 35. With any cook present the
+owner does not cook; expediting from the Pass is worth more. (Not covered by the played test.)
+
+### 8.2 Doing one job by hand
+
+The player may also tap any waiting task marker to reserve it for the owner (at most 3
+reserved). Reserved tasks are done before area tasks, in the order tapped, and staff
+will not take them.
+
+### 8.2a Favours: rush and treat
+
+The owner holds up to `FAVOURS_MAX = 3` favours, starts each service with 3, and regains
+one every `FAVOUR_EVERY = 50` ticks. A favour is spent on one of:
+
+- **Rush** — a group in `waitFood` whose food is not yet at the pass, once per group:
+  its waiting tickets go to the front of the kitchen queue, and its cooking tickets'
+  remaining time is halved (rounded up, minimum 1 tick).
+- **Treat** — any group in a waiting state (table, order, food or bill), once per group:
+  costs `TREAT_COST = 8` coins and adds `TREAT_PATIENCE = 10` ticks to that group's
+  patience limit in every remaining wait state of the visit.
+
+### 8.2b Bring the bill
+
+Free, once per group, for a group that is eating with more than 3 ticks left: eating
+ends in 2 ticks (they go to `waitBill`), and their satisfaction is reduced by 5. It
+frees a table sooner at the price of a worse review.
+
+### 8.2c Moving staff during service
+
+Any working staff member whose own role is server, cashier, dishwasher or cleaner can be
+switched to another of those four roles at any time. The change takes effect when their
+current task ends, lasts until close, and they work at skill − `OFF_ROLE_PENALTY = 15`
+outside their own role. Cooks cannot be moved, and nobody can be moved into the kitchen.
+
+### 8.2d The shift target
+
+At `StartService` each location gets a target: **lose no more than N parties**, where
+`N = max(1, round(forecastGroups × (0.02 + 0.08 × rostered staff absent today)))`.
+"Lost" = walk-outs plus groups never seated. It is shown live. Meeting it gives every
+staff member who worked a `+2` happiness shock at close; missing it has no penalty beyond
+the lost custom. (The reward is new and untested.)
 
 ### 8.3 Energy
-- Drain: `OWNER_ENERGY_PER_TICK = 0.4` per tick working or walking (cooking ×1.5;
-  covering Dishes counts as working every tick).
+- Drain: `OWNER_ENERGY_PER_TICK = 0.4` per tick doing a task or walking to one (cooking
+  ×1.5; standing at Dishes counts as working every tick). Standing in an area with
+  nothing to do, favours, bringing a bill and moving staff cost no energy.
 - Overnight recovery `+70`; a rest day (owner absent) sets energy to 100.
 - Energy < 20: each completed owner task has a 15% mistake chance → bill: payment −10%;
   deliver/takeOrder: group `unavailableCount += 1`; cook: ticket quality −30.
@@ -1088,7 +1144,7 @@ is a working member of the crew**.
   mean of their three sub-skills. A managed outlet therefore needs **no cashier**; an
   outlet taken over with one can transfer, retrain (as server) or let them go.
 - When another role is uncovered (absence the manager could not call cover for, a day
-  off, a vacancy), the manager **fills in** like the owner on "cover": they take the
+  off, a vacancy), the manager **fills in**: they take the
   oldest waiting task of the uncovered role at skill 50, and the till falls back to
   servers (×1.5 time, §6.2). One role at a time.
 - While filling in on the floor the manager still performs prep-time duties (rota,

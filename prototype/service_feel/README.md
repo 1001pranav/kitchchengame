@@ -24,8 +24,7 @@ the shift instead:
 | Skip quiet spells | Time runs four times faster whenever nothing is waiting |
 | Removed | Owner cooking (it barely helped) and the three-slot job list display |
 
-None of this is in doc 02 yet. If version 2 tests well it replaces doc 02 §8.2
-(owner task selection) and adds the favours, treat, early bill and mid-shift role moves.
+The tester approved version 2, and these rules are now doc 02 §8 (balance-log entry 12).
 
 Headless (200 runs): parties lost with an owner who does nothing / only repositions /
 uses everything, against the target.
@@ -58,8 +57,8 @@ Not included: stock, prices, staff happiness, food quality detail, anything outs
 
 ## Deviations from the spec, and why
 
-These were needed to make the test meaningful. Each is a **finding against doc 02**,
-recorded in `docs/balance-log.md` (entry 11) and not yet applied to the spec.
+These were needed to make the test meaningful. Each was a finding against doc 02
+(balance-log entry 11) and has since been adopted in the spec (entry 12).
 
 | In doc 02 | Here | Reason |
 |---|---|---|
