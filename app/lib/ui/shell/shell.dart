@@ -60,7 +60,8 @@ class _GameShellState extends State<GameShell> {
       });
       return;
     }
-    final open = st.openIncidents.where((i) => !deferred.contains(i.id)).toList();
+    final open =
+        st.openIncidents.where((i) => !deferred.contains(i.id)).toList();
     if (open.isEmpty) return;
     final inst = open.first;
     showingCard = true;
@@ -70,7 +71,9 @@ class _GameShellState extends State<GameShell> {
       c.cardOpen = false;
       showingCard = false;
       if (decided != true) deferred.add(inst.id);
-      if (c.state?.phase == 'service' && wasSpeed == Speed.paused) c.setSpeed(Speed.normal);
+      if (c.state?.phase == 'service' && wasSpeed == Speed.paused) {
+        c.setSpeed(Speed.normal);
+      }
       if (mounted) {
         setState(() {});
         _overlays();
@@ -91,7 +94,8 @@ class _GameShellState extends State<GameShell> {
       const MoneyTab(),
     ];
     final loc = st.loc;
-    final staffBadge = loc.staff.where((s) => s.morale < 30 || s.status == 'notice').length;
+    final staffBadge =
+        loc.staff.where((s) => s.morale < 30 || s.status == 'notice').length;
     final stockBadge = c.sim!.runOutRisks().length;
     final kitchenBadge = loc.equipment.where((e) => e.broken).length;
     return ShellNav(
@@ -108,9 +112,11 @@ class _GameShellState extends State<GameShell> {
                   _overlays();
                 },
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(children: [
-                    const Icon(Icons.notification_important, color: Palette.warn),
+                    const Icon(Icons.notification_important,
+                        color: Palette.warn),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -119,7 +125,10 @@ class _GameShellState extends State<GameShell> {
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
-                    const Text('Open', style: TextStyle(color: Palette.accent, fontWeight: FontWeight.w800)),
+                    const Text('Open',
+                        style: TextStyle(
+                            color: Palette.accent,
+                            fontWeight: FontWeight.w800)),
                   ]),
                 ),
               ),
@@ -132,13 +141,33 @@ class _GameShellState extends State<GameShell> {
           onDestinationSelected: (i) => setState(() => tab = i),
           destinations: [
             NavigationDestination(
-              icon: Badge(isLabelVisible: st.phase == 'service', label: const Text('LIVE'), backgroundColor: Palette.tomato, child: const Icon(Icons.today)),
+              icon: Badge(
+                  isLabelVisible: st.phase == 'service',
+                  label: const Text('LIVE'),
+                  backgroundColor: Palette.tomato,
+                  child: const Icon(Icons.today)),
               label: 'Today',
             ),
-            NavigationDestination(icon: Badge(isLabelVisible: staffBadge > 0, label: Text('$staffBadge'), child: const Icon(Icons.groups)), label: 'Staff'),
-            NavigationDestination(icon: Badge(isLabelVisible: stockBadge > 0, label: Text('$stockBadge'), child: const Icon(Icons.inventory_2)), label: 'Stock'),
-            NavigationDestination(icon: Badge(isLabelVisible: kitchenBadge > 0, label: Text('$kitchenBadge'), child: const Icon(Icons.soup_kitchen)), label: 'Kitchen'),
-            const NavigationDestination(icon: Icon(Icons.account_balance_wallet), label: 'Money'),
+            NavigationDestination(
+                icon: Badge(
+                    isLabelVisible: staffBadge > 0,
+                    label: Text('$staffBadge'),
+                    child: const Icon(Icons.groups)),
+                label: 'Staff'),
+            NavigationDestination(
+                icon: Badge(
+                    isLabelVisible: stockBadge > 0,
+                    label: Text('$stockBadge'),
+                    child: const Icon(Icons.inventory_2)),
+                label: 'Stock'),
+            NavigationDestination(
+                icon: Badge(
+                    isLabelVisible: kitchenBadge > 0,
+                    label: Text('$kitchenBadge'),
+                    child: const Icon(Icons.soup_kitchen)),
+                label: 'Kitchen'),
+            const NavigationDestination(
+                icon: Icon(Icons.account_balance_wallet), label: 'Money'),
           ],
         ),
       ),
@@ -160,16 +189,25 @@ class TopBar extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Container(
-          decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: Palette.line))),
+          decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Palette.line))),
           padding: const EdgeInsets.fromLTRB(14, 6, 4, 6),
           child: Row(children: [
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-                Text('Day ${st.dayIndex + 1} · ${weekdays[st.weekday]}',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                Text('${seasonName(st.season)} · Year ${st.year} · ${st.loc.name}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Palette.muted, fontSize: 12)),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Day ${st.dayIndex + 1} · ${weekdays[st.weekday]}',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 15)),
+                    Text(
+                        '${seasonName(st.season)} · Year ${st.year} · ${st.loc.name}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Palette.muted, fontSize: 12)),
+                  ]),
             ),
             Semantics(
               button: true,
@@ -177,20 +215,26 @@ class TopBar extends StatelessWidget {
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => showWhy(context, sim.explain('cash')),
-                child: Padding(padding: const EdgeInsets.all(6), child: Money(st.cash, size: 16)),
+                child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Money(st.cash, size: 16)),
               ),
             ),
             Semantics(
               button: true,
-              label: 'Rating ${st.loc.reputation.toStringAsFixed(1)} stars. Tap for why.',
+              label:
+                  'Rating ${st.loc.reputation.toStringAsFixed(1)} stars. Tap for why.',
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => showWhy(context, sim.explain('reputation')),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
                   child: Row(children: [
-                    const Icon(Icons.star_rounded, color: Palette.gold, size: 20),
-                    Text(st.loc.reputation.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                    const Icon(Icons.star_rounded,
+                        color: Palette.gold, size: 20),
+                    Text(st.loc.reputation.toStringAsFixed(1),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 15)),
                   ]),
                 ),
               ),
@@ -202,10 +246,17 @@ class TopBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => showWhy(context, sim.explain('energy')),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.bolt, size: 18, color: energy < 0.2 ? Palette.bad : Palette.owner),
-                    SizedBox(width: 30, child: StatBar(energy, color: energy < 0.2 ? Palette.bad : Palette.owner, height: 5)),
+                    Icon(Icons.bolt,
+                        size: 18,
+                        color: energy < 0.2 ? Palette.bad : Palette.owner),
+                    SizedBox(
+                        width: 30,
+                        child: StatBar(energy,
+                            color: energy < 0.2 ? Palette.bad : Palette.owner,
+                            height: 5)),
                   ]),
                 ),
               ),

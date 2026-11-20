@@ -30,18 +30,28 @@ ThemeData buildTheme() {
     surface: Palette.surface,
     error: Palette.bad,
   );
-  final base = ThemeData(useMaterial3: true, colorScheme: scheme, scaffoldBackgroundColor: Palette.bg);
+  final base = ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: Palette.bg);
   return base.copyWith(
-    textTheme: base.textTheme.apply(bodyColor: Palette.ink, displayColor: Palette.ink).copyWith(
-          headlineMedium: base.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
-          titleLarge: base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          titleMedium: base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+    textTheme: base.textTheme
+        .apply(bodyColor: Palette.ink, displayColor: Palette.ink)
+        .copyWith(
+          headlineMedium: base.textTheme.headlineMedium
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          titleLarge:
+              base.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+          titleMedium:
+              base.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
     cardTheme: const CardThemeData(
       color: Palette.surface,
       elevation: 0,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16)), side: BorderSide(color: Palette.line)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16)),
+          side: BorderSide(color: Palette.line)),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -60,14 +70,17 @@ ThemeData buildTheme() {
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Palette.surface,
       indicatorColor: Palette.accentSoft,
-      labelTextStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      labelTextStyle: WidgetStateProperty.all(
+          const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
     ),
     bottomSheetTheme: const BottomSheetThemeData(
       backgroundColor: Palette.surface,
       showDragHandle: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     ),
-    chipTheme: base.chipTheme.copyWith(side: const BorderSide(color: Palette.line)),
+    chipTheme:
+        base.chipTheme.copyWith(side: const BorderSide(color: Palette.line)),
     dividerTheme: const DividerThemeData(color: Palette.line, space: 1),
   );
 }

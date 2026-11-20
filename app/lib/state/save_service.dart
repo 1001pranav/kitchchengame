@@ -8,7 +8,8 @@ class SaveService {
 
   static const slots = ['autosave', 'save_1', 'save_2', 'save_3'];
 
-  Future<void> write(String slot, Map<String, dynamic> data) => _store.write('$slot.json', jsonEncode(data));
+  Future<void> write(String slot, Map<String, dynamic> data) =>
+      _store.write('$slot.json', jsonEncode(data));
 
   Future<Map<String, dynamic>?> read(String slot) async {
     final text = await _store.read('$slot.json');

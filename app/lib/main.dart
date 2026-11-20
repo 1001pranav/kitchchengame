@@ -24,8 +24,11 @@ Future<void> main() async {
   final content = await loadContent();
   final saves = SaveService();
   final settingsJson = await saves.read('settings');
-  final settings = settingsJson == null ? Settings() : Settings.fromJson(settingsJson);
-  runApp(KitchenChainApp(controller: GameController(content: content, saves: saves, settings: settings)));
+  final settings =
+      settingsJson == null ? Settings() : Settings.fromJson(settingsJson);
+  runApp(KitchenChainApp(
+      controller:
+          GameController(content: content, saves: saves, settings: settings)));
 }
 
 class KitchenChainApp extends StatelessWidget {
@@ -45,7 +48,8 @@ class KitchenChainApp extends StatelessWidget {
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(controller.settings.textScale),
-              disableAnimations: controller.settings.reducedMotion || MediaQuery.of(context).disableAnimations,
+              disableAnimations: controller.settings.reducedMotion ||
+                  MediaQuery.of(context).disableAnimations,
             ),
             child: child!,
           ),

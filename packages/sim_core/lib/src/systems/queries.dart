@@ -96,14 +96,16 @@ extension SimQueries on Sim {
   }
 
   /// Ingredient that will run out today (for the prep board): id → share of the day covered.
+  /// During prep: today's needs. After service: tomorrow's, counting what is on order.
   Map<String, double> runOutRisks() {
-    final use = _expectedDailyUse(loc);
+    final day = state.phase == 'prep' ? state.dayIndex : state.dayIndex + 1;
+    final use = _expectedDailyUse(loc, day: day);
     final out = <String, double>{};
     use.forEach((ing, perDay) {
       if (perDay < 1) return;
       final have = loc.stockOf(ing) +
           loc.orders
-              .where((o) => o.dueDay <= state.dayIndex)
+              .where((o) => o.dueDay <= day)
               .fold<int>(0, (a, o) => a + (o.lines[ing] ?? 0));
       final cover = have / perDay;
       if (cover < 1) out[ing] = cover;

@@ -270,8 +270,12 @@ worked; working on their own day off (§7.7) is overtime, paid ×1.5.
 
 ### 7.2 Fatigue (at close)
 
-Worked today: `+12`; `+6` more if the day was a rush (waiting tasks for their role
-exceeded 5 at any tick); day off: `−30`. Clamp 0–100.
+Worked today: `+FATIGUE_WORK (12)`; `+FATIGUE_RUSH (6)` more if the day was a rush
+(waiting tasks for their role exceeded 5 at any tick); day off (or absent): `−FATIGUE_REST (30)`.
+Every night's sleep also recovers `FATIGUE_OVERNIGHT (8)`, so an ordinary worked day nets
+`+4`, a rush day `+10` and a day off `−38`. Clamp 0–100. (Without the overnight term a
+six-day week netted +42 and every staff member sat at 100 within two weeks — balance-log
+entry 13.)
 
 ### 7.3 Happiness index (stored as `morale`, 0–100)
 

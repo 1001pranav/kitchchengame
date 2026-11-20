@@ -293,7 +293,7 @@ extension _Day on Sim {
     for (final r in obj.reward) {
       switch (r['type']) {
         case 'cash':
-          earn((r['amount'] as num).toInt(), 'other');
+          earn((r['amount'] as num).toInt(), 'none');
         case 'reputation':
           loc.reputation =
               math.min(5, loc.reputation + (r['delta'] as num).toDouble());

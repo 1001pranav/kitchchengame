@@ -34,6 +34,7 @@ class Settings {
         quietFastForward: j['quietFastForward'] as bool? ?? true,
         textScale: (j['textScale'] as num?)?.toDouble() ?? 1.0,
         tutorial: j['tutorial'] as bool? ?? true,
-        seenTerms: ((j['seenTerms'] as List?) ?? const []).cast<String>().toSet(),
+        seenTerms:
+            ((j['seenTerms'] as List?) ?? const []).cast<String>().toSet(),
       );
 }

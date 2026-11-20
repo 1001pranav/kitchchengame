@@ -6,7 +6,8 @@ import '../theme.dart';
 
 /// Inherited access to the controller without a state-management package.
 class GameScope extends InheritedNotifier<GameController> {
-  const GameScope({super.key, required GameController controller, required super.child})
+  const GameScope(
+      {super.key, required GameController controller, required super.child})
       : super(notifier: controller);
 
   static GameController of(BuildContext context) =>
@@ -35,7 +36,12 @@ class Money extends StatelessWidget {
   final bool sign;
   final FontWeight weight;
   final Color? color;
-  const Money(this.value, {super.key, this.size = 15, this.sign = false, this.weight = FontWeight.w700, this.color});
+  const Money(this.value,
+      {super.key,
+      this.size = 15,
+      this.sign = false,
+      this.weight = FontWeight.w700,
+      this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -44,22 +50,31 @@ class Money extends StatelessWidget {
         fit: BoxFit.scaleDown,
         alignment: Alignment.centerLeft,
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-      Container(
-        width: size * 0.95,
-        height: size * 0.95,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(colors: [Color(0xFFF7D774), Color(0xFFD9A21E)]),
-          border: Border.all(color: const Color(0xFFB7851A), width: 1),
-        ),
-        alignment: Alignment.center,
-        child: Text('c', style: TextStyle(fontSize: size * 0.55, fontWeight: FontWeight.w900, color: const Color(0xFF7A5510), height: 1)),
-      ),
-      SizedBox(width: size * 0.3),
-      Text(fmtMoney(value, sign: sign),
-          style: TextStyle(
-              fontSize: size, fontWeight: weight, color: c, fontFeatures: const [FontFeature.tabularFigures()])),
-    ]));
+          Container(
+            width: size * 0.95,
+            height: size * 0.95,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                  colors: [Color(0xFFF7D774), Color(0xFFD9A21E)]),
+              border: Border.all(color: const Color(0xFFB7851A), width: 1),
+            ),
+            alignment: Alignment.center,
+            child: Text('c',
+                style: TextStyle(
+                    fontSize: size * 0.55,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF7A5510),
+                    height: 1)),
+          ),
+          SizedBox(width: size * 0.3),
+          Text(fmtMoney(value, sign: sign),
+              style: TextStyle(
+                  fontSize: size,
+                  fontWeight: weight,
+                  color: c,
+                  fontFeatures: const [FontFeature.tabularFigures()])),
+        ]));
   }
 }
 
@@ -72,7 +87,11 @@ class Stars extends StatelessWidget {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       for (var i = 0; i < 5; i++)
         Icon(
-          value >= i + 0.75 ? Icons.star_rounded : (value >= i + 0.25 ? Icons.star_half_rounded : Icons.star_outline_rounded),
+          value >= i + 0.75
+              ? Icons.star_rounded
+              : (value >= i + 0.25
+                  ? Icons.star_half_rounded
+                  : Icons.star_outline_rounded),
           size: size,
           color: Palette.gold,
         ),
@@ -86,9 +105,11 @@ class StatBar extends StatelessWidget {
   final Color? color;
   final double height;
   final double? marker; // 0..1 vertical tick
-  const StatBar(this.value, {super.key, this.color, this.height = 8, this.marker});
+  const StatBar(this.value,
+      {super.key, this.color, this.height = 8, this.marker});
 
-  static Color colorFor(double v) => v >= 0.6 ? Palette.ok : (v >= 0.35 ? Palette.warn : Palette.bad);
+  static Color colorFor(double v) =>
+      v >= 0.6 ? Palette.ok : (v >= 0.35 ? Palette.warn : Palette.bad);
 
   @override
   Widget build(BuildContext context) {
@@ -97,18 +118,25 @@ class StatBar extends StatelessWidget {
       return Stack(children: [
         Container(
           height: height,
-          decoration: BoxDecoration(color: Palette.surface2, borderRadius: BorderRadius.circular(height)),
+          decoration: BoxDecoration(
+              color: Palette.surface2,
+              borderRadius: BorderRadius.circular(height)),
         ),
         AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           height: height,
           width: c.maxWidth * v,
-          decoration: BoxDecoration(color: color ?? colorFor(v), borderRadius: BorderRadius.circular(height)),
+          decoration: BoxDecoration(
+              color: color ?? colorFor(v),
+              borderRadius: BorderRadius.circular(height)),
         ),
         if (marker != null)
           Positioned(
             left: (c.maxWidth * marker!.clamp(0.0, 1.0)) - 1,
-            child: Container(width: 2, height: height, color: Palette.ink.withValues(alpha: 0.5)),
+            child: Container(
+                width: 2,
+                height: height,
+                color: Palette.ink.withValues(alpha: 0.5)),
           ),
       ]);
     });
@@ -121,15 +149,23 @@ class Panel extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
   final Color? borderColor;
-  const Panel({super.key, required this.child, this.padding = const EdgeInsets.all(14), this.color, this.onTap, this.borderColor});
+  const Panel(
+      {super.key,
+      required this.child,
+      this.padding = const EdgeInsets.all(14),
+      this.color,
+      this.onTap,
+      this.borderColor});
   @override
   Widget build(BuildContext context) {
     return Material(
       color: color ?? Palette.surface,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16), side: BorderSide(color: borderColor ?? Palette.line)),
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: borderColor ?? Palette.line)),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
+      child:
+          InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
     );
   }
 }
@@ -145,7 +181,11 @@ class SectionTitle extends StatelessWidget {
       child: Row(children: [
         Expanded(
           child: Text(text.toUpperCase(),
-              style: const TextStyle(fontSize: 12, letterSpacing: 1.1, fontWeight: FontWeight.w800, color: Palette.muted)),
+              style: const TextStyle(
+                  fontSize: 12,
+                  letterSpacing: 1.1,
+                  fontWeight: FontWeight.w800,
+                  color: Palette.muted)),
         ),
         if (trailing != null) trailing!,
       ]),
@@ -162,10 +202,20 @@ class Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+      decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        if (icon != null) ...[Icon(icon, size: 13, color: color), const SizedBox(width: 3)],
-        Flexible(child: Text(text, overflow: TextOverflow.ellipsis, maxLines: 1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color))),
+        if (icon != null) ...[
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 3)
+        ],
+        Flexible(
+            child: Text(text,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700, color: color))),
       ]),
     );
   }
@@ -198,7 +248,8 @@ String _errorText(SimError? e) => switch (e) {
       SimError.notEnoughCash => 'Not enough cash. Check the Money tab.',
       SimError.wrongPhase => 'You cannot do that right now.',
       SimError.unknownId => 'That is no longer there.',
-      SimError.belowMinimumOrder => 'The order is below the supplier\'s minimum.',
+      SimError.belowMinimumOrder =>
+        'The order is below the supplier\'s minimum.',
       SimError.limitReached => 'Limit reached.',
       SimError.locked => 'Not available yet.',
       SimError.invalidValue => 'That value is not allowed.',
@@ -223,7 +274,9 @@ void showWhy(BuildContext context, Explanation ex) {
           Row(children: [
             const Icon(Icons.help_outline, color: Palette.accent),
             const SizedBox(width: 8),
-            Expanded(child: Text('Why? · ${ex.title}', style: Theme.of(context).textTheme.titleMedium)),
+            Expanded(
+                child: Text('Why? · ${ex.title}',
+                    style: Theme.of(context).textTheme.titleMedium)),
           ]),
           const SizedBox(height: 6),
           Text(ex.valueText, style: Theme.of(context).textTheme.headlineMedium),
@@ -232,12 +285,17 @@ void showWhy(BuildContext context, Explanation ex) {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 7),
               child: Row(children: [
-                Expanded(child: Text(f.label, style: const TextStyle(fontSize: 15))),
+                Expanded(
+                    child: Text(f.label, style: const TextStyle(fontSize: 15))),
                 Text(f.display,
                     style: TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
-                        color: f.display.startsWith('−') ? Palette.bad : (f.display.startsWith('+') ? Palette.ok : Palette.ink))),
+                        color: f.display.startsWith('−')
+                            ? Palette.bad
+                            : (f.display.startsWith('+')
+                                ? Palette.ok
+                                : Palette.ink))),
               ]),
             ),
           if (ex.howToImprove != null) ...[
@@ -270,20 +328,26 @@ void showTerm(BuildContext context, String termId) {
     context: context,
     builder: (_) => Padding(
       padding: const EdgeInsets.fromLTRB(22, 0, 22, 28),
-      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Icon(Icons.menu_book, color: Palette.accent),
-          const SizedBox(width: 8),
-          Text(t.name, style: Theme.of(context).textTheme.titleLarge),
-        ]),
-        const SizedBox(height: 12),
-        Text(t.meaning, style: const TextStyle(fontSize: 16)),
-        const SizedBox(height: 10),
-        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Why it matters  ', style: TextStyle(fontWeight: FontWeight.w800, color: Palette.accent)),
-          Expanded(child: Text(t.why, style: const TextStyle(fontSize: 15))),
-        ]),
-      ]),
+      child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              const Icon(Icons.menu_book, color: Palette.accent),
+              const SizedBox(width: 8),
+              Text(t.name, style: Theme.of(context).textTheme.titleLarge),
+            ]),
+            const SizedBox(height: 12),
+            Text(t.meaning, style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 10),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Why it matters  ',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w800, color: Palette.accent)),
+              Expanded(
+                  child: Text(t.why, style: const TextStyle(fontSize: 15))),
+            ]),
+          ]),
     ),
   );
 }
@@ -316,7 +380,8 @@ class TermText extends StatelessWidget {
 class EmptyNote extends StatelessWidget {
   final String text;
   final IconData icon;
-  const EmptyNote(this.text, {super.key, this.icon = Icons.check_circle_outline});
+  const EmptyNote(this.text,
+      {super.key, this.icon = Icons.check_circle_outline});
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -324,21 +389,26 @@ class EmptyNote extends StatelessWidget {
       child: Row(children: [
         Icon(icon, color: Palette.ok, size: 20),
         const SizedBox(width: 8),
-        Expanded(child: Text(text, style: const TextStyle(color: Palette.muted))),
+        Expanded(
+            child: Text(text, style: const TextStyle(color: Palette.muted))),
       ]),
     );
   }
 }
 
-Future<bool> confirm(BuildContext context, String title, String body, {String ok = 'Confirm'}) async {
+Future<bool> confirm(BuildContext context, String title, String body,
+    {String ok = 'Confirm'}) async {
   final r = await showDialog<bool>(
     context: context,
     builder: (_) => AlertDialog(
       title: Text(title),
       content: Text(body),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(ok)),
+        TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel')),
+        FilledButton(
+            onPressed: () => Navigator.pop(context, true), child: Text(ok)),
       ],
     ),
   );
@@ -353,8 +423,17 @@ class Centered extends StatelessWidget {
   Widget build(BuildContext context) => Align(
       alignment: Alignment.topCenter,
       heightFactor: 1,
-      child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 600), child: child));
+      child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600), child: child));
 }
 
-String weekdayLong(int d) => const ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][d % 7];
+String weekdayLong(int d) => const [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday'
+    ][d % 7];
 String seasonName(String s) => s[0].toUpperCase() + s.substring(1);

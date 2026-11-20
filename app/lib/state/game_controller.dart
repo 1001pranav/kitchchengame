@@ -28,7 +28,8 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
   int _ticksSinceSave = 0;
   final Stopwatch _clock = Stopwatch()..start();
 
-  GameController({required this.content, required this.saves, required this.settings}) {
+  GameController(
+      {required this.content, required this.saves, required this.settings}) {
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -39,7 +40,8 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
       setSpeed(Speed.paused);
       autosave();
     }
@@ -117,7 +119,9 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
       if (s.state.phase == 'service') setSpeed(Speed.normal);
       if (s.state.phase != 'service') _stopClock();
     }
-    if (r.ok && settings.haptics && (c is OwnerQueueTask || c is OwnerRush || c is OwnerTreat)) {
+    if (r.ok &&
+        settings.haptics &&
+        (c is OwnerQueueTask || c is OwnerRush || c is OwnerTreat)) {
       HapticFeedback.lightImpact();
     }
     _changed();
@@ -149,7 +153,8 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   void _startClock() {
-    _timer ??= Timer.periodic(const Duration(milliseconds: 33), (_) => _onFrame());
+    _timer ??=
+        Timer.periodic(const Duration(milliseconds: 33), (_) => _onFrame());
     _lastMs = _clock.elapsedMilliseconds;
   }
 

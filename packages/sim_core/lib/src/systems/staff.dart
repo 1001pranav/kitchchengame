@@ -146,7 +146,13 @@ extension _Staff on Sim {
       if (s.workingToday) {
         final overtime =
             s.dayOff == state.weekday && s.workDayOffDay == state.dayIndex;
-        final pay = (s.wage * (overtime ? b.d('OVERTIME_MULT') : 1)).round();
+        final festivalPay = state.flag('festival_double_pay') &&
+                _festivalOn(state.dayIndex) != null
+            ? 2
+            : 1;
+        final pay =
+            (s.wage * (overtime ? b.d('OVERTIME_MULT') : 1) * festivalPay)
+                .round();
         state.today.wages += pay;
         state.wagesOwed += pay; // paid in cash on Sunday
         s.daysWorked++;
