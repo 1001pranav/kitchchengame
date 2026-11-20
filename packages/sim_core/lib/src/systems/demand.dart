@@ -68,6 +68,7 @@ extension _Demand on Sim {
     f['Menu freshness'] = 0.94 + 0.10 * l.freshness;
     f['Rivals'] = 1 - 0.30 * l.competition;
     f['Awareness'] = l.awareness;
+    if (theme.isMixed) f['Wide menu'] = b.d('MIXED_DEMAND_MULT');
     return f;
   }
 

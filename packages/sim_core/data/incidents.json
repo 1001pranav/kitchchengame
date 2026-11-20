@@ -2734,5 +2734,583 @@
    }
   ],
   "defaultOption": "decline"
+ },
+ {
+  "id": "inc_it_pizza_night",
+  "title": "A pizza challenge",
+  "text": "A local radio host challenges you to a live pizza-making contest outside the restaurant this evening.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "italian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "enter",
+    "label": "Enter the contest",
+    "effects": [
+     {
+      "delta": -15,
+      "type": "ownerEnergy"
+     },
+     {
+      "mult": 1.2,
+      "days": 3,
+      "chance": 0.6,
+      "text": "You win the crowd: busier for three days.",
+      "failText": "You lose, but people had fun.",
+      "type": "demand"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Politely decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline",
+  "tags": [
+   "italian"
+  ]
+ },
+ {
+  "id": "inc_it_truffle_offer",
+  "title": "Truffles at a bargain",
+  "text": "A forager offers a basket of truffles at half price. A truffle special could make a splash \u2014 or go off unsold.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "italian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "buy",
+    "label": "Buy them (600)",
+    "effects": [
+     {
+      "amount": -600,
+      "type": "cash"
+     },
+     {
+      "delta": 0.05,
+      "chance": 0.6,
+      "text": "The special sells out and people talk about it.",
+      "failText": "Few order it; most goes to waste.",
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "pass",
+    "label": "Pass",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "pass",
+  "tags": [
+   "italian"
+  ]
+ },
+ {
+  "id": "inc_it_nonna_visit",
+  "title": "A nonna in the kitchen",
+  "text": "An old regular says your sauce \"is not how it was\". She offers to show your cooks her recipe \u2014 for free.",
+  "timing": "close",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "italian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accept",
+    "label": "Let her teach the cooks",
+    "effects": [
+     {
+      "type": "morale",
+      "target": "role:lineCook",
+      "delta": 4,
+      "text": "The cooks enjoyed it."
+     },
+     {
+      "type": "reputation",
+      "delta": 0.05
+     }
+    ]
+   },
+   {
+    "id": "thank",
+    "label": "Thank her and decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "thank",
+  "tags": [
+   "italian"
+  ]
+ },
+ {
+  "id": "inc_cn_wok_hei",
+  "title": "The wok burner roars",
+  "text": "Your head chef wants to turn the wok burners up for real \"wok hei\" \u2014 smokier, faster, harder on the equipment.",
+  "timing": "prep",
+  "category": "equipment",
+  "trigger": {
+   "theme": [
+    "chinese"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "allow",
+    "label": "Allow it this week",
+    "effects": [
+     {
+      "key": "wok_hei",
+      "days": 7,
+      "type": "flag"
+     },
+     {
+      "delta": 0.05,
+      "text": "Dishes taste better; the woks will wear faster.",
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "label": "Keep it as it is",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "no",
+  "tags": [
+   "chinese"
+  ]
+ },
+ {
+  "id": "inc_cn_dumpling_order",
+  "title": "A dumpling order for an office",
+  "text": "A nearby office wants 400 dumplings for a party tomorrow. Good money, but it will tie up your kitchen this morning.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "chinese"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "take",
+    "label": "Take the order (+900)",
+    "effects": [
+     {
+      "amount": 900,
+      "type": "cash"
+     },
+     {
+      "stations": [
+       "stove"
+      ],
+      "ticks": 60,
+      "type": "stationOff"
+     },
+     {
+      "target": "role:lineCook",
+      "delta": -3,
+      "text": "The kitchen works flat out.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline",
+  "tags": [
+   "chinese"
+  ]
+ },
+ {
+  "id": "inc_cn_tea_supplier",
+  "title": "A tea merchant visits",
+  "text": "A tea merchant offers fine jasmine tea for your guests. Customers notice the little things.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "chinese"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "buy",
+    "label": "Buy a stock (400)",
+    "effects": [
+     {
+      "amount": -400,
+      "type": "cash"
+     },
+     {
+      "delta": 0.05,
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "label": "No thanks",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "no",
+  "tags": [
+   "chinese"
+  ]
+ },
+ {
+  "id": "inc_mx_mariachi",
+  "title": "Musicians at the door",
+  "text": "A mariachi band offers to play on Friday night for tips and a meal.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "mexican"
+   ],
+   "weekday": [
+    3,
+    4
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "yes",
+    "label": "Let them play",
+    "effects": [
+     {
+      "amount": -150,
+      "type": "cash"
+     },
+     {
+      "mult": 1.1,
+      "days": 1,
+      "text": "A lively night.",
+      "type": "demand"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "label": "Not this time",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "no",
+  "tags": [
+   "mexican"
+  ]
+ },
+ {
+  "id": "inc_mx_avocado_crunch",
+  "title": "Avocado prices crash",
+  "text": "A glut in the market: avocados are cheap this week. A guacamole special?",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "mexican"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "special",
+    "label": "Run a guacamole special",
+    "effects": [
+     {
+      "mult": 1.05,
+      "days": 5,
+      "type": "demand"
+     },
+     {
+      "amount": -150,
+      "text": "People love a deal.",
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "ignore",
+    "label": "Ignore it",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ignore",
+  "tags": [
+   "mexican"
+  ]
+ },
+ {
+  "id": "inc_mx_salsa_contest",
+  "title": "A salsa contest",
+  "text": "The street fair has a salsa-tasting contest. Entering costs a morning of prep.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "mexican"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "enter",
+    "label": "Enter (200)",
+    "effects": [
+     {
+      "amount": -200,
+      "type": "cash"
+     },
+     {
+      "delta": 0.15,
+      "chance": 0.35,
+      "text": "You win! The trophy goes in the window.",
+      "failText": "Second place. Nice try.",
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "skip",
+    "label": "Skip it",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "skip",
+  "tags": [
+   "mexican"
+  ]
+ },
+ {
+  "id": "inc_in_tandoor_heat",
+  "title": "The tandoor will not heat",
+  "text": "The tandoor is struggling to reach temperature this morning.",
+  "timing": "prep",
+  "category": "equipment",
+  "trigger": {
+   "theme": [
+    "indian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "fix",
+    "label": "Call the technician (300)",
+    "effects": [
+     {
+      "amount": -300,
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "wait",
+    "label": "Let it warm up slowly",
+    "effects": [
+     {
+      "stations": [
+       "tandoor"
+      ],
+      "ticks": 60,
+      "text": "No naan or tandoori for the first two hours.",
+      "type": "stationOff"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "wait",
+  "tags": [
+   "indian"
+  ]
+ },
+ {
+  "id": "inc_in_spice_merchant",
+  "title": "A spice merchant",
+  "text": "A spice merchant offers freshly ground garam masala. Better spices, better curries.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "indian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "buy",
+    "label": "Buy it (350)",
+    "effects": [
+     {
+      "amount": -350,
+      "type": "cash"
+     },
+     {
+      "delta": 0.05,
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "label": "No thanks",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "no",
+  "tags": [
+   "indian"
+  ]
+ },
+ {
+  "id": "inc_in_wedding",
+  "title": "A wedding party",
+  "text": "A family asks you to cater a small wedding lunch tomorrow at their home.",
+  "timing": "close",
+  "category": "good",
+  "trigger": {
+   "theme": [
+    "indian"
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accept",
+    "label": "Accept (+1,500)",
+    "effects": [
+     {
+      "amount": 1500,
+      "type": "cash"
+     },
+     {
+      "delta": -30,
+      "type": "ownerEnergy"
+     },
+     {
+      "target": "all",
+      "delta": -2,
+      "text": "A long, profitable day.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline",
+  "tags": [
+   "indian"
+  ]
  }
 ]

@@ -22,10 +22,10 @@ class Palette {
   static const kitchen = Color(0xFF3B3631);
 }
 
-ThemeData buildTheme() {
+ThemeData buildTheme([Color accent = Palette.accent]) {
   final scheme = ColorScheme.fromSeed(
-    seedColor: Palette.accent,
-    primary: Palette.accent,
+    seedColor: accent,
+    primary: accent,
     secondary: Palette.tomato,
     surface: Palette.surface,
     error: Palette.bad,
@@ -111,6 +111,10 @@ class AssetCatalog {
   static IconData equipment(String type) => switch (type) {
         'eq_range' => Icons.local_fire_department,
         'eq_oven' => Icons.microwave,
+        'eq_wok' => Icons.ramen_dining,
+        'eq_grill' => Icons.outdoor_grill,
+        'eq_fryer' => Icons.set_meal,
+        'eq_tandoor' => Icons.fireplace,
         'eq_fridge' => Icons.kitchen,
         'eq_freezer' => Icons.ac_unit,
         'eq_shelving' => Icons.shelves,
@@ -124,7 +128,7 @@ class AssetCatalog {
 
   static IconData course(String course) => switch (course) {
         'starter' => Icons.tapas,
-        'main' => Icons.local_pizza,
+        'main' => Icons.dinner_dining,
         'side' => Icons.bakery_dining,
         'dessert' => Icons.cake,
         'drink' => Icons.coffee,

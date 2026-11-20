@@ -62,8 +62,12 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
 
   // ------------------------------------------------------------ games
 
-  void newGame({required int seed, required String difficulty}) {
-    sim = Sim.newGame(content: content, seed: seed, difficulty: difficulty);
+  void newGame(
+      {required int seed,
+      required String difficulty,
+      String themeId = 'italian'}) {
+    sim = Sim.newGame(
+        content: content, seed: seed, difficulty: difficulty, themeId: themeId);
     speed = Speed.paused;
     _changed();
   }

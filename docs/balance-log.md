@@ -2,6 +2,24 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 15 — the other cuisines, first measurement
+
+New constants: `MIXED_DEMAND_MULT 1.10`, `MIXED_COOK_MULT 1.10` (doc 01 §4.2), `MENU_MAX 12`,
+`MENU_MAX_MIXED 16` (doc 01 §6.4). Good tier, competent bot, 20 seeds × 26 weeks:
+
+| Cuisine | Survival | Median week to stage 2 | Walk-outs | Avg weekly operating profit |
+|---|---|---|---|---|
+| Italian | 100% | 12 | 9.7% | +2.6k |
+| Chinese | 90% | 11 (11/20) | 7.8% | +0.5k |
+| Mexican | 100% | 11 | 8.2% | +3.4k |
+| Indian | 100% | 16 | 10.3% | +2.8k |
+| Mixed | 100% | 12 | 9.9% | +2.6k |
+
+Chinese is the hard cuisine: the same number of parties spend about 15% less (cheap noodles
+and rice, 2-coin tea) while wages and rent are the same, and it powers one more machine.
+Left as content character for now; if playtests find it unfair, raise its popularity
+weights on the dearer mains rather than touching shared constants.
+
 ## Entry 14 — Bad and Worst tiers made survivable
 
 | Change | Old → new | Evidence |

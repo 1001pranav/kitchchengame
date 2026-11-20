@@ -225,6 +225,8 @@ extension _Incidents on Sim {
           if (state.dayIndex == 0 || state.dayIndex % 84 != 0) return false;
         case 'payableOverdue':
           if (!l.payables.any((p) => p.dueDay < state.dayIndex)) return false;
+        case 'theme':
+          if (!(v as List).contains(state.themeId)) return false;
         case 'stat':
           final m = (v as Map).cast<String, dynamic>();
           final x = _stat(m['name'] as String);

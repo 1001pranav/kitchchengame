@@ -259,19 +259,30 @@ class _KitchenStrip extends StatelessWidget {
       color: Palette.kitchen,
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Row(children: [
-        for (final st in stations)
-          Expanded(
-            child: _StationTile(
-              name: st == 'stove' ? 'Hob' : (st == 'oven' ? 'Ovens' : 'Cold'),
-              icon: st == 'stove'
-                  ? Icons.local_fire_department
-                  : (st == 'oven' ? Icons.microwave : Icons.kitchen),
-              cap: sim.stationCapacity(st),
-              used: inUse(st),
-              queued: queued(st),
-              down: sim.stationDown(st),
-            ),
-          ),
+        Expanded(
+          flex: 3,
+          child: Builder(builder: (context) {
+            Widget tile(String st) => _StationTile(
+                  name: stationNames[st] ?? st,
+                  icon: stationIcons[st] ?? Icons.local_fire_department,
+                  cap: sim.stationCapacity(st),
+                  used: inUse(st),
+                  queued: queued(st),
+                  down: sim.stationDown(st),
+                );
+            if (stations.length <= 3) {
+              return Row(children: [
+                for (final st in stations) Expanded(child: tile(st))
+              ]);
+            }
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(children: [
+                for (final st in stations) SizedBox(width: 82, child: tile(st))
+              ]),
+            );
+          }),
+        ),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -1190,3 +1201,22 @@ class _TeamChip extends StatelessWidget {
     );
   }
 }
+
+const stationNames = {
+  'stove': 'Hob',
+  'oven': 'Ovens',
+  'cold': 'Cold',
+  'wok': 'Woks',
+  'grill': 'Grill',
+  'fryer': 'Fryer',
+  'tandoor': 'Tandoor',
+};
+const stationIcons = {
+  'stove': Icons.local_fire_department,
+  'oven': Icons.microwave,
+  'cold': Icons.kitchen,
+  'wok': Icons.ramen_dining,
+  'grill': Icons.outdoor_grill,
+  'fryer': Icons.set_meal,
+  'tandoor': Icons.fireplace,
+};

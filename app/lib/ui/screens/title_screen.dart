@@ -182,6 +182,7 @@ class NewGameScreen extends StatefulWidget {
 
 class _NewGameScreenState extends State<NewGameScreen> {
   String diff = 'normal';
+  String cuisine = 'italian';
   final seedCtrl = TextEditingController();
 
   @override
@@ -235,19 +236,17 @@ class _NewGameScreenState extends State<NewGameScreen> {
               Icons.whatshot),
           const SectionTitle('Cuisine'),
           Wrap(spacing: 8, runSpacing: 8, children: [
-            ChoiceChip(
-                label: const Text('Italian'),
-                avatar: const Icon(Icons.local_pizza, size: 18),
-                selected: true,
-                onSelected: (_) {}),
-            for (final t in ['Chinese', 'Mexican', 'Indian', 'Mixed'])
-              Tooltip(
-                  message: 'Coming in a later update',
-                  child: ChoiceChip(
-                      label: Text('$t · soon'),
-                      selected: false,
-                      onSelected: null)),
+            for (final t in cuisines.entries)
+              ChoiceChip(
+                label: Text(t.value.$1),
+                avatar: Icon(t.value.$2, size: 18),
+                selected: cuisine == t.key,
+                onSelected: (_) => setState(() => cuisine = t.key),
+              ),
           ]),
+          const SizedBox(height: 8),
+          Text(cuisines[cuisine]!.$3,
+              style: const TextStyle(color: Palette.muted, height: 1.35)),
           const SectionTitle('Seed (optional)'),
           TextField(
             controller: seedCtrl,
@@ -266,7 +265,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
             onPressed: () {
               final seed = int.tryParse(seedCtrl.text) ??
                   (DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF);
-              c.newGame(seed: seed, difficulty: diff);
+              c.newGame(seed: seed, difficulty: diff, themeId: cuisine);
               Navigator.popUntil(context, (r) => r.isFirst);
             },
             icon: const Icon(Icons.storefront),
@@ -620,3 +619,32 @@ String _hiddenText(String k) =>
       'fake_reviews': 'Fake good reviews are about to be removed',
     }[k] ??
     k;
+
+/// Cuisine id → (name, icon, one-line description).
+const cuisines = <String, (String, IconData, String)>{
+  'italian': (
+    'Italian',
+    Icons.local_pizza,
+    'Pizza and pasta. Two ovens carry most of the menu.'
+  ),
+  'chinese': (
+    'Chinese',
+    Icons.ramen_dining,
+    'Wok cooking: fast dishes at lower prices, so you need more customers.'
+  ),
+  'mexican': (
+    'Mexican',
+    Icons.lunch_dining,
+    'Tacos and burritos off the grill; the fryer is busy too.'
+  ),
+  'indian': (
+    'Indian',
+    Icons.rice_bowl,
+    'Curries on the hob, breads in the tandoor. Spicy, skilled cooking.'
+  ),
+  'mixed': (
+    'Mixed',
+    Icons.public,
+    'A bit of everything: 10% more customers, but more stock, more machines and cooks 10% slower.'
+  ),
+};

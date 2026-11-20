@@ -147,7 +147,9 @@ extension _Day on Sim {
       e.ageDays++;
       if (e.broken) continue;
       final t = content.equipment[e.type]!;
-      e.condition = math.max(0, e.condition - t.wearPerDay * (busy ? 1.5 : 1));
+      final wokHei = e.type == 'eq_wok' && state.flag('wok_hei') ? 2 : 1;
+      e.condition =
+          math.max(0, e.condition - t.wearPerDay * (busy ? 1.5 : 1) * wokHei);
       if (_rng.chance(_breakChance(e))) {
         e.broken = true;
         _note('breakdown', '${t.name} broke down', t.price ~/ 10);

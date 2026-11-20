@@ -269,6 +269,7 @@ extension _Service on Sim {
       final prep =
           loc.staff.where((s) => s.role == 'prepCook' && s.workingToday).length;
       d *= 1 - b.d('PREP_BONUS') * math.min(2, prep);
+      if (theme.isMixed) d *= b.d('MIXED_COOK_MULT');
       if (!_hasWorking('eq_hood')) d *= b.d('HOOD_BROKEN_COOK_MULT');
       if (area == 'pass' && who != null) d *= b.d('PASS_COOK_BOOST');
     }

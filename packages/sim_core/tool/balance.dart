@@ -10,6 +10,8 @@ void main(List<String> args) {
   final policy = args.length > 1 ? args[1] : 'competent';
   final seeds = args.length > 2 ? int.parse(args[2]) : 20;
   final weeks = args.length > 3 ? int.parse(args[3]) : 26;
+  final theme =
+      args.length > 4 && !args[4].startsWith('-') ? args[4] : 'italian';
   final content = loadContent();
   var survived = 0;
   final stage2 = <int>[];
@@ -17,7 +19,8 @@ void main(List<String> args) {
   final profits = <int>[];
   final sw = Stopwatch()..start();
   for (var seed = 1; seed <= seeds; seed++) {
-    final sim = Sim.newGame(content: content, seed: seed, difficulty: 'normal');
+    final sim = Sim.newGame(
+        content: content, seed: seed, difficulty: 'normal', themeId: theme);
     final idx = content.tiers.indexWhere((t) => t.id == tier);
     sim.apply(BuyRestaurant(idx));
     final bot = Bot(policy);

@@ -222,9 +222,12 @@ extension _Gen on Sim {
       _rng.pick(stations).broken = true;
     }
     // Menu: every theme dish at base price.
+    final start = theme.startingMenu;
     for (final d in content.dishesFor(theme.id)) {
-      loc.menu[d.id] =
-          MenuItem(dishId: d.id, price: d.basePrice, enabled: true);
+      loc.menu[d.id] = MenuItem(
+          dishId: d.id,
+          price: d.basePrice,
+          enabled: start == null || start.contains(d.id));
     }
     for (final ing in content.ingredients.values) {
       loc.priceIndex[ing.id] = 1.0;

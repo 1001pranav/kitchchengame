@@ -131,6 +131,13 @@ extension _Handlers on Sim {
           return CommandResult.fail(SimError.limitReached,
               'A menu needs at least ${b.i('MENU_MIN')} dishes.');
         }
+        final maxMenu = b.i(theme.isMixed ? 'MENU_MAX_MIXED' : 'MENU_MAX');
+        if (enabled &&
+            !m.enabled &&
+            loc.menu.values.where((x) => x.enabled).length >= maxMenu) {
+          return CommandResult.fail(SimError.limitReached,
+              'A menu can have at most $maxMenu dishes.');
+        }
         if (enabled && !m.enabled) {
           if (state.dayIndex - m.offSinceDay >= 14 &&
               state.dayIndex - loc.lastRotateDay >= 7) {

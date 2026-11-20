@@ -6,7 +6,10 @@ import 'load.dart';
 void main(List<String> args) {
   final content = loadContent();
   final sim = Sim.newGame(
-      content: content, seed: int.parse(args[0]), difficulty: 'normal');
+      content: content,
+      seed: int.parse(args[0]),
+      difficulty: 'normal',
+      themeId: args.length > 4 ? args[4] : 'italian');
   sim.apply(BuyRestaurant(content.tiers.indexWhere((t) => t.id == args[1])));
   final bot = Bot(args[2]);
   while (sim.state.dayIndex < int.parse(args[3]) * 7 &&

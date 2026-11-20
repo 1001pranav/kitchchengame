@@ -44,7 +44,7 @@ class KitchenChainApp extends StatelessWidget {
         builder: (context, _) => MaterialApp(
           title: 'Kitchen Chain',
           debugShowCheckedModeBanner: false,
-          theme: buildTheme(),
+          theme: buildTheme(_accent(controller)),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(controller.settings.textScale),
@@ -71,4 +71,11 @@ class RootRouter extends StatelessWidget {
     if (st.phase == 'market') return const MarketScreen();
     return const GameShell();
   }
+}
+
+Color _accent(GameController c) {
+  final st = c.state;
+  if (st == null) return Palette.accent;
+  final hex = c.content.themes[st.themeId]?.accent ?? '#2F7D4F';
+  return Color(int.parse('FF${hex.substring(1)}', radix: 16));
 }

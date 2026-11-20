@@ -146,6 +146,8 @@ class CuisineTheme {
   final Map<String, List<MapEntry<String, int>>> startingEquipment;
   final List<String> restaurantNames, firstNames, lastNames;
   final List<Festival> festivals;
+  final List<String>? startingMenu;
+  bool get isMixed => id == 'mixed';
   CuisineTheme.fromJson(Map<String, dynamic> j)
       : id = j['id'] as String,
         name = j['name'] as String,
@@ -166,7 +168,8 @@ class CuisineTheme {
             ((j['namePools'] as Map)['staffLast'] as List).cast<String>(),
         festivals = (j['festivals'] as List)
             .map((f) => Festival.fromJson(f as Map<String, dynamic>))
-            .toList();
+            .toList(),
+        startingMenu = (j['startingMenu'] as List?)?.cast<String>();
 }
 
 class LocationClass {
@@ -316,8 +319,11 @@ class Content {
   });
 
   Tier tier(String id) => tiers.firstWhere((t) => t.id == id);
-  List<Dish> dishesFor(String themeId) =>
-      dishes.values.where((d) => d.theme == themeId).toList();
+
+  /// Mixed draws from every pack (doc 01 §4.2).
+  List<Dish> dishesFor(String themeId) => themeId == 'mixed'
+      ? dishes.values.toList()
+      : dishes.values.where((d) => d.theme == themeId).toList();
 }
 
 /// File names the loader expects, relative to the data folder.
