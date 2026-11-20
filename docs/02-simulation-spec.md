@@ -74,8 +74,8 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 
 | Class | BASE_FOOTFALL (groups/day) | Weekly rent | Segment mix office/family/student/tourist |
 |---|---|---|---|
-| poor | 30 | 1,800 | 20/40/35/5 |
-| weak | 40 | 2,000 | 25/40/25/10 |
+| poor | 36 | 1,800 | 20/40/35/5 |
+| weak | 48 | 2,000 | 25/40/25/10 |
 | average | 58 | 2,800 | 30/35/20/15 |
 | good | 65 | 3,800 | 35/30/15/20 |
 | prime | 85 | 5,200 | 35/25/10/30 |
@@ -507,7 +507,7 @@ supplier minimum are combined, and if the total is still below minimum nothing i
 
 ### 10.1 Wear and breakdown (at close)
 `condition −= wearPerDay × (1.5 if groups today > 1.2 × forecast else 1)`.
-`pBreak = BREAK_BASE (0.002) + max(0, 60 − condition) / 400`. On breakdown: `broken = true`
+`pBreak = BREAK_BASE (0.002) + max(0, 60 − condition) / BREAK_COND_DIVISOR (1500)` (was /400; balance-log entry 14). On breakdown: `broken = true`
 from tomorrow's prep and incident `inc_breakdown_<type>` is raised. During service a
 breakdown can also happen via service incidents (same probability ÷ 3, rolled once at
 `StartService` to pick a tick).

@@ -133,7 +133,8 @@ extension _Day on Sim {
       .toDouble();
 
   double _breakChance(Equipment e) {
-    var p = b.d('BREAK_BASE') + math.max(0, 60 - e.condition) / 400;
+    var p = b.d('BREAK_BASE') +
+        math.max(0, 60 - e.condition) / b.d('BREAK_COND_DIVISOR');
     if (e.fragileUntil >= state.dayIndex) p += b.d('CHEAP_REPAIR_FAIL_PER_DAY');
     return p;
   }

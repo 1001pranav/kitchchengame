@@ -46,7 +46,7 @@ class Bot {
         if (e.broken) {
           sim.apply(Repair(e.id, 'proper'));
         } else if (e.condition < sim.maxCondition(e) - 10 &&
-            e.condition >= 50 &&
+            (e.condition >= 50 || st.weekday == 0) &&
             st.cash > 5000) {
           sim.apply(Maintain(e.id));
         }
@@ -63,16 +63,22 @@ class Bot {
       // Pay fair wages to anyone underpaid and unhappy.
       for (final s in loc.staff) {
         final exp = sim.expectedWage(s.role, s.skill);
-        if (s.morale < 45 && s.wage < exp) sim.apply(SetWage(s.id, exp));
+        if (s.morale < 35 && s.wage < exp * 0.95) sim.apply(SetWage(s.id, exp));
       }
       // Keep the roster the restaurant came with: hire into gaps.
-      const want = {
-        'lineCook': 2,
-        'server': 2,
-        'cashier': 1,
-        'dishwasher': 1,
-        'cleaner': 1
+      final roster = sim.content.tier(loc.tierId).staffRoles;
+      final want = {
+        for (final r in [
+          'lineCook',
+          'server',
+          'cashier',
+          'dishwasher',
+          'cleaner'
+        ])
+          r: roster.where((x) => x == r).length,
       };
+      // Never fewer than three cooks in all, so a day off never leaves one alone.
+      if (want['lineCook']! < 2) want['lineCook'] = 2;
       final cooks = loc.staff.where((s) => s.isCook).length;
       want.forEach((role, n) {
         final have = role == 'lineCook'

@@ -2,6 +2,22 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 14 — Bad and Worst tiers made survivable
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Breakdown chance (doc 02 §10.1) | `BREAK_BASE + max(0, 60 − condition)/400` → `/BREAK_COND_DIVISOR (1500)` | At /400 a Bad-tier kitchen (9 units at ~40) broke ~3 times a week and proper repairs ate 2–5k a week. Doc 06 §4 asks for 1 breakdown per 3–5 weeks at condition ≈55; /400 gave ~1 a week for a 10-unit outlet, /1500 gives ~1 per 2.7 weeks |
+| `BASE_FOOTFALL` weak | 40 → 48 | Bad tier, competent, 20 seeds: 10% → 78% survival (40 seeds) |
+| `BASE_FOOTFALL` poor | 30 → 36 | Worst tier, competent: 0% → 40% survival (40 seeds) |
+| Competent bot (doc 06 §6.1) | hires to the Good roster, raises anyone unhappy → keeps its own tier's roster plus at least three cooks; raises only the badly underpaid and very unhappy; services worn machines on Mondays | A two-cook kitchen loses the night whenever one has a day off (80+ walk-outs); the old bot also inflated Bad-tier wages by ~50% |
+
+| Tier / bot | Survival | Median week to stage 2 | Walk-outs | Band |
+|---|---|---|---|---|
+| Good / competent (30) | 100% | 12 | 9.7% | PASS |
+| Bad / competent (40) | 78% | 12 (only 4/40 reach it) | 10.9% | PASS survival (70–85%); stage 2 rarely reached in 26 weeks (band 14–20) |
+| Worst / competent (40) | 40% | never | 7.2% | PASS at the edge (40–60%) |
+| Good / chores (30) | 0% | — | 19.6% | FAIL (60–80%): never replaces leavers and never repairs; see entry 13 |
+
 ## Entry 13 — first measurements with the real per-tick sim_core
 
 Measured with `packages/sim_core/tool/balance.dart` (Normal, 26 weeks). Bots: *passive*
