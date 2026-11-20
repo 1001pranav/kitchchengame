@@ -1,0 +1,62 @@
+[
+ {
+  "id": "poor",
+  "name": "Poor",
+  "baseFootfall": 36,
+  "weeklyRent": 1800,
+  "segmentMix": {
+   "office": 0.2,
+   "family": 0.4,
+   "student": 0.35,
+   "tourist": 0.05
+  }
+ },
+ {
+  "id": "weak",
+  "name": "Weak",
+  "baseFootfall": 48,
+  "weeklyRent": 2000,
+  "segmentMix": {
+   "office": 0.25,
+   "family": 0.4,
+   "student": 0.25,
+   "tourist": 0.1
+  }
+ },
+ {
+  "id": "average",
+  "name": "Average",
+  "baseFootfall": 58,
+  "weeklyRent": 2800,
+  "segmentMix": {
+   "office": 0.3,
+   "family": 0.35,
+   "student": 0.2,
+   "tourist": 0.15
+  }
+ },
+ {
+  "id": "good",
+  "name": "Good",
+  "baseFootfall": 65,
+  "weeklyRent": 3800,
+  "segmentMix": {
+   "office": 0.35,
+   "family": 0.3,
+   "student": 0.15,
+   "tourist": 0.2
+  }
+ },
+ {
+  "id": "prime",
+  "name": "Prime",
+  "baseFootfall": 85,
+  "weeklyRent": 5200,
+  "segmentMix": {
+   "office": 0.35,
+   "family": 0.25,
+   "student": 0.1,
+   "tourist": 0.3
+  }
+ }
+]

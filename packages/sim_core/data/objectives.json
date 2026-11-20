@@ -1,0 +1,10 @@
+[
+ {"id": "obj_1_first_profit", "stage": 1, "text": "Finish a day with a profit", "rewardText": "500 coins", "reward": [{"type": "cash", "amount": 500}]},
+ {"id": "obj_1_full_rota", "stage": 1, "text": "Run a shift with every job covered while you stay free at least half the time", "rewardText": "fast-forward tip", "reward": [{"type": "flag", "key": "autorun_tip"}]},
+ {"id": "obj_1_clear_problems", "stage": 1, "text": "Deal with every problem you inherited", "rewardText": "rating +0.1", "reward": [{"type": "reputation", "delta": 0.1}]},
+ {"id": "obj_1_no_waste", "stage": 1, "text": "A week where waste is under 3% of sales", "rewardText": "1,000 coins", "reward": [{"type": "cash", "amount": 1000}]},
+ {"id": "obj_2_inspection_a", "stage": 2, "text": "Pass a health inspection with cleanliness 90 or more", "rewardText": "rating +0.2", "reward": [{"type": "reputation", "delta": 0.2}]},
+ {"id": "obj_2_four_star", "stage": 2, "text": "Reach a 4.0 rating", "rewardText": "2,000 coins", "reward": [{"type": "cash", "amount": 2000}]},
+ {"id": "obj_2_train_chef", "stage": 2, "text": "Promote a line cook you trained to head chef", "rewardText": "loyalty +10 for everyone", "reward": [{"type": "loyalty", "delta": 10}]},
+ {"id": "obj_2_week_off", "stage": 2, "text": "Rest 2 days in one week and still make a profit that week", "rewardText": "you know you can step back", "reward": [{"type": "flag", "key": "week_off_done"}]}
+]

@@ -1,0 +1,22 @@
+name: kitchen_chain
+description: Kitchen Chain — run a restaurant you bought, mess included. Offline, single player.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.4
+  sim_core:
+    path: ../packages/sim_core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
