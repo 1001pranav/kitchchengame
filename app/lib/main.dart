@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:sim_core/sim_core.dart';
+
+import 'state/game_controller.dart';
+import 'state/save_service.dart';
+import 'state/settings.dart';
+import 'ui/screens/title_screen.dart';
+import 'ui/shell/shell.dart';
+import 'ui/theme.dart';
+import 'ui/widgets/common.dart';
+
+Future<Content> loadContent() async {
+  final files = <String, String>{};
+  for (final f in contentFiles) {
+    files[f] = await rootBundle.loadString('packages/sim_core/data/$f');
+  }
+  return ContentLoader.load(files);
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  final content = await loadContent();
+  final saves = SaveService();
+  final settingsJson = await saves.read('settings');
+  final settings = settingsJson == null ? Settings() : Settings.fromJson(settingsJson);
+  runApp(KitchenChainApp(controller: GameController(content: content, saves: saves, settings: settings)));
+}
+
+class KitchenChainApp extends StatelessWidget {
+  final GameController controller;
+  const KitchenChainApp({super.key, required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return GameScope(
+      controller: controller,
+      child: ListenableBuilder(
+        listenable: controller,
+        builder: (context, _) => MaterialApp(
+          title: 'Kitchen Chain',
+          debugShowCheckedModeBanner: false,
+          theme: buildTheme(),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(controller.settings.textScale),
+              disableAnimations: controller.settings.reducedMotion || MediaQuery.of(context).disableAnimations,
+            ),
+            child: child!,
+          ),
+          home: const RootRouter(),
+        ),
+      ),
+    );
+  }
+}
+
+/// Title → market → game shell, driven by the state.
+class RootRouter extends StatelessWidget {
+  const RootRouter({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final c = GameScope.of(context);
+    final st = c.state;
+    if (st == null) return const TitleScreen();
+    if (st.phase == 'market') return const MarketScreen();
+    return const GameShell();
+  }
+}

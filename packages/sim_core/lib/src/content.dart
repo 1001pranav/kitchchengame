@@ -6,8 +6,9 @@ class Balance {
   Balance(this.raw);
 
   dynamic _get(String k) {
-    if (!raw.containsKey(k))
+    if (!raw.containsKey(k)) {
       throw ContentError('balance.json', k, 'missing key');
+    }
     return raw[k];
   }
 
@@ -139,13 +140,13 @@ class Festival {
         demandMult = _d(j['demandMult']);
 }
 
-class Theme {
+class CuisineTheme {
   final String id, name, accent, mainStation;
   final List<String> stations;
   final Map<String, List<MapEntry<String, int>>> startingEquipment;
   final List<String> restaurantNames, firstNames, lastNames;
   final List<Festival> festivals;
-  Theme.fromJson(Map<String, dynamic> j)
+  CuisineTheme.fromJson(Map<String, dynamic> j)
       : id = j['id'] as String,
         name = j['name'] as String,
         accent = j['accent'] as String,
@@ -292,7 +293,7 @@ class Content {
   final Map<String, EquipmentType> equipment;
   final Map<String, Supplier> suppliers;
   final Map<String, Trait> traits;
-  final Map<String, Theme> themes;
+  final Map<String, CuisineTheme> themes;
   final Map<String, LocationClass> locationClasses;
   final List<Tier> tiers;
   final Map<String, IncidentDef> incidents;
@@ -369,8 +370,9 @@ class ContentLoader {
         cost += r.qty * ing.baseCost;
       }
       final t = targets[d.course];
-      if (t == null)
+      if (t == null) {
         throw ContentError('dishes.json', d.id, 'unknown course ${d.course}');
+      }
       d.basePrice = (cost / t).round();
     }
     final termsRaw = (read('terms_en.json') as Map).cast<String, dynamic>();
@@ -398,7 +400,7 @@ class ContentLoader {
       },
       themes: {
         for (final j in list('themes.json'))
-          j['id'] as String: Theme.fromJson(j)
+          j['id'] as String: CuisineTheme.fromJson(j)
       },
       locationClasses: {
         for (final j in list('locations.json'))

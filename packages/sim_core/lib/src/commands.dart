@@ -201,3 +201,8 @@ class TakeLifeline extends Command {
   final int? equipmentId;
   const TakeLifeline(this.kind, {this.equipmentId});
 }
+
+/// The player has read the morning notices.
+class AckNotices extends Command {
+  const AckNotices();
+}

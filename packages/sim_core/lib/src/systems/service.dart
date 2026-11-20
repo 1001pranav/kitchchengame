@@ -64,8 +64,9 @@ extension _Service on Sim {
     service.arrivals = _rollArrivals(l, groups);
     if (film) {
       for (final a in service.arrivals) {
-        if (a.tick < service.seatingStartTick)
+        if (a.tick < service.seatingStartTick) {
           a.tick = service.seatingStartTick + _rng.nextInt(0, 20);
+        }
       }
       service.arrivals.sort((a, c) => a.tick.compareTo(c.tick));
     }
@@ -86,13 +87,11 @@ extension _Service on Sim {
     final rostered = l.staff.where((s) => _rosteredToday(s)).length;
     final absent =
         l.staff.where((s) => _rosteredToday(s) && !s.workingToday).length;
-    final share = rostered == 0 ? 0.0 : absent / rostered;
     service.target = math.max(
         1,
         (fc.groups * (b.d('TARGET_BASE') + b.d('TARGET_PER_ABSENT') * absent))
             .round());
-    if (share > 0.5)
-      service.target = math.max(service.target, (fc.groups * 0.3).round());
+    if (rostered == 0) service.target = fc.groups;
     state.today.forecast = fc.groups;
     state.today.target = service.target;
     // A breakdown during service (doc 02 §10.1), rolled once.
@@ -131,13 +130,14 @@ extension _Service on Sim {
     return out;
   }
 
+  bool _stationOff(String station) {
+    final s = loc.service;
+    return s != null && (s.stationOffUntil[station] ?? -1) > s.tick;
+  }
+
   int _stationCapacity(String station) {
-    if ((ss.stationOffUntil[station] ?? -1) > ss.tick) return 0;
-    if (station == 'cold') {
-      return (ss.stationOffUntil['cold'] ?? -1) > ss.tick
-          ? 0
-          : b.i('COLD_SLOTS');
-    }
+    if (_stationOff(station)) return 0;
+    if (station == 'cold') return b.i('COLD_SLOTS');
     var n = 0;
     for (final e in loc.equipment) {
       final t = content.equipment[e.type]!;
@@ -147,7 +147,8 @@ extension _Service on Sim {
   }
 
   bool _stationDown(String station) {
-    if (station == 'cold') return (ss.stationOffUntil['cold'] ?? -1) > ss.tick;
+    if (_stationOff(station)) return true;
+    if (station == 'cold') return false;
     var n = 0;
     for (final e in loc.equipment) {
       final t = content.equipment[e.type]!;
@@ -160,7 +161,7 @@ extension _Service on Sim {
   bool _dishOrderable(String dishId) {
     final m = loc.menu[dishId];
     if (m == null || !m.enabled) return false;
-    if (ss.eightySix.contains(dishId)) return false;
+    if (loc.service?.eightySix.contains(dishId) ?? false) return false;
     final d = content.dishes[dishId]!;
     if (_stationDown(d.station)) return false;
     for (final r in d.recipe) {
@@ -172,8 +173,9 @@ extension _Service on Sim {
   int _patienceLimit(Group g) {
     final base = b.dmap('PATIENCE')[g.state] ?? 10;
     var env = 1.0;
-    if (state.season == 'summer' && !_hasWorking('eq_ac'))
+    if (state.season == 'summer' && !_hasWorking('eq_ac')) {
       env *= b.d('AC_BROKEN_PATIENCE');
+    }
     if (ss.patienceUntil > ss.tick) env *= ss.patienceMult;
     final seg = b.map('SEGMENTS')[g.segment] as Map;
     final limit = base *
@@ -260,7 +262,9 @@ extension _Service on Sim {
     final area = ss.ownerArea;
     if (area != null &&
         (areaTasks[area]?.contains(type) ?? false) &&
-        who != null) d *= b.d('ZONE_BOOST');
+        who != null) {
+      d *= b.d('ZONE_BOOST');
+    }
     if (type == 'cook') {
       final prep =
           loc.staff.where((s) => s.role == 'prepCook' && s.workingToday).length;
@@ -335,8 +339,9 @@ extension _Service on Sim {
     // A scheduled breakdown.
     if (t == s.breakdownTick) {
       final e = l.equipmentById(s.breakdownEqId);
-      if (e != null && _isWorking(e))
+      if (e != null && _isWorking(e)) {
         _raiseIncident('inc_fryer_dies_service', subjectId: e.id, forced: true);
+      }
     }
 
     // 4. Generate tasks.
@@ -352,8 +357,9 @@ extension _Service on Sim {
     _ownerUpkeep();
 
     // 7. Service incidents every 30 ticks.
-    if (t > 0 && t % b.i('SERVICE_INCIDENT_EVERY') == 0)
+    if (t > 0 && t % b.i('SERVICE_INCIDENT_EVERY') == 0) {
       _rollIncidents('service');
+    }
 
     // 8. Incident countdowns.
     for (final inc in state.openIncidents) {
@@ -406,8 +412,9 @@ extension _Service on Sim {
     for (final g in s.groups) {
       switch (g.state) {
         case 'waitOrder':
-          if (!_hasTask('takeOrder', groupId: g.id))
+          if (!_hasTask('takeOrder', groupId: g.id)) {
             _newTask('takeOrder', groupId: g.id, tableId: g.tableId);
+          }
         case 'waitFood':
           final tickets =
               g.ticketIds.map(s.ticket).whereType<Ticket>().toList();
@@ -427,15 +434,17 @@ extension _Service on Sim {
             }
           }
         case 'waitBill':
-          if (!_hasTask('bill', groupId: g.id))
+          if (!_hasTask('bill', groupId: g.id)) {
             _newTask('bill', groupId: g.id, tableId: g.tableId);
+          }
         default:
           break;
       }
     }
     for (final tb in s.tables) {
-      if (tb.state == 'dirty' && !_hasTask('clear', tableId: tb.id))
+      if (tb.state == 'dirty' && !_hasTask('clear', tableId: tb.id)) {
         _newTask('clear', tableId: tb.id);
+      }
     }
   }
 
@@ -617,8 +626,10 @@ extension _Service on Sim {
     for (final type in assignOrder) {
       final primary = taskRoles[type]!;
       if (workers.any((w) =>
-          primary.contains(w.role) && !(type == 'bill' && w.role == 'server')))
+          primary.contains(w.role) &&
+          !(type == 'bill' && w.role == 'server'))) {
         continue;
+      }
       final standIns = standInRoles[type]!;
       for (final k in waiting(type)) {
         if (type == 'cook' && !cookAllowed(k)) continue;
@@ -628,7 +639,9 @@ extension _Service on Sim {
           // Their own tasks come first.
           for (final ot in assignOrder) {
             if ((taskRoles[ot]!.contains(w.role)) &&
-                s.tasks.any((x) => x.type == ot && !x.started)) return false;
+                s.tasks.any((x) => x.type == ot && !x.started)) {
+              return false;
+            }
           }
           return true;
         }).toList();
@@ -673,8 +686,9 @@ extension _Service on Sim {
     if (dish.station != 'cold') {
       final units = loc.equipment.where((e) =>
           content.equipment[e.type]!.station == dish.station && _isWorking(e));
-      if (units.isNotEmpty)
+      if (units.isNotEmpty) {
         stationCond = units.map((e) => e.condition).reduce(math.max);
+      }
     }
     var q = 0.40 * ingQ + 0.40 * effSkill + 0.20 * stationCond;
     if (backlog) q -= 10;
@@ -696,7 +710,9 @@ extension _Service on Sim {
     if (byOwner) {
       state.today.ownerTasks++;
       if (state.owner.energy < b.d('OWNER_LOW_ENERGY') &&
-          _rng.chance(b.d('OWNER_MISTAKE_CHANCE'))) mistake = true;
+          _rng.chance(b.d('OWNER_MISTAKE_CHANCE'))) {
+        mistake = true;
+      }
     }
     switch (k.type) {
       case 'seat':
@@ -977,8 +993,9 @@ extension _Service on Sim {
     } else {
       s.ownerIdleTicks++;
     }
-    if (s.ownerArea == 'dishes')
+    if (s.ownerArea == 'dishes') {
       drain = math.max(drain, b.d('OWNER_ENERGY_PER_TICK'));
+    }
     state.owner.energy = math.max(0, state.owner.energy - drain);
     s.favourClock++;
     if (s.favourClock >= b.i('FAVOUR_EVERY')) {
@@ -1016,11 +1033,13 @@ extension _Service on Sim {
   CommandResult _ownerQueue(int taskId) {
     final s = ss;
     final k = s.task(taskId);
-    if (k == null || k.started)
+    if (k == null || k.started) {
       return CommandResult.fail(
           SimError.unknownId, 'That job has already been taken.');
-    if (!_ownerPresent)
+    }
+    if (!_ownerPresent) {
       return CommandResult.fail(SimError.locked, 'You are resting today.');
+    }
     if (s.ownerQueue.contains(taskId)) {
       s.ownerQueue.remove(taskId);
       k.reserved = false;
@@ -1044,22 +1063,26 @@ extension _Service on Sim {
   CommandResult _rush(int groupId) {
     final s = ss;
     final g = s.group(groupId);
-    if (g == null || g.state != 'waitFood')
+    if (g == null || g.state != 'waitFood') {
       return CommandResult.fail(SimError.invalidValue,
           'Only a table waiting for food can be rushed.');
-    if (g.rushed)
+    }
+    if (g.rushed) {
       return CommandResult.fail(SimError.limitReached, 'Already rushed.');
-    if (s.favours <= 0)
+    }
+    if (s.favours <= 0) {
       return CommandResult.fail(SimError.limitReached,
           'No favours left. One comes back every ${b.i('FAVOUR_EVERY')} ticks.');
+    }
     final tickets = g.ticketIds
         .map(s.ticket)
         .whereType<Ticket>()
         .where((k) => k.state != 'cancel')
         .toList();
-    if (tickets.every((k) => k.state == 'ready'))
+    if (tickets.every((k) => k.state == 'ready')) {
       return CommandResult.fail(
           SimError.invalidValue, 'Their food is already at the pass.');
+    }
     for (final k in tickets) {
       if (k.state == 'wait') k.priority = -1;
       if (k.state == 'cook') {
@@ -1080,13 +1103,16 @@ extension _Service on Sim {
   CommandResult _treat(int groupId) {
     final s = ss;
     final g = s.group(groupId);
-    if (g == null || !g.waiting)
+    if (g == null || !g.waiting) {
       return CommandResult.fail(
           SimError.invalidValue, 'Only waiting customers can be treated.');
-    if (g.treated)
+    }
+    if (g.treated) {
       return CommandResult.fail(SimError.limitReached, 'Already treated.');
-    if (s.favours <= 0)
+    }
+    if (s.favours <= 0) {
       return CommandResult.fail(SimError.limitReached, 'No favours left.');
+    }
     g.treated = true;
     g.totalLimit += b.i('TREAT_PATIENCE');
     s.favours--;
@@ -1098,14 +1124,17 @@ extension _Service on Sim {
   CommandResult _bringBill(int groupId) {
     final s = ss;
     final g = s.group(groupId);
-    if (g == null || g.state != 'eating')
+    if (g == null || g.state != 'eating') {
       return CommandResult.fail(
           SimError.invalidValue, 'Only a table that is eating.');
-    if (g.broughtBill)
+    }
+    if (g.broughtBill) {
       return CommandResult.fail(SimError.limitReached, 'Already done.');
-    if (g.eatUntil - s.tick <= 3)
+    }
+    if (g.eatUntil - s.tick <= 3) {
       return CommandResult.fail(
           SimError.invalidValue, 'They are nearly finished anyway.');
+    }
     g.eatUntil = s.tick + 2;
     g.broughtBill = true;
     emit('billBrought', {'groupId': groupId});
@@ -1114,8 +1143,9 @@ extension _Service on Sim {
 
   CommandResult _moveStaff(int staffId, String role) {
     final st = loc.staffById(staffId);
-    if (st == null || !st.workingToday)
+    if (st == null || !st.workingToday) {
       return CommandResult.fail(SimError.unknownId);
+    }
     if (!floorRoles.contains(st.role) || !floorRoles.contains(role)) {
       return CommandResult.fail(SimError.locked,
           'Only floor staff can be moved, and nobody can be moved into the kitchen.');

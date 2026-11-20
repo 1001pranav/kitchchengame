@@ -6,17 +6,20 @@ extension _Handlers on Sim {
   bool _inPhase(List<String> phases) => phases.contains(state.phase);
 
   CommandResult _handle(Command c) {
-    if (state.phase == 'gameOver')
+    if (state.phase == 'gameOver') {
       return CommandResult.fail(SimError.wrongPhase, 'The game is over.');
+    }
     const prepClose = ['prep', 'close'];
     switch (c) {
       case BuyDueDiligence(:final offerIndex):
-        if (!_inPhase(['market']))
+        if (!_inPhase(['market'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _dueDiligence(offerIndex);
       case BuyRestaurant(:final offerIndex):
-        if (!_inPhase(['market']))
+        if (!_inPhase(['market'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _buy(offerIndex);
       case ResolveIncident(:final instanceId, :final optionId):
         final inst = state.incidents
@@ -33,8 +36,13 @@ extension _Handlers on Sim {
       default:
         break;
     }
-    if (!state.hasLocation)
+    if (c is AckNotices) {
+      state.pendingNotices.clear();
+      return const CommandResult(true);
+    }
+    if (!state.hasLocation) {
       return CommandResult.fail(SimError.wrongPhase, 'Buy a restaurant first.');
+    }
     switch (c) {
       case StartService():
         if (!_inPhase(['prep'])) return CommandResult.fail(SimError.wrongPhase);
@@ -52,8 +60,9 @@ extension _Handlers on Sim {
         return const CommandResult(true);
       case EndService():
         // Skip to the end: run the remaining ticks at once.
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         var guard = 0;
         while (state.phase == 'service' && guard++ < 1000) {
           for (final inc in state.openIncidents.where((i) => i.countdown > 0)) {
@@ -63,8 +72,9 @@ extension _Handlers on Sim {
         }
         return const CommandResult(true);
       case EndDay():
-        if (!_inPhase(['close']))
+        if (!_inPhase(['close'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         _applyPendingDefaults('close');
         if (state.phase == 'gameOver') return const CommandResult(true);
         state.days.add(state.today);
@@ -73,12 +83,14 @@ extension _Handlers on Sim {
         _beginDay();
         return const CommandResult(true);
       case OwnerQueueTask(:final taskId):
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _ownerQueue(taskId);
       case OwnerStand(:final area):
-        if (area != null && !areaTasks.containsKey(area))
+        if (area != null && !areaTasks.containsKey(area)) {
           return CommandResult.fail(SimError.invalidValue);
+        }
         if (state.phase == 'service') {
           ss.ownerArea = area;
         } else if (state.phase == 'prep') {
@@ -88,20 +100,24 @@ extension _Handlers on Sim {
         }
         return const CommandResult(true);
       case OwnerRush(:final groupId):
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _rush(groupId);
       case OwnerTreat(:final groupId):
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _treat(groupId);
       case OwnerBringBill(:final groupId):
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _bringBill(groupId);
       case MoveStaff(:final staffId, :final role):
-        if (!_inPhase(['service']))
+        if (!_inPhase(['service'])) {
           return CommandResult.fail(SimError.wrongPhase);
+        }
         return _moveStaff(staffId, role);
       case OwnerRest(:final rest):
         if (!_inPhase(['prep'])) return CommandResult.fail(SimError.wrongPhase);
@@ -131,9 +147,10 @@ extension _Handlers on Sim {
       default:
         break;
     }
-    if (!_inPhase(prepClose))
+    if (!_inPhase(prepClose)) {
       return CommandResult.fail(
           SimError.wrongPhase, 'Do that before or after service.');
+    }
     switch (c) {
       case SetDayOff(:final staffId, :final weekday):
         return _setDayOff(staffId, weekday);
@@ -144,8 +161,9 @@ extension _Handlers on Sim {
       case CancelOrder(:final orderId):
         final o = loc.orders.where((x) => x.id == orderId).firstOrNull;
         if (o == null) return CommandResult.fail(SimError.unknownId);
-        if (o.placedDay != state.dayIndex)
+        if (o.placedDay != state.dayIndex) {
           return CommandResult.fail(SimError.locked, 'Too late to cancel.');
+        }
         loc.orders.remove(o);
         return const CommandResult(true);
       case SetPrice(:final dishId, :final price):
@@ -154,9 +172,10 @@ extension _Handlers on Sim {
         final base = content.dishes[dishId]!.basePrice;
         final lo = (base * b.d('PRICE_MIN_MULT')).ceil(),
             hi = (base * b.d('PRICE_MAX_MULT')).floor();
-        if (price < lo || price > hi)
+        if (price < lo || price > hi) {
           return CommandResult.fail(
               SimError.invalidValue, 'Price must be between $lo and $hi.');
+        }
         m.price = price;
         return const CommandResult(true);
       case Hire(:final applicantId):
@@ -177,15 +196,17 @@ extension _Handlers on Sim {
         return _maintain(equipmentId);
       case Repair(:final equipmentId, :final mode):
         final e = loc.equipmentById(equipmentId);
-        if (e == null || !e.broken)
+        if (e == null || !e.broken) {
           return CommandResult.fail(
               SimError.invalidValue, 'Nothing to repair.');
+        }
         final cost = (content.equipment[e.type]!.price *
                 ((b.map('REPAIR')[mode] as Map)['cost'] as num))
             .round();
-        if (state.cash < cost)
+        if (state.cash < cost) {
           return CommandResult.fail(
               SimError.notEnoughCash, 'The repair costs ${money(cost)}.');
+        }
         final inst = IncidentInstance(
             id: 0,
             incidentId: 'manual',
@@ -225,9 +246,10 @@ extension _Handlers on Sim {
       case ReworkMenu():
         return _reworkMenu();
       case SetParLevel(:final ingredientId, :final par, :final supplierId):
-        if (state.stage < 2)
+        if (state.stage < 2) {
           return CommandResult.fail(
               SimError.locked, 'Keep-in-stock levels unlock at Stage 2.');
+        }
         if (par <= 0) {
           loc.parLevels.remove(ingredientId);
         } else {
@@ -265,11 +287,13 @@ extension _Handlers on Sim {
   }
 
   CommandResult _dueDiligence(int i) {
-    if (i < 0 || i >= state.offers.length)
+    if (i < 0 || i >= state.offers.length) {
       return CommandResult.fail(SimError.unknownId);
+    }
     final o = state.offers[i];
-    if (o.inspected)
+    if (o.inspected) {
       return CommandResult.fail(SimError.limitReached, 'Already inspected.');
+    }
     final cost = b.i('DUE_DILIGENCE_COST');
     if (state.cash < cost) return CommandResult.fail(SimError.notEnoughCash);
     state.cash -= cost;
@@ -284,8 +308,9 @@ extension _Handlers on Sim {
   }
 
   CommandResult _buy(int i) {
-    if (i < 0 || i >= state.offers.length)
+    if (i < 0 || i >= state.offers.length) {
       return CommandResult.fail(SimError.unknownId);
+    }
     final o = state.offers[i];
     final need = o.price - o.loan;
     if (state.cash < need) return CommandResult.fail(SimError.notEnoughCash);
@@ -317,12 +342,14 @@ extension _Handlers on Sim {
   CommandResult _maintain(int id) {
     final e = loc.equipmentById(id);
     if (e == null) return CommandResult.fail(SimError.unknownId);
-    if (e.broken)
+    if (e.broken) {
       return CommandResult.fail(SimError.invalidValue,
           'It is broken: it needs a repair, not servicing.');
-    if (state.dayIndex - e.lastMaintDay < 7)
+    }
+    if (state.dayIndex - e.lastMaintDay < 7) {
       return CommandResult.fail(
           SimError.limitReached, 'Serviced this week already.');
+    }
     final t = content.equipment[e.type]!;
     final cost = (t.price * b.d('MAINTENANCE_PCT')).round();
     if (state.cash < cost) return CommandResult.fail(SimError.notEnoughCash);
@@ -350,9 +377,10 @@ extension _Handlers on Sim {
     final price = (t.price * (secondHand ? 0.5 : 1)).round();
     final old = replaceId == null ? null : loc.equipmentById(replaceId);
     final trade = old == null ? 0 : _equipmentResale(old);
-    if (state.cash + trade < price)
+    if (state.cash + trade < price) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'You need ${money(price - trade)}.');
+    }
     if (old != null) {
       loc.equipment.remove(old);
       if (trade > 0) earn(trade, 'none');

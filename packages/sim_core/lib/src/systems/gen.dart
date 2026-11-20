@@ -41,8 +41,9 @@ extension _Gen on Sim {
     final r = _rng.nextFloat();
     final n = r < 0.5 ? 0 : (r < 0.9 ? 1 : 2);
     final out = <String>[];
-    if (forceBadApple)
+    if (forceBadApple) {
       out.add(_rng.chance(0.5) ? 'trait_toxic' : 'trait_hot_headed');
+    }
     for (var i = 0; i < n; i++) {
       final t = _rng.pick(traits).id;
       if (out.contains(t)) continue;
@@ -86,8 +87,9 @@ extension _Gen on Sim {
     final loy = (morale + _rng.range(-20, 20)).clamp(5, 98).toDouble();
     final traits = _rollTraits(role, forceBadApple: badApple);
     var honesty = _rng.range(30, 95);
-    if (traits.contains('trait_light_fingered'))
+    if (traits.contains('trait_light_fingered')) {
       honesty = math.min(honesty, 30);
+    }
     return Staff(
       id: state.allocId(),
       name: _personName(usedNames),
@@ -237,8 +239,9 @@ extension _Gen on Sim {
       final qty = (perDay * tier.stockDays).ceil();
       if (qty <= 0) return;
       var days = _rng.nextInt(1, ing.shelfLifeDays);
-      if (tier.id == 'worst' && ing.storage == 'chilled' && _rng.chance(0.3))
+      if (tier.id == 'worst' && ing.storage == 'chilled' && _rng.chance(0.3)) {
         days = 1;
+      }
       loc.stock.add(Batch(ingId, qty, 65, days));
     });
     // Hidden problems.
@@ -276,8 +279,9 @@ extension _Gen on Sim {
           for (final s in loc.staff) {
             if (s.role == 'cashier') {
               s.honesty = 15;
-              if (!s.traits.contains('trait_light_fingered'))
+              if (!s.traits.contains('trait_light_fingered')) {
                 s.traits.add('trait_light_fingered');
+              }
             }
           }
         case 'lease_increase':

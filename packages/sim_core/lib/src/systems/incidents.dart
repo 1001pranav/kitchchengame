@@ -111,22 +111,31 @@ extension _Incidents on Sim {
       }
     }
     if (f['trait'] != null && !s.hasTrait(f['trait'] as String)) return false;
-    if (f['moraleBelow'] != null && s.morale >= (f['moraleBelow'] as num))
+    if (f['moraleBelow'] != null && s.morale >= (f['moraleBelow'] as num)) {
       return false;
-    if (f['moraleAbove'] != null && s.morale <= (f['moraleAbove'] as num))
+    }
+    if (f['moraleAbove'] != null && s.morale <= (f['moraleAbove'] as num)) {
       return false;
-    if (f['fatigueAbove'] != null && s.fatigue <= (f['fatigueAbove'] as num))
+    }
+    if (f['fatigueAbove'] != null && s.fatigue <= (f['fatigueAbove'] as num)) {
       return false;
-    if (f['honestyBelow'] != null && s.honesty >= (f['honestyBelow'] as num))
+    }
+    if (f['honestyBelow'] != null && s.honesty >= (f['honestyBelow'] as num)) {
       return false;
-    if (f['skillAbove'] != null && s.skill <= (f['skillAbove'] as num))
+    }
+    if (f['skillAbove'] != null && s.skill <= (f['skillAbove'] as num)) {
       return false;
+    }
     if (f['reliabilityBelow'] != null &&
-        s.reliability >= (f['reliabilityBelow'] as num)) return false;
+        s.reliability >= (f['reliabilityBelow'] as num)) {
+      return false;
+    }
     if (f['absentToday'] == true && !s.absentToday) return false;
     if (f['working'] == true && !s.workingToday) return false;
     if (f['underpaid'] == true &&
-        s.wage >= _expectedWage(s.role, s.skill) * 0.9) return false;
+        s.wage >= _expectedWage(s.role, s.skill) * 0.9) {
+      return false;
+    }
     if (f['wrongDayOff'] == true && s.dayOff == s.preferredDayOff) return false;
     if (f['statusActive'] == true && s.status != 'active') return false;
     return true;
@@ -137,7 +146,9 @@ extension _Incidents on Sim {
     if (f['type'] != null && e.type != f['type']) return false;
     if (f['kind'] != null && t.kind != f['kind']) return false;
     if (f['conditionBelow'] != null &&
-        e.condition >= (f['conditionBelow'] as num)) return false;
+        e.condition >= (f['conditionBelow'] as num)) {
+      return false;
+    }
     if (f['broken'] != null && e.broken != f['broken']) return false;
     if (f['working'] == true && !_isWorking(e)) return false;
     return true;
@@ -188,8 +199,9 @@ extension _Incidents on Sim {
         case 'noGenerator':
           if (_hasWorking('eq_generator')) return false;
         case 'ownerIdleTicks':
-          if (l.service == null || l.service!.ownerIdleTicks < (v as num))
+          if (l.service == null || l.service!.ownerIdleTicks < (v as num)) {
             return false;
+          }
         case 'ownerEnergyBelow':
           if (state.owner.energy >= (v as num)) return false;
         case 'tablesAtLeast':
@@ -206,8 +218,9 @@ extension _Incidents on Sim {
         case 'festivalInDays':
           final f = _festivalOn(state.dayIndex + (v as num).toInt());
           if (f == null ||
-              _festivalOn(state.dayIndex + (v).toInt() - 1) != null)
+              _festivalOn(state.dayIndex + (v).toInt() - 1) != null) {
             return false;
+          }
         case 'seasonChangeDay':
           if (state.dayIndex == 0 || state.dayIndex % 84 != 0) return false;
         case 'payableOverdue':
@@ -219,8 +232,9 @@ extension _Incidents on Sim {
           if (m['above'] != null && x <= (m['above'] as num)) return false;
         case 'any':
           if (!(v as List)
-              .any((x) => _cond((x as Map).cast<String, dynamic>())))
+              .any((x) => _cond((x as Map).cast<String, dynamic>()))) {
             return false;
+          }
         default:
           throw StateError('Unknown condition key ${entry.key}');
       }
@@ -260,8 +274,9 @@ extension _Incidents on Sim {
     if (state.phase == 'gameOver') return null;
     // One open card per incident type.
     if (state.openIncidents
-        .any((i) => i.incidentId == id && i.subjectId == subjectId))
+        .any((i) => i.incidentId == id && i.subjectId == subjectId)) {
       return null;
+    }
     final inst = IncidentInstance(
         id: state.allocId(),
         incidentId: id,
@@ -353,7 +368,9 @@ extension _Incidents on Sim {
         final s = loc.staffById(sc.subjectId);
         if (s == null ||
             s.status != 'active' ||
-            (sc.subjectKey != 'force' && s.morale >= 60)) continue;
+            (sc.subjectKey != 'force' && s.morale >= 60)) {
+          continue;
+        }
         _raiseIncident('inc_resignation', subjectId: s.id, forced: true);
         continue;
       }
@@ -414,8 +431,9 @@ extension _Incidents on Sim {
         .replaceAll('{ingredient}', inst.subjectName)
         .replaceAll('{category}', inst.subjectName)
         .replaceAll('{festival}', inst.subjectName);
-    if (inst.vars['weekday'] != null)
+    if (inst.vars['weekday'] != null) {
       t = t.replaceAll('{weekday}', _weekdayName(inst.vars['weekday']!));
+    }
     final s = loc.staffById(inst.subjectId);
     if (s != null) {
       t = t.replaceAll('{role}', roleName(s.role).toLowerCase());
@@ -449,20 +467,26 @@ extension _Incidents on Sim {
 
   /// Why an option cannot be chosen right now, or null.
   String? _optionBlocked(IncidentOption o, IncidentInstance inst) {
-    if (o.requires != null && !_cond(o.requires!))
+    if (o.requires != null && !_cond(o.requires!)) {
       return o.hint ?? 'Not possible right now';
+    }
     for (final e in o.effects) {
       if (e['type'] == 'cash' && e['chance'] == null && e['amount'] != null) {
         final amt = _amount(e['amount'], inst);
-        if (amt < 0 && state.cash + amt < 0 && !(e['allowDebt'] == true))
+        if (amt < 0 && state.cash + amt < 0 && !(e['allowDebt'] == true)) {
           return 'Not enough cash';
+        }
       }
       if (e['type'] == 'lifeline' &&
           e['kind'] == 'investor' &&
-          state.investorTaken) return 'Only once per game';
+          state.investorTaken) {
+        return 'Only once per game';
+      }
       if (e['type'] == 'lifeline' &&
           e['kind'] == 'sellEquipment' &&
-          loc.equipment.isEmpty) return 'Nothing to sell';
+          loc.equipment.isEmpty) {
+        return 'Nothing to sell';
+      }
       if (e['type'] == 'repair' || e['type'] == 'replace') {
         final eq = loc.equipmentById(inst.subjectId);
         if (eq == null) return 'Already gone';
@@ -523,9 +547,10 @@ extension _Incidents on Sim {
     final lines = <String>[];
     _applyEffects(opt.effects, inst, lines);
     inst.result = lines.isEmpty ? 'Done.' : lines.join(' ');
-    if (ignored)
+    if (ignored) {
       inst.result =
           'Nobody decided in time: "${_fill(opt.label, inst)}". ${inst.result}';
+    }
     _note('incidentResult', '${_fill(def.title, inst)}: ${inst.result}', 0);
     emit('incidentResolved', {'instanceId': inst.id, 'result': inst.result});
   }
@@ -539,8 +564,9 @@ extension _Incidents on Sim {
             ?.map((x) => (x as Map).cast<String, dynamic>())
             .toList();
         if (alt != null) _applyEffects(alt, inst, out);
-        if (e['failText'] != null)
+        if (e['failText'] != null) {
           out.add(_fill(e['failText'] as String, inst));
+        }
         continue;
       }
       _applyEffect(e, inst, out);
@@ -550,16 +576,19 @@ extension _Incidents on Sim {
 
   List<Staff> _targets(dynamic target, IncidentInstance inst) {
     final t = (target as String?) ?? 'subject';
-    if (t == 'subject')
+    if (t == 'subject') {
       return [
         if (loc.staffById(inst.subjectId) != null)
           loc.staffById(inst.subjectId)!
       ];
+    }
     if (t == 'all') return List.of(loc.staff);
-    if (t == 'others')
+    if (t == 'others') {
       return loc.staff.where((s) => s.id != inst.subjectId).toList();
-    if (t.startsWith('role:'))
+    }
+    if (t.startsWith('role:')) {
       return loc.staff.where((s) => s.role == t.substring(5)).toList();
+    }
     return const [];
   }
 
@@ -583,12 +612,14 @@ extension _Incidents on Sim {
         } else {
           earn(a, 'other');
         }
-        if (e['text'] == null && a != 0)
+        if (e['text'] == null && a != 0) {
           out.add(a < 0 ? 'Paid ${money(-a)}.' : 'Received ${money(a)}.');
+        }
       case 'reputation':
         l.reputation = (l.reputation + n('delta')).clamp(0, 5).toDouble();
-        if (e['text'] == null)
+        if (e['text'] == null) {
           out.add('Rating ${n('delta') > 0 ? '+' : ''}${n('delta')}.');
+        }
       case 'hygiene':
         l.hygiene = (l.hygiene + n('delta')).clamp(0, 100).toDouble();
       case 'morale':
@@ -618,8 +649,9 @@ extension _Incidents on Sim {
             case 'morale':
               st.morale = (st.morale + d).clamp(0, 100).toDouble();
           }
-          if (e['set'] != null && stat == 'morale')
+          if (e['set'] != null && stat == 'morale') {
             st.morale = n('set').toDouble();
+          }
         }
       case 'staffStatus':
         if (st != null) {
@@ -630,15 +662,17 @@ extension _Incidents on Sim {
                 state.phase == 'close' ? state.dayIndex + 1 : state.dayIndex;
             st.absentUntil = math.max(st.absentUntil, from + days);
             if (state.phase != 'close') st.workingToday = false;
-            if (e['text'] == null)
+            if (e['text'] == null) {
               out.add(
                   '${st.name} is off for $days day${days == 1 ? '' : 's'}.');
+            }
           } else if (status == 'notice') {
             st.status = 'notice';
             st.noticeLeft = _rng.nextInt(3, 7);
-            if (e['text'] == null)
+            if (e['text'] == null) {
               out.add(
                   '${st.name} will work ${st.noticeLeft} more days, then leave.');
+            }
           }
         }
       case 'noticeLeave':
@@ -665,9 +699,10 @@ extension _Incidents on Sim {
         }
       case 'equipment':
         if (eq != null) {
-          if (e['condition'] != null)
+          if (e['condition'] != null) {
             eq.condition =
                 math.min(_maxCondition(eq), n('condition').toDouble());
+          }
           if (e['conditionDelta'] != null) {
             eq.condition = (eq.condition + n('conditionDelta'))
                 .clamp(0, _maxCondition(eq))
@@ -676,14 +711,16 @@ extension _Incidents on Sim {
           if (e['broken'] != null) {
             eq.broken = e['broken'] as bool;
             if (eq.broken) {
-              if (e['text'] == null)
+              if (e['text'] == null) {
                 out.add(
                     'The ${content.equipment[eq.type]!.name.toLowerCase()} is out of action until repaired.');
+              }
               _timeline('${content.equipment[eq.type]!.name} broke down');
             }
           }
-          if (e['shakyDays'] != null)
+          if (e['shakyDays'] != null) {
             eq.fragileUntil = state.dayIndex + n('shakyDays').toInt();
+          }
         }
       case 'repair':
         if (eq != null) {
@@ -718,8 +755,10 @@ extension _Incidents on Sim {
         for (final bt in l.stock) {
           final ing = content.ingredients[bt.ingredientId]!;
           if (e['storage'] != null && ing.storage != e['storage']) continue;
-          if (e['ingredientId'] != null && bt.ingredientId != e['ingredientId'])
+          if (e['ingredientId'] != null &&
+              bt.ingredientId != e['ingredientId']) {
             continue;
+          }
           if (pct > 0) bt.qty = (bt.qty * (1 - pct)).floor();
           if (qd != 0) bt.quality = (bt.quality + qd).clamp(0, 100);
           if (dl != 0) bt.daysLeft = math.max(1, bt.daysLeft + dl);
@@ -777,8 +816,9 @@ extension _Incidents on Sim {
             if (scope == 'waitFood' && g.state != 'waitFood') continue;
             g.satAdj += n('delta');
             if (e['patience'] != null) g.totalLimit += n('patience').toInt();
-            if (e['patience'] != null && g.waiting)
+            if (e['patience'] != null && g.waiting) {
               g.counter = math.max(0, g.counter - n('patience').toInt());
+            }
           }
         }
       case 'closeLocation':
@@ -943,9 +983,12 @@ extension _Incidents on Sim {
     for (final e in loc.equipment) {
       final t = content.equipment[e.type]!;
       if (t.kind == 'storage' &&
-          loc.equipment.where((x) => x.type == e.type).length < 2) continue;
-      if (best == null || _equipmentResale(e) > _equipmentResale(best))
+          loc.equipment.where((x) => x.type == e.type).length < 2) {
+        continue;
+      }
+      if (best == null || _equipmentResale(e) > _equipmentResale(best)) {
         best = e;
+      }
     }
     return best?.id;
   }

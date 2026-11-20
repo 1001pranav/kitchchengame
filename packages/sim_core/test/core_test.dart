@@ -181,8 +181,9 @@ void main() {
             s.workingToday = false;
           }
           for (final s in sim.state.loc.staff) {
-            if (s.role != 'server' && sim.rosteredToday(s) == false)
+            if (s.role != 'server' && sim.rosteredToday(s) == false) {
               s.workingToday = true;
+            }
           }
           sim.apply(OwnerStand(ownerWorks ? 'tables' : null));
           sim.apply(const StartService());

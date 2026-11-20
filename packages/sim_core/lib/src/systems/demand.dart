@@ -7,8 +7,9 @@ extension _Demand on Sim {
     final month = (day ~/ 28) % 12 + 1;
     final dom = day % 28 + 1;
     for (final f in theme.festivals) {
-      if (f.month == month && dom >= f.day && dom < f.day + f.durationDays)
+      if (f.month == month && dom >= f.day && dom < f.day + f.durationDays) {
         return f;
+      }
     }
     return null;
   }
@@ -59,8 +60,9 @@ extension _Demand on Sim {
     for (final m in l.demandMods) {
       if (day <= m.untilDay) ev *= m.mult;
     }
-    if (_promoActive(l) && day == state.dayIndex)
+    if (_promoActive(l) && day == state.dayIndex) {
       ev *= 1; // boost is in Advertising
+    }
     f['Events'] = ev;
     f['Buzz'] = 0.90 + 0.20 * l.buzz;
     f['Menu freshness'] = 0.94 + 0.10 * l.freshness;

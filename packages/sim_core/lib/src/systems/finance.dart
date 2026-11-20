@@ -34,8 +34,9 @@ extension _Finance on Sim {
     state.cash -= l.rentWeekly;
     // 3. Loan instalments.
     for (final loan in List<Loan>.of(state.loans)) {
-      if (loan.startDay > state.dayIndex - 1)
+      if (loan.startDay > state.dayIndex - 1) {
         continue; // first instalment next Sunday
+      }
       final pay = loan.instalment;
       final interest = loan.interestDue;
       if (pay <= 0) continue;
@@ -113,10 +114,12 @@ extension _Finance on Sim {
           share);
     }
     // Owner rested two days and the week was still profitable.
-    if (state.owner.restDaysThisWeek >= 2 && w.netProfit > 0)
+    if (state.owner.restDaysThisWeek >= 2 && w.netProfit > 0) {
       _completeObjective('obj_2_week_off');
-    if (w.revenue > 0 && w.wasteCost < 0.03 * w.revenue)
+    }
+    if (w.revenue > 0 && w.wasteCost < 0.03 * w.revenue) {
       _completeObjective('obj_1_no_waste');
+    }
     // Competition (doc 11 §A.5).
     if (l.reputation >= 4.0 && w.netProfit > 0) {
       l.competition = math.min(
@@ -266,11 +269,13 @@ extension _Finance on Sim {
   }
 
   CommandResult _applyLoan(int amount, int term, bool secured, String lender) {
-    if (amount < 1000)
+    if (amount < 1000) {
       return CommandResult.fail(
           SimError.invalidValue, 'Borrow at least 1,000.');
-    if (![26, 52, 104].contains(term))
+    }
+    if (![26, 52, 104].contains(term)) {
       return CommandResult.fail(SimError.invalidValue);
+    }
     if (lender == 'private') {
       if (state.loans.any((l) => l.lender == 'private')) {
         return CommandResult.fail(SimError.limitReached,
@@ -376,9 +381,10 @@ extension _Finance on Sim {
         _timeline(
             'Sold ${content.equipment[e.type]!.name} in a hurry for ${money(v)}');
       case 'investor':
-        if (state.investorTaken)
+        if (state.investorTaken) {
           return CommandResult.fail(
               SimError.limitReached, 'Only one investor per game.');
+        }
         state.investorTaken = true;
         state.investorShare = b.d('INVESTOR_SHARE');
         earn(b.i('INVESTOR_CASH'), 'none');
@@ -405,22 +411,25 @@ extension _Finance on Sim {
   int? _lastCampaignDay(String type) {
     int? last;
     for (final c in loc.campaigns) {
-      if (c.type == type && (last == null || c.startDay > last))
+      if (c.type == type && (last == null || c.startDay > last)) {
         last = c.startDay;
+      }
     }
     return last;
   }
 
   CommandResult _startCampaign(String type) {
-    if (state.stage < 2)
+    if (state.stage < 2) {
       return CommandResult.fail(
           SimError.locked, 'Marketing unlocks at Stage 2 (Stable).');
+    }
     final def = b.map('CAMPAIGNS')[type] as Map?;
     if (def == null) return CommandResult.fail(SimError.unknownId);
     final cost = (def['cost'] as num).toInt();
-    if (state.cash < cost)
+    if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'This campaign costs ${money(cost)}.');
+    }
     final start = state.phase == 'close' ? state.dayIndex + 1 : state.dayIndex;
     if (loc.campaigns.any((c) => c.type == type && c.endDay >= start)) {
       return CommandResult.fail(
@@ -556,8 +565,9 @@ extension _Finance on Sim {
       final weights = <Campaign, double>{};
       for (final c in active) {
         var w = 0.0;
-        if (boosts.contains(c) && sumBoost > 0)
+        if (boosts.contains(c) && sumBoost > 0) {
           w += boostEff * c.boost / sumBoost;
+        }
         w += 0.20 * c.buzzLeft / bfWithout;
         if (w > 0) weights[c] = w;
       }
@@ -581,17 +591,19 @@ extension _Finance on Sim {
 
   CommandResult _reworkMenu() {
     final chef = loc.staff.where((s) => s.role == 'headChef').firstOrNull;
-    if (chef == null)
+    if (chef == null) {
       return CommandResult.fail(
           SimError.locked, 'You need a head chef to rework the menu.');
+    }
     if (chef.skill < b.d('MENU_REWORK_SKILL')) {
       return CommandResult.fail(SimError.locked,
           '${chef.name} needs skill ${b.i('MENU_REWORK_SKILL')} to rework the menu (now ${chef.skill.round()}).');
     }
     final cost = b.i('MENU_REWORK_COST');
-    if (state.cash < cost)
+    if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'A menu rework costs ${money(cost)}.');
+    }
     spend(cost, 'marketing');
     loc.freshness = 1;
     loc.buzz = math.min(1, loc.buzz + b.d('MENU_REWORK_BUZZ'));

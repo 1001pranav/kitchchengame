@@ -94,10 +94,12 @@ class Bot {
         if (lc.isNotEmpty) sim.apply(Promote(lc.first.id));
       }
       if (st.stage >= 2) {
-        if (st.dayIndex % 28 == 3 && st.cash > 12000)
+        if (st.dayIndex % 28 == 3 && st.cash > 12000) {
           sim.apply(const StartCampaign('localAd'));
-        if (st.dayIndex % 56 == 10 && st.cash > 8000)
+        }
+        if (st.dayIndex % 56 == 10 && st.cash > 8000) {
           sim.apply(const ReworkMenu());
+        }
       }
     }
     sim.apply(const OwnerStand('door'));
@@ -154,17 +156,21 @@ class Bot {
         final counts = {'door': 0, 'tables': 0, 'pass': 0};
         for (final k in s.tasks) {
           if (k.started) continue;
-          if (k.type == 'seat' || k.type == 'bill')
+          if (k.type == 'seat' || k.type == 'bill') {
             counts['door'] = counts['door']! + 1;
-          if (k.type == 'takeOrder' || k.type == 'clear')
+          }
+          if (k.type == 'takeOrder' || k.type == 'clear') {
             counts['tables'] = counts['tables']! + 1;
+          }
           if (k.type == 'deliver') counts['pass'] = counts['pass']! + 1;
         }
         final best = counts.entries.reduce((a, c) => c.value > a.value ? c : a);
-        if (best.value > 0 && s.ownerArea != best.key)
+        if (best.value > 0 && s.ownerArea != best.key) {
           sim.apply(OwnerStand(best.key));
-        if (s.dirtyDishes > 6 * s.tables.length * 0.8)
+        }
+        if (s.dirtyDishes > 6 * s.tables.length * 0.8) {
           sim.apply(const OwnerStand('dishes'));
+        }
       }
       sim.tick();
     }

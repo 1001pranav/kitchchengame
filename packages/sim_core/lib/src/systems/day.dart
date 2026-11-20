@@ -57,8 +57,9 @@ extension _Day on Sim {
         _markHidden('fake_reviews');
       }
     }
-    if (_rng.chance(b.d('GAS_LOW_CHANCE')))
+    if (_rng.chance(b.d('GAS_LOW_CHANCE'))) {
       state.flags['gas_low'] = state.dayIndex;
+    }
     // 5. Overnight incidents: forced/scheduled first, then up to two rolls.
     _incidentsAtPrep();
     if (state.flag('ill_guest')) {
@@ -176,7 +177,9 @@ extension _Day on Sim {
     }
     h += b.d('HYGIENE_CLEAN_PCT') * (100 - h) * sum;
     if (!closed &&
-        !l.staff.any((s) => s.workingToday && s.role == 'dishwasher')) h -= 5;
+        !l.staff.any((s) => s.workingToday && s.role == 'dishwasher')) {
+      h -= 5;
+    }
     if (!_hasWorking('eq_hood')) h -= 5;
     if (state.flag('pests')) h -= 8;
     if (state.flag('leak')) h -= 10;
@@ -254,17 +257,23 @@ extension _Day on Sim {
           final chef = l.staff.where((s) => s.role == 'headChef').firstOrNull;
           if (chef == null ||
               chef.morale >= 60 ||
-              state.dayIndex > hp.dueDay + 7) hp.done = true;
-        case 'pests':
-          if (state.dayIndex > hp.dueDay && !state.flag('pests'))
+              state.dayIndex > hp.dueDay + 7) {
             hp.done = true;
+          }
+        case 'pests':
+          if (state.dayIndex > hp.dueDay && !state.flag('pests')) {
+            hp.done = true;
+          }
         case 'fridge_failing':
           if (l.equipment
               .where((e) => e.type == 'eq_fridge')
-              .every((e) => e.condition >= 50 && !e.broken)) hp.done = true;
-        case 'cashier_skimming':
-          if (!l.staff.any((s) => s.role == 'cashier' && s.honesty < 40))
+              .every((e) => e.condition >= 50 && !e.broken)) {
             hp.done = true;
+          }
+        case 'cashier_skimming':
+          if (!l.staff.any((s) => s.role == 'cashier' && s.honesty < 40)) {
+            hp.done = true;
+          }
         case 'staff_feud':
           if (!state.flag('feud')) hp.done = true;
         case 'health_violation':
@@ -318,8 +327,9 @@ extension _Day on Sim {
           covered(['dishwasher']) &&
           covered(['cleaner']);
       final served = s.tick > 0 ? 1 - t.ownerTasks * 2 / s.tick : 0;
-      if (allCovered && served >= 0.5 && t.groupsServed > 0)
+      if (allCovered && served >= 0.5 && t.groupsServed > 0) {
         _completeObjective('obj_1_full_rota');
+      }
     }
     if (l.hidden.isNotEmpty &&
         l.hidden.every((h) => h.done) &&
@@ -327,8 +337,9 @@ extension _Day on Sim {
       _completeObjective('obj_1_clear_problems');
     }
     if (l.reputation >= 4.0) _completeObjective('obj_2_four_star');
-    if (state.flag('promoted_trained_chef'))
+    if (state.flag('promoted_trained_chef')) {
       _completeObjective('obj_2_train_chef');
+    }
   }
 
   void _checkStage() {

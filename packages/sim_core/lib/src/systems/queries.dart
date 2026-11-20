@@ -60,8 +60,9 @@ extension SimQueries on Sim {
   String? optionOdds(IncidentOption o) {
     for (final e in o.effects) {
       final c = e['chance'];
-      if (c is num)
+      if (c is num) {
         return c >= 0.7 ? 'likely' : (c >= 0.4 ? 'even odds' : 'risky');
+      }
     }
     return null;
   }
@@ -71,8 +72,9 @@ extension SimQueries on Sim {
     var sum = 0;
     for (final e in o.effects) {
       if (e['chance'] != null) continue;
-      if (e['type'] == 'cash' && e['amount'] != null)
+      if (e['type'] == 'cash' && e['amount'] != null) {
         sum += _amount(e['amount'], inst);
+      }
       if (e['type'] == 'repair') {
         final eq = loc.equipmentById(inst.subjectId);
         if (eq != null) {
@@ -83,10 +85,11 @@ extension SimQueries on Sim {
       }
       if (e['type'] == 'replace') {
         final eq = loc.equipmentById(inst.subjectId);
-        if (eq != null)
+        if (eq != null) {
           sum -= (content.equipment[eq.type]!.price *
                   (e['secondHand'] == true ? 0.5 : 1))
               .round();
+        }
       }
     }
     return sum;
@@ -134,6 +137,17 @@ extension SimQueries on Sim {
 
   bool get canAutoRun => uncoveredRoles().isEmpty;
 
+  /// The shift target the doors will open with (doc 02 §8.2d).
+  int targetPreview() {
+    final fc = _forecast().groups;
+    final absent =
+        loc.staff.where((s) => _rosteredToday(s) && !s.workingToday).length;
+    return math.max(
+        1,
+        (fc * (b.d('TARGET_BASE') + b.d('TARGET_PER_ABSENT') * absent))
+            .round());
+  }
+
   /// The day's top causes, worst first (close report page 2).
   List<DayEvent> topCauses(DayStats t, {int max = 5}) {
     final out = <DayEvent>[];
@@ -143,19 +157,22 @@ extension SimQueries on Sim {
           '${t.walkTable} parties gave up waiting for a table or to be seated',
           t.walkTable * 60));
     }
-    if (t.walkOrder > 0)
+    if (t.walkOrder > 0) {
       out.add(DayEvent(
           'walkOrder',
           '${t.walkOrder} parties left before anyone took their order',
           t.walkOrder * 60));
-    if (t.walkFood > 0)
+    }
+    if (t.walkFood > 0) {
       out.add(DayEvent('walkFood',
           '${t.walkFood} parties left waiting for food', t.walkFood * 70));
-    if (t.walkBill > 0)
+    }
+    if (t.walkBill > 0) {
       out.add(DayEvent(
           'walkBill',
           '${t.walkBill} parties got tired of waiting for the bill',
           t.walkBill * 20));
+    }
     final seen = <String>{};
     for (final e in t.events) {
       if (e.value <= 0) continue;

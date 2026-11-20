@@ -134,7 +134,7 @@ class Sim {
   // ------------------------------------------------------------ helpers
 
   Location get loc => state.loc;
-  Theme get theme => content.themes[state.themeId]!;
+  CuisineTheme get theme => content.themes[state.themeId]!;
   double diff(String key) => b.byDifficulty(key, state.difficulty);
   void emit(String type, [Map<String, Object?> args = const {}]) =>
       _events.add(SimEvent(type, args));

@@ -48,8 +48,9 @@ extension _Inventory on Sim {
   double _effectivePriceIndex(String ingredientId) {
     var pi = loc.priceIndex[ingredientId] ?? 1.0;
     final cat = content.ingredients[ingredientId]!.category;
-    if ((loc.categorySpikeUntil[cat] ?? -1) >= state.dayIndex)
+    if ((loc.categorySpikeUntil[cat] ?? -1) >= state.dayIndex) {
       pi *= b.d('PRICE_SPIKE_MULT');
+    }
     return pi;
   }
 
@@ -86,8 +87,9 @@ extension _Inventory on Sim {
 
   CommandResult _placeOrder(String supplierId, Map<String, int> lines,
       {bool auto = false}) {
-    if (state.phase != 'prep' && state.phase != 'close')
+    if (state.phase != 'prep' && state.phase != 'close') {
       return CommandResult.fail(SimError.wrongPhase);
+    }
     final sup = content.suppliers[supplierId];
     if (sup == null) return CommandResult.fail(SimError.unknownId);
     if ((loc.supplierBlockedUntil[supplierId] ?? -1) >= state.dayIndex) {
@@ -98,8 +100,9 @@ extension _Inventory on Sim {
     lines.forEach((k, v) {
       if (v > 0) clean[k] = v;
     });
-    if (clean.isEmpty)
+    if (clean.isEmpty) {
       return CommandResult.fail(SimError.invalidValue, 'The order is empty.');
+    }
     for (final ing in clean.keys) {
       if (!_supplierSells(supplierId, ing)) {
         return CommandResult.fail(SimError.invalidValue,
@@ -238,13 +241,15 @@ extension _Inventory on Sim {
   CommandResult _payPayable(int id) {
     final p = loc.payables.where((x) => x.id == id).firstOrNull;
     if (p == null) return CommandResult.fail(SimError.unknownId);
-    if (state.cash < p.amount)
+    if (state.cash < p.amount) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'You need ${money(p.amount)}.');
+    }
     loc.payables.remove(p);
     state.cash -= p.amount;
-    if (p.inherited)
+    if (p.inherited) {
       _note('inheritedDebt', 'Paid off the old supplier bill early', p.amount);
+    }
     emit('cashChanged', {'delta': -p.amount});
     return const CommandResult(true);
   }
@@ -272,10 +277,11 @@ extension _Inventory on Sim {
     for (final bt in loc.stock) {
       final storage = content.ingredients[bt.ingredientId]!.storage;
       var dec = 1;
-      if (over[storage]!)
+      if (over[storage]!) {
         dec += (storage != 'dry' && (fridgeDown || _capacity(storage) == 0))
             ? 2
             : 1;
+      }
       bt.daysLeft -= dec;
       if (bt.daysLeft <= 0) {
         final c = bt.qty *
@@ -310,19 +316,21 @@ extension _Inventory on Sim {
       final qty = par.par - loc.stockOf(ing) - onOrder;
       if (qty <= 0) return;
       var sup = par.supplierId;
-      if (!_supplierSells(sup, ing) || content.suppliers[sup]!.leadDays == 0)
+      if (!_supplierSells(sup, ing) || content.suppliers[sup]!.leadDays == 0) {
         sup = 'sup_standard';
+      }
       bySup.putIfAbsent(sup, () => {})[ing] = qty;
     });
     bySup.forEach((sup, lines) {
       final total = _orderTotal(sup, lines);
       if (total >= content.suppliers[sup]!.minOrder) {
         final r = _placeOrder(sup, lines, auto: true);
-        if (r.ok)
+        if (r.ok) {
           _note(
               'autoOrder',
               'Auto-ordered stock from ${content.suppliers[sup]!.name} (${money(total)})',
               0);
+        }
       }
     });
   }

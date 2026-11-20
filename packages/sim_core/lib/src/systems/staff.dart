@@ -30,8 +30,10 @@ extension _Staff on Sim {
       var p = (100 - s.reliability) / b.d('ABSENCE_DIVISOR');
       if (s.fatigue > 80) p += 0.05;
       if (s.morale < 30) p += 0.05;
-      if (state.flag('festival_refused') && _festivalOn(state.dayIndex) != null)
+      if (state.flag('festival_refused') &&
+          _festivalOn(state.dayIndex) != null) {
         p *= 2;
+      }
       if (state.flag('festival_absence') &&
           _festivalOn(state.dayIndex) != null) {
         p += (state.flags['festival_absence_pct'] ?? 0) / 100;
@@ -74,11 +76,13 @@ extension _Staff on Sim {
           -10 * s.recentRush.where((x) => x == 1).length / s.recentRush.length;
     }
     var team = 0.0;
-    if (loc.staff.any(
-        (o) => o.id != s.id && o.role == s.role && o.hasTrait('trait_mentor')))
+    if (loc.staff.any((o) =>
+        o.id != s.id && o.role == s.role && o.hasTrait('trait_mentor'))) {
       team += 3;
-    if (loc.staff.any((o) => o.id != s.id && o.hasTrait('trait_toxic')))
+    }
+    if (loc.staff.any((o) => o.id != s.id && o.hasTrait('trait_toxic'))) {
       team -= 5;
+    }
     f['Team'] = team;
     f['Boss'] = state.owner.restDaysThisWeek >= 7 ? 0 : 3;
     var growth = 0.0;
@@ -175,8 +179,9 @@ extension _Staff on Sim {
       s.morale += (target - s.morale) * b.d('HAPPINESS_SPEED');
       s.morale = s.morale.clamp(0, 100).toDouble();
       s.moodMods.removeWhere((m) => m.untilDay < state.dayIndex);
-      if (s.hasTrait('trait_light_fingered'))
+      if (s.hasTrait('trait_light_fingered')) {
         s.honesty = math.min(s.honesty, 30);
+      }
       // Training finished.
       if (s.trainingUntil == state.dayIndex + 1) {
         state.pendingNotices.add('${s.name} is back from training.');
@@ -243,8 +248,9 @@ extension _Staff on Sim {
 
   CommandResult _hire(int applicantId) {
     final a = state.applicants.where((x) => x.id == applicantId).firstOrNull;
-    if (a == null)
+    if (a == null) {
       return CommandResult.fail(SimError.unknownId, 'That applicant has gone.');
+    }
     if (loc.staff.length >= b.i('MAX_STAFF')) {
       return CommandResult.fail(SimError.limitReached,
           'The kitchen and floor cannot fit more people.');
@@ -295,8 +301,9 @@ extension _Staff on Sim {
   CommandResult _setWage(int staffId, int wage) {
     final s = loc.staffById(staffId);
     if (s == null) return CommandResult.fail(SimError.unknownId);
-    if (wage <= 0 || wage > 2000)
+    if (wage <= 0 || wage > 2000) {
       return CommandResult.fail(SimError.invalidValue);
+    }
     if (wage > s.wage) {
       s.lastGrowthDay = state.dayIndex;
       s.moodMods.add(MoodMod('Recognition', 3, state.dayIndex + 14));
@@ -311,15 +318,18 @@ extension _Staff on Sim {
   CommandResult _train(int staffId) {
     final s = loc.staffById(staffId);
     if (s == null) return CommandResult.fail(SimError.unknownId);
-    if (s.trainingUntil > state.dayIndex)
+    if (s.trainingUntil > state.dayIndex) {
       return CommandResult.fail(SimError.limitReached, 'Already training.');
-    if (s.skill >= 95)
+    }
+    if (s.skill >= 95) {
       return CommandResult.fail(SimError.limitReached,
           '${s.name} is as good as training can make them.');
+    }
     final cost = (b.d('TRAIN_COST_PER_SKILL') * s.skill).round();
-    if (state.cash < cost)
+    if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'Training costs ${money(cost)}.');
+    }
     spend(cost, 'other');
     final start = state.phase == 'close' ? state.dayIndex + 1 : state.dayIndex;
     s.trainingUntil = start + b.i('TRAIN_DAYS');
@@ -337,8 +347,9 @@ extension _Staff on Sim {
   CommandResult _setDayOff(int staffId, int weekday) {
     final s = loc.staffById(staffId);
     if (s == null) return CommandResult.fail(SimError.unknownId);
-    if (weekday < 0 || weekday > 6)
+    if (weekday < 0 || weekday > 6) {
       return CommandResult.fail(SimError.invalidValue);
+    }
     s.dayOff = weekday;
     return const CommandResult(true);
   }
@@ -347,9 +358,10 @@ extension _Staff on Sim {
     final s = loc.staffById(staffId);
     if (s == null) return CommandResult.fail(SimError.unknownId);
     final day = state.phase == 'close' ? state.dayIndex + 1 : state.dayIndex;
-    if (s.dayOff != day % 7)
+    if (s.dayOff != day % 7) {
       return CommandResult.fail(
           SimError.invalidValue, 'That is not ${s.name}\'s day off.');
+    }
     if (s.fatigue > 70 || s.morale < 35) {
       return CommandResult.fail(
           SimError.refused, '${s.name} says no: too tired or too unhappy.');
@@ -361,20 +373,23 @@ extension _Staff on Sim {
     s.workDayOffDay = day;
     s.lastWorkDayOffWeek = day ~/ 7;
     s.workedDayOffWeek = day ~/ 7;
-    if (state.phase == 'prep' && s.absentUntil <= state.dayIndex)
+    if (state.phase == 'prep' && s.absentUntil <= state.dayIndex) {
       s.workingToday = true;
+    }
     return const CommandResult(true);
   }
 
   CommandResult _giveDayOff(int staffId) {
     final s = loc.staffById(staffId);
     if (s == null) return CommandResult.fail(SimError.unknownId);
-    if (state.phase != 'prep')
+    if (state.phase != 'prep') {
       return CommandResult.fail(
           SimError.wrongPhase, 'Give a day off during prep.');
-    if (!s.workingToday)
+    }
+    if (!s.workingToday) {
       return CommandResult.fail(
           SimError.invalidValue, '${s.name} is not working today anyway.');
+    }
     s.workingToday = false;
     s.fatigue = math.max(0, s.fatigue - 30);
     s.moodMods.add(MoodMod('Rest', 3, state.dayIndex + 7));
