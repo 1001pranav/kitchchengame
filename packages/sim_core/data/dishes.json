@@ -1,0 +1,314 @@
+[
+ {
+  "id": "dish_it_bruschetta",
+  "name": "Bruschetta",
+  "theme": "italian",
+  "course": "starter",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 20,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_caprese",
+  "name": "Caprese salad",
+  "theme": "italian",
+  "course": "starter",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 15,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_minestrone",
+  "name": "Minestrone",
+  "theme": "italian",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 30,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_mixed_veg",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_pasta",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_margherita",
+  "name": "Margherita pizza",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 6,
+  "skillReq": 40,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_salami_pizza",
+  "name": "Salami pizza",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 6,
+  "skillReq": 40,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_cured_meat",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_bolognese",
+  "name": "Spaghetti bolognese",
+  "theme": "italian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 6,
+  "skillReq": 45,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_pasta",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_beef",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_risotto",
+  "name": "Mushroom risotto",
+  "theme": "italian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 8,
+  "skillReq": 65,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_mushroom",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_cheese",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_baked_fish",
+  "name": "Baked fish with lemon",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 7,
+  "skillReq": 60,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_fish",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_potato",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_garlic_bread",
+  "name": "Garlic bread",
+  "theme": "italian",
+  "course": "side",
+  "station": "oven",
+  "prepTicks": 3,
+  "skillReq": 15,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_salad",
+  "name": "Green salad",
+  "theme": "italian",
+  "course": "side",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_greens",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_tiramisu",
+  "name": "Tiramisu",
+  "theme": "italian",
+  "course": "dessert",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 50,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_cream",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_eggs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_espresso",
+  "name": "Espresso",
+  "theme": "italian",
+  "course": "drink",
+  "station": "cold",
+  "prepTicks": 1,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   }
+  ]
+ }
+]

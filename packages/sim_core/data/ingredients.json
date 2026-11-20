@@ -1,0 +1,346 @@
+[
+ {
+  "id": "ing_flour",
+  "name": "Flour",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 60,
+  "baseCost": 0.3
+ },
+ {
+  "id": "ing_rice",
+  "name": "Rice",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 90,
+  "baseCost": 0.3
+ },
+ {
+  "id": "ing_pasta",
+  "name": "Dry pasta",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 90,
+  "baseCost": 0.5
+ },
+ {
+  "id": "ing_noodles",
+  "name": "Noodles",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 60,
+  "baseCost": 0.5
+ },
+ {
+  "id": "ing_oil",
+  "name": "Cooking oil",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 90,
+  "baseCost": 0.3
+ },
+ {
+  "id": "ing_sugar",
+  "name": "Sugar",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.2
+ },
+ {
+  "id": "ing_beans",
+  "name": "Dried beans & lentils",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_spice",
+  "name": "Spice mix",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.6
+ },
+ {
+  "id": "ing_soy",
+  "name": "Soy sauce",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_canned_tomato",
+  "name": "Canned tomato",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.6
+ },
+ {
+  "id": "ing_tortilla",
+  "name": "Corn tortillas",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 7,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_chocolate",
+  "name": "Chocolate",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 90,
+  "baseCost": 1.2
+ },
+ {
+  "id": "ing_tea_coffee",
+  "name": "Tea & coffee",
+  "category": "dry",
+  "storage": "dry",
+  "shelfLifeDays": 120,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_onion",
+  "name": "Onion",
+  "category": "produce",
+  "storage": "dry",
+  "shelfLifeDays": 14,
+  "baseCost": 0.3
+ },
+ {
+  "id": "ing_garlic_ginger",
+  "name": "Garlic & ginger",
+  "category": "produce",
+  "storage": "dry",
+  "shelfLifeDays": 14,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_potato",
+  "name": "Potato",
+  "category": "produce",
+  "storage": "dry",
+  "shelfLifeDays": 14,
+  "baseCost": 0.3
+ },
+ {
+  "id": "ing_tomato",
+  "name": "Tomato",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 5,
+  "baseCost": 0.6
+ },
+ {
+  "id": "ing_greens",
+  "name": "Leafy greens",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 0.7
+ },
+ {
+  "id": "ing_pepper",
+  "name": "Bell pepper",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 6,
+  "baseCost": 0.7
+ },
+ {
+  "id": "ing_chilli",
+  "name": "Chilli",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 7,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_mushroom",
+  "name": "Mushroom",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 4,
+  "baseCost": 0.9
+ },
+ {
+  "id": "ing_herbs",
+  "name": "Fresh herbs",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 0.8
+ },
+ {
+  "id": "ing_citrus",
+  "name": "Lemon & lime",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 10,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_avocado",
+  "name": "Avocado",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 4,
+  "baseCost": 1.4
+ },
+ {
+  "id": "ing_mixed_veg",
+  "name": "Mixed vegetables",
+  "category": "produce",
+  "storage": "chilled",
+  "shelfLifeDays": 5,
+  "baseCost": 0.6
+ },
+ {
+  "id": "ing_cream",
+  "name": "Milk & cream",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 5,
+  "baseCost": 0.7
+ },
+ {
+  "id": "ing_butter",
+  "name": "Butter & ghee",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 21,
+  "baseCost": 0.9
+ },
+ {
+  "id": "ing_cheese",
+  "name": "Hard cheese",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 14,
+  "baseCost": 1.3
+ },
+ {
+  "id": "ing_mozzarella",
+  "name": "Mozzarella",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 7,
+  "baseCost": 1.5
+ },
+ {
+  "id": "ing_paneer",
+  "name": "Paneer",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 6,
+  "baseCost": 1.4
+ },
+ {
+  "id": "ing_yogurt",
+  "name": "Yogurt",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 7,
+  "baseCost": 0.6
+ },
+ {
+  "id": "ing_eggs",
+  "name": "Eggs",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 14,
+  "baseCost": 0.4
+ },
+ {
+  "id": "ing_tofu",
+  "name": "Tofu",
+  "category": "dairy",
+  "storage": "chilled",
+  "shelfLifeDays": 6,
+  "baseCost": 0.9
+ },
+ {
+  "id": "ing_chicken",
+  "name": "Chicken",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 2.0
+ },
+ {
+  "id": "ing_beef",
+  "name": "Beef",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 3.2
+ },
+ {
+  "id": "ing_pork",
+  "name": "Pork",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 2.4
+ },
+ {
+  "id": "ing_lamb",
+  "name": "Lamb",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 3,
+  "baseCost": 3.4
+ },
+ {
+  "id": "ing_fish",
+  "name": "Fish",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 2,
+  "baseCost": 3.0
+ },
+ {
+  "id": "ing_cured_meat",
+  "name": "Cured meat",
+  "category": "meat_fish",
+  "storage": "chilled",
+  "shelfLifeDays": 21,
+  "baseCost": 2.2
+ },
+ {
+  "id": "ing_prawns",
+  "name": "Prawns",
+  "category": "frozen",
+  "storage": "frozen",
+  "shelfLifeDays": 30,
+  "baseCost": 3.6
+ },
+ {
+  "id": "ing_wrappers",
+  "name": "Dumpling wrappers",
+  "category": "frozen",
+  "storage": "frozen",
+  "shelfLifeDays": 60,
+  "baseCost": 0.5
+ },
+ {
+  "id": "ing_ice_cream",
+  "name": "Ice cream",
+  "category": "frozen",
+  "storage": "frozen",
+  "shelfLifeDays": 60,
+  "baseCost": 1.0
+ },
+ {
+  "id": "ing_fries",
+  "name": "Frozen fries",
+  "category": "frozen",
+  "storage": "frozen",
+  "shelfLifeDays": 60,
+  "baseCost": 0.5
+ }
+]

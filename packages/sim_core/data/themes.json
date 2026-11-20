@@ -1,0 +1,25 @@
+[
+ {
+  "id": "italian",
+  "name": "Italian",
+  "accent": "#2F7D4F",
+  "stations": ["stove", "oven", "cold"],
+  "mainStation": "oven",
+  "startingEquipment": {
+   "base": [{"type": "eq_range", "count": 1}, {"type": "eq_oven", "count": 2}],
+   "small": [{"type": "eq_range", "count": 1}, {"type": "eq_oven", "count": 1}],
+   "excellentAdds": [{"type": "eq_range", "count": 1}, {"type": "eq_oven", "count": 1}]
+  },
+  "namePools": {
+   "restaurant": ["Trattoria Lupo", "Casa Ferri", "Osteria del Ponte", "Il Forno Rosso", "Pizzeria Nonna Lia", "La Piccola Corte", "Cucina Verde", "Bottega Sole", "Taverna Mirto", "Il Cortile", "Da Rocco", "Vicolo Basilico", "Locanda Fiume", "Pane e Olio", "Trattoria Stella"],
+   "staffFirst": ["Ana", "Ben", "Chen", "Dev", "Eli", "Femi", "Gio", "Hana", "Ivan", "Jada", "Kai", "Lena", "Mei", "Noor", "Omar", "Pia", "Quinn", "Rosa", "Sam", "Tara", "Uma", "Vik", "Wren", "Yusuf", "Zoe", "Ari", "Bea", "Cruz", "Dina", "Emre", "Fay", "Ravi", "Luca", "Marta", "Nico", "Sofia", "Tomas", "Ines", "Kofi", "Aiko"],
+   "staffLast": ["Rossi", "Okafor", "Patel", "Kim", "Novak", "Silva", "Haddad", "Larsen", "Moreau", "Tanaka", "Costa", "Mensah", "Ivanova", "Byrne", "Duarte", "Nguyen", "Ferri", "Adeyemi", "Kaur", "Bianchi"]
+  },
+  "festivals": [
+   {"id": "fest_spring_fair", "name": "Spring Fair", "month": 2, "day": 10, "durationDays": 3, "demandMult": 1.4},
+   {"id": "fest_harvest_week", "name": "Harvest Week", "month": 8, "day": 14, "durationDays": 3, "demandMult": 1.5},
+   {"id": "fest_lantern_nights", "name": "Lantern Nights", "month": 11, "day": 5, "durationDays": 2, "demandMult": 1.3},
+   {"id": "fest_new_year", "name": "New Year", "month": 12, "day": 27, "durationDays": 2, "demandMult": 1.5}
+  ]
+ }
+]

@@ -1,0 +1,2738 @@
+[
+ {
+  "id": "inc_no_show_excuse",
+  "title": "{staff} did not turn up",
+  "text": "{staff} missed today without a word, then texts: \"car trouble\". It is not the first time.",
+  "timing": "prep",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "absentToday": true,
+    "reliabilityBelow": 50
+   }
+  },
+  "weight": 0.3,
+  "cooldownDays": 7,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "let",
+    "label": "Let it go",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": 3,
+      "text": "{staff} is relieved.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "warn",
+    "label": "Give a formal warning",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": -8,
+      "type": "morale"
+     },
+     {
+      "stat": "reliability",
+      "delta": 5,
+      "text": "{staff} promises it will not happen again.",
+      "type": "staffStat"
+     }
+    ]
+   },
+   {
+    "id": "dock",
+    "label": "Dock a day's pay",
+    "effects": [
+     {
+      "amount": "dayWage",
+      "type": "cash"
+     },
+     {
+      "target": "subject",
+      "delta": -12,
+      "type": "morale"
+     },
+     {
+      "target": "others",
+      "delta": -2,
+      "text": "The team noticed. Nobody liked it.",
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "warn",
+  "subjectFilter": {
+   "hasStaff": {
+    "absentToday": true,
+    "reliabilityBelow": 50
+   }
+  }
+ },
+ {
+  "id": "inc_wage_demand",
+  "title": "{staff} wants a raise",
+  "text": "{staff} says other places pay more for the same work \u2014 and they are right. They want to be paid fairly.",
+  "timing": "close",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "underpaid": true
+   }
+  },
+  "weight": 0.3,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "agree",
+    "label": "Agree (+15%)",
+    "effects": [
+     {
+      "mult": 1.15,
+      "type": "setWage"
+     },
+     {
+      "target": "subject",
+      "delta": 10,
+      "text": "{staff} is happy and stays.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "half",
+    "label": "Offer half (+7%)",
+    "effects": [
+     {
+      "mult": 1.07,
+      "type": "setWage"
+     },
+     {
+      "target": "subject",
+      "delta": 3,
+      "chance": 0.5,
+      "text": "{staff} accepts.",
+      "else": [
+       {
+        "target": "subject",
+        "delta": -8,
+        "text": "{staff} accepts, but is not happy.",
+        "type": "morale"
+       }
+      ],
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "refuse",
+    "label": "Refuse",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": -15,
+      "type": "morale"
+     },
+     {
+      "target": "subject",
+      "key": "Rest",
+      "score": -5,
+      "days": 14,
+      "type": "mood"
+     },
+     {
+      "incidentId": "inc_resignation",
+      "days": 7,
+      "chance": 0.4,
+      "sameSubject": true,
+      "text": "{staff} is angry.",
+      "type": "followUp"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "refuse",
+  "subjectFilter": {
+   "hasStaff": {
+    "underpaid": true
+   }
+  }
+ },
+ {
+  "id": "inc_resignation",
+  "title": "{staff} is resigning",
+  "text": "{staff} hands you a letter: they are leaving after their notice. Replacing a {role} takes time and money.",
+  "timing": "close",
+  "category": "staff",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "counter",
+    "label": "Counter-offer (+20% pay)",
+    "effects": [
+     {
+      "mult": 1.2,
+      "type": "setWage"
+     },
+     {
+      "chance": 0.6,
+      "text": "{staff} stays.",
+      "else": [
+       {
+        "text": "{staff} says thanks, but is still leaving.",
+        "type": "noticeLeave"
+       }
+      ],
+      "type": "cancelResignation"
+     },
+     {
+      "stat": "morale",
+      "delta": 0,
+      "set": 55,
+      "type": "staffStat"
+     }
+    ]
+   },
+   {
+    "id": "accept",
+    "label": "Accept their notice",
+    "effects": [
+     {
+      "status": "notice",
+      "type": "staffStatus"
+     }
+    ]
+   },
+   {
+    "id": "today",
+    "label": "Ask them to leave today",
+    "effects": [
+     {
+      "type": "staffLeaves"
+     },
+     {
+      "target": "all",
+      "delta": -3,
+      "text": "{staff} packs up and goes. The team is uneasy.",
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "accept",
+  "subjectFilter": {
+   "hasStaff": {
+    "statusActive": true
+   }
+  }
+ },
+ {
+  "id": "inc_staff_conflict",
+  "title": "Argument in the kitchen",
+  "text": "{staff} and a colleague are snapping at each other mid-shift. Plates are slowing down.",
+  "timing": "service",
+  "category": "staff",
+  "trigger": {
+   "any": [
+    {
+     "hasStaff": {
+      "moraleBelow": 50,
+      "count": 2,
+      "working": true
+     }
+    },
+    {
+     "hasStaff": {
+      "trait": "trait_hot_headed",
+      "working": true
+     }
+    }
+   ]
+  },
+  "weight": 0.25,
+  "cooldownDays": 10,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "mediate",
+    "label": "Calm them down yourself",
+    "effects": [
+     {
+      "ticks": 15,
+      "type": "ownerBusy"
+     },
+     {
+      "target": "subject",
+      "delta": 5,
+      "text": "You talk it through. Both cool off.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "ignore",
+    "label": "Ignore it",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": -8,
+      "type": "morale"
+     },
+     {
+      "target": "subject",
+      "mult": 1.2,
+      "text": "The bad mood slows everyone in that role for the night.",
+      "type": "roleSlow"
+     }
+    ]
+   },
+   {
+    "id": "send",
+    "label": "Send {staff} home",
+    "effects": [
+     {
+      "status": "absent",
+      "days": 1,
+      "type": "staffStatus"
+     },
+     {
+      "target": "subject",
+      "delta": -10,
+      "text": "{staff} storms out.",
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ignore",
+  "subjectFilter": {
+   "hasStaff": {
+    "working": true,
+    "moraleBelow": 60
+   }
+  }
+ },
+ {
+  "id": "inc_poaching",
+  "title": "A rival wants {staff}",
+  "text": "A busy restaurant across town has offered {staff} a job. Good people get noticed.",
+  "timing": "close",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "skillAbove": 65
+   },
+   "reputationAbove": 3.5
+  },
+  "weight": 0.15,
+  "cooldownDays": 21,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "match",
+    "label": "Match the offer (+25%)",
+    "effects": [
+     {
+      "mult": 1.25,
+      "type": "setWage"
+     },
+     {
+      "stat": "loyalty",
+      "delta": 10,
+      "text": "{staff} stays, and feels valued.",
+      "type": "staffStat"
+     }
+    ]
+   },
+   {
+    "id": "promise",
+    "label": "Promise more responsibility",
+    "effects": [
+     {
+      "stat": "loyalty",
+      "delta": 5,
+      "type": "staffStat"
+     },
+     {
+      "incidentId": "inc_resignation",
+      "days": 28,
+      "chance": 0.5,
+      "sameSubject": true,
+      "text": "{staff} will wait and see.",
+      "type": "followUp"
+     }
+    ]
+   },
+   {
+    "id": "wish",
+    "label": "Wish them well",
+    "effects": [
+     {
+      "chance": 0.7,
+      "text": "{staff} takes the job.",
+      "failText": "{staff} decides to stay after all.",
+      "type": "noticeLeave"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "wish",
+  "subjectFilter": {
+   "hasStaff": {
+    "skillAbove": 65
+   }
+  }
+ },
+ {
+  "id": "inc_skimming",
+  "title": "The till looks wrong",
+  "text": "You notice {staff} slipping a note into their pocket while closing a bill. Or did you?",
+  "timing": "service",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "role": [
+     "cashier",
+     "server"
+    ],
+    "honestyBelow": 40,
+    "working": true
+   }
+  },
+  "weight": 0.4,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "fire",
+    "label": "Fire {staff} on the spot",
+    "effects": [
+     {
+      "type": "reveal"
+     },
+     {
+      "type": "staffFired"
+     },
+     {
+      "target": "all",
+      "delta": -2,
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "quiet",
+    "label": "Have a quiet word",
+    "effects": [
+     {
+      "stat": "honesty",
+      "delta": 25,
+      "chance": 0.5,
+      "text": "{staff} goes pale and stops.",
+      "failText": "{staff} denies everything.",
+      "type": "staffStat"
+     }
+    ]
+   },
+   {
+    "id": "unsure",
+    "label": "Not sure enough to act",
+    "effects": [
+     {
+      "text": "The till keeps coming up short.",
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "unsure",
+  "subjectFilter": {
+   "hasStaff": {
+    "role": [
+     "cashier",
+     "server"
+    ],
+    "honestyBelow": 40,
+    "working": true
+   }
+  },
+  "tags": [
+   "observation"
+  ]
+ },
+ {
+  "id": "inc_burnout",
+  "title": "{staff} is exhausted",
+  "text": "{staff} looks grey and keeps dropping things. Tired people make mistakes and get hurt.",
+  "timing": "prep",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "fatigueAbove": 85
+   }
+  },
+  "weight": 0.4,
+  "cooldownDays": 7,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "paid",
+    "label": "Two days off, paid",
+    "effects": [
+     {
+      "amount": "dayWage*-2",
+      "type": "cash"
+     },
+     {
+      "status": "absent",
+      "days": 2,
+      "type": "staffStatus"
+     },
+     {
+      "stat": "fatigue",
+      "delta": -60,
+      "type": "staffStat"
+     },
+     {
+      "target": "subject",
+      "delta": 10,
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "push",
+    "label": "Push through",
+    "effects": [
+     {
+      "status": "absent",
+      "days": 5,
+      "chance": 0.3,
+      "text": "{staff} collapses and is off sick for 5 days.",
+      "failText": "{staff} gets through it. Just.",
+      "type": "staffStatus"
+     }
+    ]
+   },
+   {
+    "id": "unpaid",
+    "label": "A day off, unpaid",
+    "effects": [
+     {
+      "status": "absent",
+      "days": 1,
+      "type": "staffStatus"
+     },
+     {
+      "stat": "fatigue",
+      "delta": -30,
+      "type": "staffStat"
+     },
+     {
+      "target": "subject",
+      "delta": -5,
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "push",
+  "subjectFilter": {
+   "hasStaff": {
+    "fatigueAbove": 85
+   }
+  }
+ },
+ {
+  "id": "inc_injury_kitchen",
+  "title": "Kitchen injury",
+  "text": "{staff} cut their hand badly on a knife. Blood, a towel, and a full board of orders.",
+  "timing": "service",
+  "category": "staff",
+  "trigger": {
+   "any": [
+    {
+     "hasStaff": {
+      "role": [
+       "headChef",
+       "lineCook"
+      ],
+      "fatigueAbove": 70,
+      "working": true
+     }
+    },
+    {
+     "hasStaff": {
+      "trait": "trait_clumsy",
+      "working": true
+     }
+    }
+   ]
+  },
+  "weight": 0.15,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "clinic",
+    "label": "Send to the clinic, pay",
+    "effects": [
+     {
+      "amount": -300,
+      "type": "cash"
+     },
+     {
+      "status": "absent",
+      "days": 2,
+      "type": "staffStatus"
+     },
+     {
+      "target": "all",
+      "delta": 2,
+      "text": "The team sees you look after people.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "bandage",
+    "label": "Bandage it and carry on",
+    "effects": [
+     {
+      "status": "absent",
+      "days": 5,
+      "chance": 0.25,
+      "text": "It gets infected: {staff} is off for 5 days.",
+      "failText": "It holds.",
+      "type": "staffStatus"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "bandage",
+  "subjectFilter": {
+   "hasStaff": {
+    "role": [
+     "headChef",
+     "lineCook"
+    ],
+    "working": true
+   }
+  }
+ },
+ {
+  "id": "inc_training_request",
+  "title": "{staff} asks for training",
+  "text": "{staff} found a course that would make them better at their job. They are keen.",
+  "timing": "close",
+  "category": "staff",
+  "trigger": {
+   "stageMin": 2,
+   "any": [
+    {
+     "hasStaff": {
+      "trait": "trait_ambitious"
+     }
+    },
+    {
+     "hasStaff": {
+      "moraleAbove": 70,
+      "skillAbove": 30
+     }
+    }
+   ]
+  },
+  "weight": 0.2,
+  "cooldownDays": 21,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pay for the course",
+    "effects": [
+     {
+      "type": "train"
+     },
+     {
+      "target": "subject",
+      "delta": 5,
+      "text": "{staff} goes on the course (2 days).",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "no",
+    "label": "Not now",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": -5,
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "no",
+  "subjectFilter": {
+   "hasStaff": {
+    "moraleAbove": 55
+   }
+  }
+ },
+ {
+  "id": "inc_festival_leave",
+  "title": "Time off for {festival}?",
+  "text": "{festival} starts in 3 days. Half the team wants time off to be with family \u2014 and it will be packed here.",
+  "timing": "prep",
+  "category": "staff",
+  "trigger": {
+   "festivalInDays": 3
+  },
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "all",
+    "label": "Approve everyone",
+    "effects": [
+     {
+      "pct": 0.3,
+      "type": "festivalLeave"
+     },
+     {
+      "target": "all",
+      "delta": 8,
+      "text": "Big smiles. About a third will be away.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "half",
+    "label": "Approve half",
+    "effects": [
+     {
+      "pct": 0.15,
+      "type": "festivalLeave"
+     },
+     {
+      "target": "all",
+      "delta": 2,
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "refuse",
+    "label": "Refuse all leave",
+    "effects": [
+     {
+      "target": "all",
+      "delta": -10,
+      "type": "morale"
+     },
+     {
+      "key": "festival_refused",
+      "days": 7,
+      "text": "Grumbling. Expect more sick days.",
+      "type": "flag"
+     }
+    ]
+   },
+   {
+    "id": "double",
+    "label": "Pay double to work it",
+    "effects": [
+     {
+      "type": "festivalPay"
+     },
+     {
+      "target": "all",
+      "delta": 4,
+      "text": "Wages are doubled for the festival days.",
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "refuse"
+ },
+ {
+  "id": "inc_star_employee",
+  "title": "{staff} is a star",
+  "text": "Customers keep asking for {staff} by name. They are good, and they are happy here.",
+  "timing": "close",
+  "category": "good",
+  "trigger": {
+   "hasStaff": {
+    "skillAbove": 75,
+    "moraleAbove": 75
+   }
+  },
+  "weight": 0.1,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "bonus",
+    "label": "Give a bonus",
+    "effects": [
+     {
+      "amount": "weekWage*-0.5",
+      "type": "cash"
+     },
+     {
+      "stat": "loyalty",
+      "delta": 15,
+      "type": "staffStat"
+     },
+     {
+      "target": "subject",
+      "key": "Recognition",
+      "score": 5,
+      "days": 14,
+      "type": "mood"
+     },
+     {
+      "target": "all",
+      "delta": 2,
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "thanks",
+    "label": "Say thank you",
+    "effects": [
+     {
+      "target": "subject",
+      "delta": 2,
+      "type": "morale"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "thanks",
+  "subjectFilter": {
+   "hasStaff": {
+    "skillAbove": 75,
+    "moraleAbove": 75
+   }
+  }
+ },
+ {
+  "id": "inc_day_off_request",
+  "title": "{staff} asks for {weekday} off",
+  "text": "{staff} would like {weekday} as their weekly day off instead. Weekends are your busiest days.",
+  "timing": "prep",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "wrongDayOff": true
+   }
+  },
+  "weight": 0.25,
+  "cooldownDays": 10,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "agree",
+    "label": "Agree",
+    "effects": [
+     {
+      "type": "dayOffChange"
+     },
+     {
+      "target": "subject",
+      "key": "Rest",
+      "score": 3,
+      "days": 14,
+      "type": "mood"
+     }
+    ]
+   },
+   {
+    "id": "trade",
+    "label": "Agree if they cover a busy day",
+    "effects": [
+     {
+      "chance": 0.6,
+      "text": "Deal.",
+      "else": [
+       {
+        "target": "subject",
+        "key": "Rest",
+        "score": -5,
+        "days": 14,
+        "type": "mood"
+       }
+      ],
+      "type": "dayOffChange"
+     }
+    ]
+   },
+   {
+    "id": "refuse",
+    "label": "Refuse",
+    "effects": [
+     {
+      "target": "subject",
+      "key": "Rest",
+      "score": -5,
+      "days": 14,
+      "type": "mood"
+     },
+     {
+      "stat": "morale",
+      "delta": -3,
+      "text": "{staff} is disappointed.",
+      "type": "staffStat"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "refuse",
+  "subjectFilter": {
+   "hasStaff": {
+    "wrongDayOff": true
+   }
+  }
+ },
+ {
+  "id": "inc_toxic_complaint",
+  "title": "Complaints about {staff}",
+  "text": "Two people tell you {staff} bullies new staff and spreads gossip. The whole team is on edge.",
+  "timing": "close",
+  "category": "staff",
+  "trigger": {
+   "hasStaff": {
+    "trait": "trait_toxic"
+   }
+  },
+  "weight": 0.3,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "fire",
+    "label": "Fire {staff}",
+    "effects": [
+     {
+      "type": "staffFired"
+     },
+     {
+      "target": "all",
+      "delta": 5,
+      "text": "The mood lifts at once.",
+      "type": "morale"
+     }
+    ]
+   },
+   {
+    "id": "talk",
+    "label": "Talk to {staff}",
+    "effects": [
+     {
+      "trait": "trait_toxic",
+      "chance": 0.3,
+      "text": "{staff} listens and changes.",
+      "else": [
+       {
+        "target": "others",
+        "delta": -3,
+        "text": "Nothing changes.",
+        "type": "morale"
+       }
+      ],
+      "type": "removeTrait"
+     }
+    ]
+   },
+   {
+    "id": "nothing",
+    "label": "Do nothing",
+    "effects": [
+     {
+      "target": "others",
+      "delta": -6,
+      "type": "morale"
+     },
+     {
+      "incidentId": "inc_resignation",
+      "days": 3,
+      "chance": 0.3,
+      "type": "followUp"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "nothing",
+  "subjectFilter": {
+   "hasStaff": {
+    "trait": "trait_toxic"
+   }
+  }
+ },
+ {
+  "id": "inc_delivery_late",
+  "title": "{supplier} is late",
+  "text": "The {supplier} van has not come. Their driver says tomorrow. Some dishes may sell out today.",
+  "timing": "prep",
+  "category": "supplier",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "supplier",
+  "options": [
+   {
+    "id": "cash",
+    "label": "Buy from Cash & Carry",
+    "effects": [
+     {
+      "key": "open_order_cash_carry",
+      "days": 0,
+      "text": "Open the Stock tab and order from Cash & Carry (it arrives now, but costs 15% more).",
+      "type": "flag"
+     }
+    ]
+   },
+   {
+    "id": "short",
+    "label": "Run a short menu",
+    "effects": [
+     {
+      "text": "Dishes that run out will be marked sold out.",
+      "type": "none"
+     }
+    ]
+   },
+   {
+    "id": "complain",
+    "label": "Call and complain",
+    "effects": [
+     {
+      "pct": 0.1,
+      "chance": 0.4,
+      "text": "They knock 10% off.",
+      "failText": "They do not care.",
+      "type": "refundOrder"
+     },
+     {
+      "delta": -5,
+      "type": "supplierRel"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "short"
+ },
+ {
+  "id": "inc_bad_batch",
+  "title": "A bad batch from {supplier}",
+  "text": "Half the delivery from {supplier} smells off. The meat is grey and the herbs are limp.",
+  "timing": "prep",
+  "category": "supplier",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "supplier",
+  "options": [
+   {
+    "id": "reject",
+    "label": "Send it back",
+    "effects": [
+     {
+      "type": "rejectBatch"
+     },
+     {
+      "delta": -5,
+      "text": "No charge, but {supplier} is annoyed and you are short today.",
+      "type": "supplierRel"
+     }
+    ]
+   },
+   {
+    "id": "use",
+    "label": "Use it anyway",
+    "effects": [
+     {
+      "text": "Quality of today's food will suffer.",
+      "type": "none"
+     }
+    ]
+   },
+   {
+    "id": "staff",
+    "label": "Use it for staff meals only",
+    "effects": [
+     {
+      "type": "rejectBatch"
+     },
+     {
+      "target": "all",
+      "delta": 2,
+      "type": "morale"
+     },
+     {
+      "amount": "orderTotal*-0.5",
+      "text": "You pay half; the team eats well.",
+      "type": "cash"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "use"
+ },
+ {
+  "id": "inc_price_spike",
+  "title": "{category} prices are up",
+  "text": "A bad harvest and fuel costs: {category} will cost 50% more for a week.",
+  "timing": "prep",
+  "category": "supplier",
+  "trigger": {},
+  "weight": 0.2,
+  "cooldownDays": 42,
+  "forced": false,
+  "subject": "category",
+  "options": [
+   {
+    "id": "absorb",
+    "label": "Absorb the cost",
+    "effects": [
+     {
+      "days": 7,
+      "type": "priceSpike"
+     }
+    ]
+   },
+   {
+    "id": "raise",
+    "label": "Raise those dishes 10%",
+    "effects": [
+     {
+      "days": 7,
+      "type": "priceSpike"
+     },
+     {
+      "pct": 0.1,
+      "text": "Prices of affected dishes went up 10%.",
+      "type": "raisePrices"
+     }
+    ]
+   },
+   {
+    "id": "drop",
+    "label": "Take the costliest off the menu",
+    "effects": [
+     {
+      "days": 7,
+      "type": "priceSpike"
+     },
+     {
+      "type": "eightySixCostliest"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "absorb"
+ },
+ {
+  "id": "inc_fridge_warm",
+  "title": "The fridge feels warm",
+  "text": "The fridge is humming loudly and reads 9\u00b0C. Food goes off fast above 5\u00b0C.",
+  "timing": "prep",
+  "category": "equipment",
+  "trigger": {
+   "hasEquipment": {
+    "type": "eq_fridge",
+    "conditionBelow": 50,
+    "broken": false
+   }
+  },
+  "weight": 0.4,
+  "cooldownDays": 7,
+  "forced": false,
+  "subject": "equipment",
+  "options": [
+   {
+    "id": "service",
+    "label": "Emergency service",
+    "effects": [
+     {
+      "amount": "eqPrice*-0.1",
+      "type": "cash"
+     },
+     {
+      "conditionDelta": 20,
+      "text": "The technician fixes the seal.",
+      "type": "equipment"
+     }
+    ]
+   },
+   {
+    "id": "hope",
+    "label": "Hope it holds",
+    "effects": [
+     {
+      "type": "stock",
+      "storage": "chilled",
+      "losePct": 0.6,
+      "chance": 0.35,
+      "text": "Chilled food is ruined."
+     },
+     {
+      "broken": true,
+      "chance": 0.35,
+      "text": "It dies overnight.",
+      "failText": "It holds. For now.",
+      "type": "equipment",
+      "else": []
+     }
+    ]
+   },
+   {
+    "id": "ice",
+    "label": "Move food to ice boxes",
+    "effects": [
+     {
+      "amount": -150,
+      "type": "cash"
+     },
+     {
+      "storage": "chilled",
+      "daysLeftDelta": -1,
+      "type": "stock"
+     },
+     {
+      "conditionDelta": 10,
+      "text": "You buy time.",
+      "type": "equipment"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "hope",
+  "subjectFilter": {
+   "hasEquipment": {
+    "type": "eq_fridge",
+    "conditionBelow": 50,
+    "broken": false
+   }
+  }
+ },
+ {
+  "id": "inc_supplier_cash_only",
+  "title": "{supplier} wants paying",
+  "text": "{supplier} says you owe them money and will only deliver for cash from now on.",
+  "timing": "prep",
+  "category": "supplier",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "supplier",
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pay what we owe",
+    "effects": [
+     {
+      "type": "payPayables"
+     },
+     {
+      "delta": 10,
+      "type": "supplierRel"
+     }
+    ]
+   },
+   {
+    "id": "switch",
+    "label": "Switch supplier",
+    "effects": [
+     {
+      "set": 0,
+      "type": "supplierRel"
+     },
+     {
+      "days": 28,
+      "text": "{supplier} will not deliver for 4 weeks.",
+      "type": "supplierBlock"
+     }
+    ]
+   },
+   {
+    "id": "accept",
+    "label": "Accept cash on delivery",
+    "effects": [
+     {
+      "days": 56,
+      "text": "No more credit from {supplier} for 8 weeks.",
+      "type": "supplierCashOnly"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "accept"
+ },
+ {
+  "id": "inc_pilferage",
+  "title": "Stock is going missing",
+  "text": "The numbers do not add up: cheese, oil and coffee keep vanishing from the store room.",
+  "timing": "close",
+  "category": "money",
+  "trigger": {
+   "hasStaff": {
+    "honestyBelow": 35
+   },
+   "notFlag": "store_locked"
+  },
+  "weight": 0.2,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "staff",
+  "options": [
+   {
+    "id": "lock",
+    "label": "Lock the store room",
+    "effects": [
+     {
+      "amount": -200,
+      "type": "cash"
+     },
+     {
+      "key": "store_locked",
+      "days": 56,
+      "text": "A new lock and a key log.",
+      "type": "flag"
+     }
+    ]
+   },
+   {
+    "id": "audit",
+    "label": "Do a stock audit",
+    "effects": [
+     {
+      "delta": -15,
+      "type": "ownerEnergy"
+     },
+     {
+      "chance": 0.7,
+      "text": "You find the culprit.",
+      "failText": "You cannot prove anything.",
+      "type": "reveal"
+     }
+    ]
+   },
+   {
+    "id": "write",
+    "label": "Write it off",
+    "effects": [
+     {
+      "storage": "dry",
+      "losePct": 0.05,
+      "type": "stock"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "write",
+  "subjectFilter": {
+   "hasStaff": {
+    "honestyBelow": 35
+   }
+  },
+  "tags": [
+   "observation"
+  ]
+ },
+ {
+  "id": "inc_supplier_deal",
+  "title": "A deal from {supplier}",
+  "text": "{supplier} likes working with you and offers 8% off for 8 weeks if you order from them every week.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "stageMin": 2,
+   "stat": {
+    "name": "supplierRelMin",
+    "above": 40
+   }
+  },
+  "weight": 0.15,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "supplier",
+  "options": [
+   {
+    "id": "sign",
+    "label": "Sign the deal",
+    "effects": [
+     {
+      "discount": 0.08,
+      "text": "8% off {supplier} prices for 8 weeks.",
+      "type": "supplierDeal"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline"
+ },
+ {
+  "id": "inc_shortage_seasonal",
+  "title": "{ingredient} is scarce",
+  "text": "The season is changing: {ingredient} will be hard to get for a week. Only Premium Provisions still has it.",
+  "timing": "prep",
+  "category": "supplier",
+  "trigger": {
+   "seasonChangeDay": true
+  },
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "ingredient",
+  "options": [
+   {
+    "id": "ok",
+    "label": "Understood",
+    "effects": [
+     {
+      "days": 7,
+      "type": "shortage"
+     }
+    ]
+   },
+   {
+    "id": "premium",
+    "label": "Pre-order from Premium",
+    "effects": [
+     {
+      "days": 7,
+      "type": "shortage"
+     },
+     {
+      "key": "open_order_premium",
+      "days": 0,
+      "text": "Open the Stock tab to order from Premium Provisions.",
+      "type": "flag"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ok"
+ },
+ {
+  "id": "inc_breakdown",
+  "title": "The {equipment} broke down",
+  "text": "The {equipment} is dead. Without it, some dishes cannot be made. How do you want to fix it?",
+  "timing": "prep",
+  "category": "equipment",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "equipment",
+  "options": [
+   {
+    "id": "cheap",
+    "label": "Cheap repair ({cheap})",
+    "effects": [
+     {
+      "mode": "cheap",
+      "type": "repair"
+     }
+    ]
+   },
+   {
+    "id": "proper",
+    "label": "Proper repair ({proper})",
+    "effects": [
+     {
+      "mode": "proper",
+      "type": "repair"
+     }
+    ]
+   },
+   {
+    "id": "new",
+    "label": "Replace with new ({new})",
+    "effects": [
+     {
+      "type": "replace"
+     }
+    ]
+   },
+   {
+    "id": "used",
+    "label": "Replace second-hand ({used})",
+    "effects": [
+     {
+      "secondHand": true,
+      "type": "replace"
+     }
+    ]
+   },
+   {
+    "id": "leave",
+    "label": "Leave it broken for now",
+    "effects": [
+     {
+      "text": "It stays broken. You can repair it later from the Kitchen tab.",
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "leave"
+ },
+ {
+  "id": "inc_fryer_dies_service",
+  "title": "The {equipment} just died",
+  "text": "Mid-service, the {equipment} cuts out with a bang. Orders are piling up.",
+  "timing": "service",
+  "category": "equipment",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": false,
+  "subject": "equipment",
+  "options": [
+   {
+    "id": "pull",
+    "label": "Take its dishes off for tonight",
+    "effects": [
+     {
+      "broken": true,
+      "type": "equipment"
+     }
+    ]
+   },
+   {
+    "id": "emergency",
+    "label": "Emergency call-out ({emergency})",
+    "effects": [
+     {
+      "amount": "eqPrice*-0.4",
+      "bucket": "upkeep",
+      "type": "cash"
+     },
+     {
+      "condition": 50,
+      "chance": 0.6,
+      "text": "The technician gets it going.",
+      "else": [
+       {
+        "broken": true,
+        "text": "They could not fix it. It is broken.",
+        "type": "equipment"
+       }
+      ],
+      "type": "equipment"
+     }
+    ]
+   },
+   {
+    "id": "diy",
+    "label": "Fix it yourself",
+    "effects": [
+     {
+      "condition": 35,
+      "shakyDays": 14,
+      "chance": 0.3,
+      "text": "It works. Sort of.",
+      "else": [
+       {
+        "broken": true,
+        "text": "Now it is really broken.",
+        "type": "equipment"
+       }
+      ],
+      "type": "equipment"
+     },
+     {
+      "ticks": 10,
+      "type": "ownerBusy"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "pull",
+  "subjectFilter": {
+   "hasEquipment": {
+    "kind": "station",
+    "working": true
+   }
+  }
+ },
+ {
+  "id": "inc_power_cut",
+  "title": "Power cut!",
+  "text": "The lights go out across the street. The ovens and the till are dead.",
+  "timing": "service",
+  "category": "premises",
+  "trigger": {},
+  "weight": 0.1,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "generator",
+    "label": "Use the generator",
+    "effects": [
+     {
+      "amount": -100,
+      "text": "The generator kicks in. Fuel cost 100.",
+      "type": "cash"
+     }
+    ],
+    "requires": {
+     "hasGenerator": true
+    },
+    "hint": "You have no generator"
+   },
+   {
+    "id": "candles",
+    "label": "Candles and a cold menu",
+    "effects": [
+     {
+      "stations": [
+       "stove",
+       "oven",
+       "fryer",
+       "grill",
+       "wok",
+       "tandoor"
+      ],
+      "ticks": 40,
+      "type": "stationOff"
+     },
+     {
+      "mult": 0.9,
+      "ticks": 40,
+      "text": "Only cold dishes for a while.",
+      "type": "patience"
+     }
+    ]
+   },
+   {
+    "id": "close",
+    "label": "Close for the hour",
+    "effects": [
+     {
+      "ticks": 40,
+      "walkWaiting": true,
+      "text": "The queue leaves.",
+      "type": "noSeating"
+     },
+     {
+      "stations": [
+       "stove",
+       "oven",
+       "cold"
+      ],
+      "ticks": 40,
+      "type": "stationOff"
+     }
+    ]
+   },
+   {
+    "id": "rent",
+    "label": "Rent a generator now",
+    "effects": [
+     {
+      "amount": -800,
+      "type": "cash"
+     },
+     {
+      "stations": [
+       "stove",
+       "oven",
+       "fryer",
+       "grill",
+       "wok",
+       "tandoor"
+      ],
+      "ticks": 20,
+      "type": "stationOff"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "close"
+ },
+ {
+  "id": "inc_gas_out",
+  "title": "The gas is running out",
+  "text": "The gas pressure is dropping. Without gas, the hob and ovens stop.",
+  "timing": "service",
+  "category": "premises",
+  "trigger": {
+   "flag": "gas_low"
+  },
+  "weight": 2.0,
+  "cooldownDays": 10,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "rush",
+    "label": "Pay for a rush delivery",
+    "effects": [
+     {
+      "amount": -400,
+      "type": "cash"
+     },
+     {
+      "stations": [
+       "stove",
+       "oven",
+       "grill",
+       "wok",
+       "tandoor"
+      ],
+      "ticks": 20,
+      "type": "stationOff"
+     }
+    ]
+   },
+   {
+    "id": "wait",
+    "label": "Wait for the normal van",
+    "effects": [
+     {
+      "stations": [
+       "stove",
+       "oven",
+       "grill",
+       "wok",
+       "tandoor"
+      ],
+      "ticks": 80,
+      "text": "No hot food for over two hours.",
+      "type": "stationOff"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "wait"
+ },
+ {
+  "id": "inc_plumbing_leak",
+  "title": "A leak under the sink",
+  "text": "Water is pooling under the dish station. It is getting worse.",
+  "timing": "prep",
+  "category": "premises",
+  "trigger": {},
+  "weight": 0.08,
+  "cooldownDays": 84,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "plumber",
+    "label": "Call a plumber now",
+    "effects": [
+     {
+      "amount": -600,
+      "text": "Fixed.",
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "bucket",
+    "label": "Put a bucket under it",
+    "effects": [
+     {
+      "key": "leak",
+      "days": 14,
+      "text": "Cleanliness will suffer every day until it is fixed.",
+      "type": "flag"
+     },
+     {
+      "incidentId": "inc_flood",
+      "days": 3,
+      "chance": 0.5,
+      "type": "followUp"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "bucket"
+ },
+ {
+  "id": "inc_flood",
+  "title": "The leak burst",
+  "text": "The pipe gave way overnight. The kitchen is under an inch of water.",
+  "timing": "prep",
+  "category": "premises",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "fix",
+    "label": "Emergency plumber and clean-up",
+    "effects": [
+     {
+      "amount": -900,
+      "allowDebt": true,
+      "type": "cash"
+     },
+     {
+      "key": "leak",
+      "type": "clearFlag"
+     },
+     {
+      "days": 1,
+      "type": "closeLocation"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "fix"
+ },
+ {
+  "id": "inc_pests",
+  "title": "Droppings in the store room",
+  "text": "You find mouse droppings behind the flour sacks. Where there is one mouse\u2026",
+  "timing": "prep",
+  "category": "premises",
+  "trigger": {
+   "any": [
+    {
+     "hygieneBelow": 55
+    },
+    {
+     "flag": "pests"
+    }
+   ]
+  },
+  "weight": 0.3,
+  "cooldownDays": 21,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "pro",
+    "label": "Professional treatment",
+    "effects": [
+     {
+      "amount": -1200,
+      "type": "cash"
+     },
+     {
+      "days": 1,
+      "type": "closeLocation"
+     },
+     {
+      "delta": 20,
+      "type": "hygiene"
+     },
+     {
+      "key": "pests",
+      "type": "clearFlag"
+     },
+     {
+      "kind": "pests",
+      "type": "markHidden"
+     }
+    ]
+   },
+   {
+    "id": "diy",
+    "label": "Set traps yourself",
+    "effects": [
+     {
+      "amount": -150,
+      "type": "cash"
+     },
+     {
+      "key": "pests",
+      "chance": 0.5,
+      "text": "The traps work.",
+      "else": [
+       {
+        "key": "pests",
+        "text": "They keep coming.",
+        "type": "flag"
+       }
+      ],
+      "type": "clearFlag"
+     }
+    ]
+   },
+   {
+    "id": "ignore",
+    "label": "Ignore it",
+    "effects": [
+     {
+      "key": "pests",
+      "type": "flag"
+     },
+     {
+      "days": 7,
+      "chance": 0.5,
+      "text": "Someone may have reported it.",
+      "type": "scheduleInspection"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ignore"
+ },
+ {
+  "id": "inc_pos_crash",
+  "title": "The till froze",
+  "text": "The till screen is stuck on a spinning wheel. Tables are waiting to pay.",
+  "timing": "service",
+  "category": "equipment",
+  "trigger": {
+   "hasEquipment": {
+    "type": "eq_pos",
+    "conditionBelow": 50
+   }
+  },
+  "weight": 0.3,
+  "cooldownDays": 7,
+  "forced": false,
+  "subject": "equipment",
+  "options": [
+   {
+    "id": "paper",
+    "label": "Pen and paper",
+    "effects": [
+     {
+      "mult": 2,
+      "ticks": 999,
+      "type": "billSlow"
+     },
+     {
+      "pctOfDayRevenue": -0.02,
+      "text": "Slow bills for the night, and a few mistakes.",
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "reboot",
+    "label": "Reboot it",
+    "effects": [
+     {
+      "mult": 10,
+      "ticks": 10,
+      "type": "billSlow"
+     },
+     {
+      "conditionDelta": 10,
+      "chance": 0.7,
+      "text": "It comes back.",
+      "failText": "It is still flaky.",
+      "type": "equipment"
+     }
+    ]
+   },
+   {
+    "id": "fight",
+    "label": "Keep fighting it",
+    "effects": [
+     {
+      "mult": 3,
+      "ticks": 30,
+      "type": "billSlow"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "fight",
+  "subjectFilter": {
+   "hasEquipment": {
+    "type": "eq_pos"
+   }
+  }
+ },
+ {
+  "id": "inc_landlord_rent",
+  "title": "The landlord wants more rent",
+  "text": "Your landlord says rents in the area have gone up, and so will yours: +8% from next week.",
+  "timing": "close",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accept",
+    "label": "Accept",
+    "effects": [
+     {
+      "pct": 0.08,
+      "type": "rent"
+     }
+    ]
+   },
+   {
+    "id": "negotiate",
+    "label": "Negotiate",
+    "effects": [
+     {
+      "pct": 0.03,
+      "chance": 0.45,
+      "text": "You talk them down to +3%.",
+      "else": [
+       {
+        "pct": 0.1,
+        "text": "They dig in: +10%.",
+        "type": "rent"
+       }
+      ],
+      "type": "rent"
+     }
+    ]
+   },
+   {
+    "id": "lock",
+    "label": "Sign a 2-year lock-in",
+    "effects": [
+     {
+      "pct": 0.04,
+      "type": "rent"
+     },
+     {
+      "type": "leaseLock"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "accept"
+ },
+ {
+  "id": "inc_complaint_table",
+  "title": "A table is getting angry",
+  "text": "One table has waited a long time for food and is waving at you.",
+  "timing": "service",
+  "category": "customer",
+  "trigger": {
+   "groupWaitFoodShare": 0.7
+  },
+  "weight": 0.6,
+  "cooldownDays": 1,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "apologise",
+    "label": "Go and apologise",
+    "effects": [
+     {
+      "ticks": 3,
+      "type": "ownerBusy"
+     },
+     {
+      "scope": "waitFood",
+      "delta": 0,
+      "patience": 10,
+      "text": "They calm down a bit.",
+      "type": "groupSatisfaction"
+     }
+    ]
+   },
+   {
+    "id": "dessert",
+    "label": "Offer free dessert",
+    "effects": [
+     {
+      "amount": -15,
+      "type": "cash"
+     },
+     {
+      "scope": "waitFood",
+      "delta": 10,
+      "type": "groupSatisfaction"
+     }
+    ]
+   },
+   {
+    "id": "leave",
+    "label": "Leave it to the server",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "leave"
+ },
+ {
+  "id": "inc_food_poisoning",
+  "title": "A guest got sick",
+  "text": "A customer says they were ill all night after eating here yesterday. They are posting about it.",
+  "timing": "prep",
+  "category": "customer",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "refund",
+    "label": "Apologise, refund, pay the clinic",
+    "effects": [
+     {
+      "amount": -500,
+      "type": "cash"
+     },
+     {
+      "delta": -0.1,
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "deny",
+    "label": "Deny it",
+    "effects": [
+     {
+      "delta": -0.6,
+      "chance": 0.5,
+      "text": "It goes public. Rating \u22120.6, and an inspector is coming.",
+      "failText": "It blows over.",
+      "type": "reputation"
+     },
+     {
+      "days": 2,
+      "chance": 0.5,
+      "type": "scheduleInspection"
+     }
+    ]
+   },
+   {
+    "id": "quiet",
+    "label": "Refund quietly",
+    "effects": [
+     {
+      "amount": -150,
+      "type": "cash"
+     },
+     {
+      "delta": -0.4,
+      "chance": 0.25,
+      "text": "It leaks anyway.",
+      "failText": "They accept.",
+      "type": "reputation"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "deny"
+ },
+ {
+  "id": "inc_critic_visit",
+  "title": "A critic is coming",
+  "text": "A friend tips you off: a well-known food critic is eating here tonight. Their review counts like ten.",
+  "timing": "service",
+  "category": "customer",
+  "trigger": {
+   "stageMin": 2,
+   "reputationAbove": 3.5
+  },
+  "weight": 0.05,
+  "cooldownDays": 56,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "personal",
+    "label": "Serve them yourself",
+    "effects": [
+     {
+      "type": "critic"
+     },
+     {
+      "ticks": 4,
+      "type": "ownerBusy"
+     },
+     {
+      "key": "critic_owner",
+      "days": 0,
+      "type": "flag"
+     }
+    ]
+   },
+   {
+    "id": "normal",
+    "label": "Treat them like anyone",
+    "effects": [
+     {
+      "type": "critic"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "normal"
+ },
+ {
+  "id": "inc_big_booking",
+  "title": "A party of 12",
+  "text": "A family wants to book for 12 tonight at 19:00. That is three tables for over an hour.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {
+   "tablesAtLeast": 12
+  },
+  "weight": 0.15,
+  "cooldownDays": 10,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accept",
+    "label": "Accept",
+    "effects": [
+     {
+      "chance": 0.85,
+      "text": "They will come at 19:00.",
+      "failText": "They cancel at the last minute.",
+      "type": "bigBooking"
+     }
+    ]
+   },
+   {
+    "id": "deposit",
+    "label": "Accept with a deposit",
+    "effects": [
+     {
+      "amount": 200,
+      "type": "cash"
+     },
+     {
+      "chance": 0.7,
+      "text": "Deposit paid. They will come at 19:00.",
+      "failText": "They refuse to pay a deposit and go elsewhere.",
+      "type": "bigBooking"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline"
+ },
+ {
+  "id": "inc_bad_review_viral",
+  "title": "A bad review is spreading",
+  "text": "Someone who walked out today wrote a furious review and it is getting shared.",
+  "timing": "close",
+  "category": "customer",
+  "trigger": {
+   "stat": {
+    "name": "walkoutShare",
+    "above": 0.2
+   }
+  },
+  "weight": 0.3,
+  "cooldownDays": 14,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "apology",
+    "label": "Public apology and an offer",
+    "effects": [
+     {
+      "amount": -300,
+      "type": "cash"
+     },
+     {
+      "mult": 1.05,
+      "days": 3,
+      "type": "demand"
+     }
+    ]
+   },
+   {
+    "id": "argue",
+    "label": "Argue back online",
+    "effects": [
+     {
+      "delta": 0.1,
+      "chance": 0.3,
+      "text": "People take your side.",
+      "else": [
+       {
+        "delta": -0.3,
+        "text": "It backfires.",
+        "type": "reputation"
+       }
+      ],
+      "type": "reputation"
+     }
+    ]
+   },
+   {
+    "id": "ignore",
+    "label": "Ignore it",
+    "effects": [
+     {
+      "delta": -0.15,
+      "type": "reputation"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ignore"
+ },
+ {
+  "id": "inc_rowdy_table",
+  "title": "A rowdy table",
+  "text": "A loud group is shouting and banging the table. Other customers are looking at you.",
+  "timing": "service",
+  "category": "customer",
+  "trigger": {
+   "weekday": [
+    4,
+    5
+   ],
+   "tickAfter": 240
+  },
+  "weight": 0.2,
+  "cooldownDays": 7,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "step",
+    "label": "Step in yourself",
+    "effects": [
+     {
+      "ticks": 5,
+      "type": "ownerBusy"
+     },
+     {
+      "scope": "eating",
+      "delta": 0,
+      "chance": 0.8,
+      "text": "They settle down.",
+      "else": [
+       {
+        "scope": "eating",
+        "delta": -8,
+        "text": "It does not work.",
+        "type": "groupSatisfaction"
+       }
+      ],
+      "type": "groupSatisfaction"
+     }
+    ]
+   },
+   {
+    "id": "leave",
+    "label": "Ask them to leave",
+    "effects": [
+     {
+      "amount": -40,
+      "type": "cash"
+     },
+     {
+      "scope": "eating",
+      "delta": 5,
+      "text": "You lose their bill, but the room relaxes.",
+      "type": "groupSatisfaction"
+     }
+    ]
+   },
+   {
+    "id": "ride",
+    "label": "Let it ride",
+    "effects": [
+     {
+      "scope": "eating",
+      "delta": -8,
+      "type": "groupSatisfaction"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "ride"
+ },
+ {
+  "id": "inc_competitor_opens",
+  "title": "A rival opens nearby",
+  "text": "A shiny new restaurant opened two doors down with half-price opening offers.",
+  "timing": "prep",
+  "category": "customer",
+  "trigger": {
+   "dayMin": 56
+  },
+  "weight": 0.1,
+  "cooldownDays": 112,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "hold",
+    "label": "Hold steady",
+    "effects": [
+     {
+      "mult": 0.85,
+      "days": 28,
+      "type": "demand"
+     },
+     {
+      "delta": 0.1,
+      "type": "competition"
+     }
+    ]
+   },
+   {
+    "id": "promo",
+    "label": "Run a price promotion",
+    "effects": [
+     {
+      "mult": 1.0,
+      "days": 28,
+      "type": "demand"
+     },
+     {
+      "delta": 0.1,
+      "type": "competition"
+     },
+     {
+      "pctOfDayRevenue": -0.5,
+      "text": "Discounts cost you about half a day's sales over two weeks, but customers stay.",
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "market",
+    "label": "Marketing push",
+    "effects": [
+     {
+      "amount": -1500,
+      "bucket": "marketing",
+      "type": "cash"
+     },
+     {
+      "mult": 0.95,
+      "days": 28,
+      "type": "demand"
+     },
+     {
+      "delta": 0.1,
+      "type": "competition"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "hold"
+ },
+ {
+  "id": "inc_inspection",
+  "title": "The health inspector",
+  "text": "A health inspector is at the door with a clipboard. They check the kitchen, the fridge and the toilets.",
+  "timing": "prep",
+  "category": "inspection",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 7,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "clean",
+    "label": "Quick deep clean first",
+    "effects": [
+     {
+      "amount": -400,
+      "type": "cash"
+     },
+     {
+      "delta": -30,
+      "type": "ownerEnergy"
+     },
+     {
+      "delta": 15,
+      "type": "hygiene"
+     },
+     {
+      "type": "inspect"
+     }
+    ]
+   },
+   {
+    "id": "carry",
+    "label": "Let them in",
+    "effects": [
+     {
+      "type": "inspect"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "carry"
+ },
+ {
+  "id": "inc_lifeline",
+  "title": "You are out of money",
+  "text": "Your bank balance is below zero. Three days like this and the bank closes you down. What now?",
+  "timing": "close",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "loan",
+    "label": "Emergency loan ({deficit})",
+    "effects": [
+     {
+      "kind": "emergencyLoan",
+      "text": "A private lender covers you, at triple interest.",
+      "type": "lifeline"
+     }
+    ]
+   },
+   {
+    "id": "sell",
+    "label": "Sell your best spare machine",
+    "effects": [
+     {
+      "kind": "sellEquipment",
+      "text": "Sold at half its value.",
+      "type": "lifeline"
+     }
+    ]
+   },
+   {
+    "id": "investor",
+    "label": "Take an investor (30,000)",
+    "effects": [
+     {
+      "kind": "investor",
+      "text": "30,000 now; they take 20% of every profitable week, forever.",
+      "type": "lifeline"
+     }
+    ]
+   },
+   {
+    "id": "nothing",
+    "label": "Do nothing",
+    "effects": [
+     {
+      "text": "The clock is ticking.",
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "nothing"
+ },
+ {
+  "id": "inc_tax_audit",
+  "title": "A tax audit",
+  "text": "The tax office wants to check your books for the last year.",
+  "timing": "close",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 168,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accountant",
+    "label": "Hire an accountant",
+    "effects": [
+     {
+      "amount": -800,
+      "allowDebt": true,
+      "type": "cash"
+     }
+    ]
+   },
+   {
+    "id": "self",
+    "label": "Handle it yourself",
+    "effects": [
+     {
+      "delta": -40,
+      "type": "ownerEnergy"
+     },
+     {
+      "amount": -2000,
+      "chance": 0.3,
+      "allowDebt": true,
+      "text": "You missed something: fined 2,000.",
+      "failText": "All in order.",
+      "type": "cash"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "self"
+ },
+ {
+  "id": "inc_licence_overdue",
+  "title": "Your licence is overdue",
+  "text": "A letter from the council: the trading licence the last owner should have renewed is overdue.",
+  "timing": "prep",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 168,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pay now with the late fee",
+    "effects": [
+     {
+      "amount": -1000,
+      "type": "cash"
+     },
+     {
+      "kind": "overdue_licence",
+      "type": "markHidden"
+     }
+    ]
+   },
+   {
+    "id": "delay",
+    "label": "Deal with it later",
+    "effects": [
+     {
+      "incidentId": "inc_licence_fine",
+      "days": 7,
+      "chance": 0.5,
+      "type": "followUp"
+     },
+     {
+      "kind": "overdue_licence",
+      "type": "markHidden"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "delay"
+ },
+ {
+  "id": "inc_licence_fine",
+  "title": "Fined for the licence",
+  "text": "The council caught up with you: a 3,000 fine and a day's closure until the licence is sorted.",
+  "timing": "prep",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 0,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "pay",
+    "label": "Pay the fine",
+    "effects": [
+     {
+      "amount": -3000,
+      "allowDebt": true,
+      "type": "cash"
+     },
+     {
+      "days": 1,
+      "type": "closeLocation"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "pay"
+ },
+ {
+  "id": "inc_unexpected_windfall",
+  "title": "A film crew wants your room",
+  "text": "A film crew wants to shoot in your dining room this morning. They pay well, but you will open an hour late.",
+  "timing": "prep",
+  "category": "good",
+  "trigger": {},
+  "weight": 0.05,
+  "cooldownDays": 28,
+  "forced": false,
+  "subject": "none",
+  "options": [
+   {
+    "id": "accept",
+    "label": "Accept (1,200)",
+    "effects": [
+     {
+      "amount": 1200,
+      "type": "cash"
+     },
+     {
+      "text": "You open an hour late today.",
+      "type": "filmCrew"
+     }
+    ]
+   },
+   {
+    "id": "decline",
+    "label": "Decline",
+    "effects": [
+     {
+      "type": "none"
+     }
+    ]
+   }
+  ],
+  "defaultOption": "decline"
+ }
+]
