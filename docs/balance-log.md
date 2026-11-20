@@ -2,6 +2,44 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 13 — first measurements with the real per-tick sim_core
+
+Measured with `packages/sim_core/tool/balance.dart` (Normal, 26 weeks). Bots: *passive*
+does nothing; *chores* stands at the door, orders the usual from City Foodservice and
+takes every card's default; *competent* also moves to the busiest area, buys fresh food
+from Farm Direct and meat from the butcher, services and properly repairs equipment,
+hires into gaps, trains the weakest cook, pays fair wages to unhappy staff, answers
+cards sensibly and markets at stage 2.
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Overnight fatigue recovery (doc 02 §7.2) | none → `FATIGUE_OVERNIGHT = 8` (new constants `FATIGUE_WORK 12`, `FATIGUE_RUSH 6`, `FATIGUE_REST 30`) | Without it every staff member sat at fatigue 100 by week 2: task times ×1.4, constant burnout. Good tier, competent: survival 10% → 100%, walk-outs 17.9% → 9.0% |
+| Door wait in the wait score | not counted in the limit → counted | Bug fix: door waits were charged against the other states' patience |
+
+| Tier / bot | Survival | Median week to stage 2 | Walk-outs | Avg weekly operating profit | Band |
+|---|---|---|---|---|---|
+| Good / competent (30 seeds) | 100% | 12 (28/30) | 9.4% | +2.5k | PASS (≥92%, 8–12, 3–10%) |
+| Good / chores | 0% | — | 23.1% | −3.4k | **FAIL** (60–80%) |
+| Good / passive | 0% | — | 91.8% | −9.3k | PASS (0–10%) |
+| Excellent / competent (20) | 100% | 4 | 9.3% | +7.6k | PASS survival; stage 2 one week early (5–7) |
+| Best / competent | 95% | 6 | 8.1% | +3.7k | PASS (≥95%, 6–9) |
+| Bad / competent | 5% | never | 10.0% | −3.0k | **FAIL** (70–85%) |
+| Worst / competent | 0% | never | 6.8% | −5.5k | **FAIL** (40–60%) |
+
+Food cost 31–35% and wages ~28% of sales at Good tier are inside doc 06 §2.
+
+Open, for the next tuning pass:
+- **Bad and Worst are not survivable even with competent play.** Doc 06 §3 estimated
+  Bad at +1.1k a week; measured −3.0k. Likely causes to check first: the takeover
+  awareness (×0.7) on top of a low rating, a stars equilibrium near 3.2 for weak cooks
+  and cheap ingredients (so the rating never climbs), and the competent bot not
+  restructuring (prices, menu, staff) the way a player rescuing a bad restaurant would.
+- **Chores** dies because it never replaces staff who leave; the per-tick service shows
+  how fast an unstaffed role empties the room. Decide whether the band or the bot
+  definition (doc 06 §6.1) should change.
+- Good-tier profit (+2.5k) is below the +3.5k the prototype measured; incidents and
+  quality spending are the main difference.
+
 ## Entry 12 — owner runs the shift; kitchen and door-patience proposal adopted
 
 Decided by the design owner after playing both versions of `prototype/service_feel`

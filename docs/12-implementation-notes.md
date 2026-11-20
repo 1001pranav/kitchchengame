@@ -52,7 +52,9 @@ All 41 catalogue incidents exist (plus two follow-ups, `inc_flood` and
 
 Measured with `packages/sim_core/tool/balance.dart`; numbers and the bots' exact
 behaviour are in `docs/balance-log.md` entry 13. Good tier, competent bot, is inside its
-bands. The *chores* band (60–80% survival) fails: a bot that never hires or answers
+bands, and so are Excellent and Best. **Bad and Worst fail badly** (5% and 0% survival
+for competent play against 70–85% and 40–60%): those two tiers are currently not
+winnable and are the first thing to tune. The *chores* band (60–80% survival) also fails: a bot that never hires or answers
 cards loses staff it never replaces, and the per-tick service shows how fast that
 empties a restaurant. Whether the band or the rules should move is a design decision
 for the next tuning pass (task 0.22 continues).
