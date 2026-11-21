@@ -5,6 +5,7 @@ import 'package:sim_core/sim_core.dart';
 import 'state/game_controller.dart';
 import 'state/save_service.dart';
 import 'state/settings.dart';
+import 'state/sound_service.dart';
 import 'ui/screens/title_screen.dart';
 import 'ui/shell/shell.dart';
 import 'ui/theme.dart';
@@ -26,9 +27,10 @@ Future<void> main() async {
   final settingsJson = await saves.read('settings');
   final settings =
       settingsJson == null ? Settings() : Settings.fromJson(settingsJson);
-  runApp(KitchenChainApp(
-      controller:
-          GameController(content: content, saves: saves, settings: settings)));
+  final controller =
+      GameController(content: content, saves: saves, settings: settings);
+  SoundService(controller);
+  runApp(KitchenChainApp(controller: controller));
 }
 
 class KitchenChainApp extends StatelessWidget {
