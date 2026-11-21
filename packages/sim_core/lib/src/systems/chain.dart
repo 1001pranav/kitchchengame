@@ -245,8 +245,9 @@ extension _Chain on Sim {
             _suggestedOrder(sup).map((k, v) => MapEntry(k, (v * mult).round()));
         lines.removeWhere((k, v) => v <= 0 || ordered.contains(k));
         if (lines.isNotEmpty &&
-            _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder)
+            _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder) {
           ordered.addAll(lines.keys);
+        }
         if (lines.isNotEmpty &&
             _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder) {
           _placeOrder(sup, lines);

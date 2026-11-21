@@ -11,17 +11,21 @@ void check(Sim sim, String where) {
   final st = sim.state;
   for (final l in st.locations) {
     for (final b in l.stock) {
-      if (b.qty < 0)
+      if (b.qty < 0) {
         throw StateError('$where: negative stock ${b.ingredientId}');
+      }
     }
     for (final s in l.staff) {
-      if (s.morale.isNaN || s.fatigue.isNaN || s.skill.isNaN)
+      if (s.morale.isNaN || s.fatigue.isNaN || s.skill.isNaN) {
         throw StateError('$where: NaN staff stat ${s.name}');
-      if (s.morale < 0 || s.morale > 100)
+      }
+      if (s.morale < 0 || s.morale > 100) {
         throw StateError('$where: morale out of range ${s.morale}');
+      }
     }
-    if (l.reputation.isNaN || l.reputation < 0 || l.reputation > 5)
+    if (l.reputation.isNaN || l.reputation < 0 || l.reputation > 5) {
       throw StateError('$where: rating ${l.reputation}');
+    }
     if (l.hygiene.isNaN) throw StateError('$where: hygiene NaN');
     final ss = l.service;
     if (ss != null) {
@@ -33,10 +37,12 @@ void check(Sim sim, String where) {
           .where((t) => t.state == 'occupied')
           .map((t) => t.groupId)
           .toList();
-      if (occ.toSet().length != occ.length)
+      if (occ.toSet().length != occ.length) {
         throw StateError('$where: two tables, one party');
-      if (ss.dirtyDishes.isNaN || ss.dirtyDishes < 0)
+      }
+      if (ss.dirtyDishes.isNaN || ss.dirtyDishes < 0) {
         throw StateError('$where: dirty dishes ${ss.dirtyDishes}');
+      }
     }
   }
   if (st.owner.energy.isNaN) throw StateError('$where: energy NaN');
@@ -89,14 +95,17 @@ class ChainBot extends Bot {
         }
       }
       // Market it monthly, rework its menu every 8 weeks (doc 06: what keeps it profitable).
-      if ((st.dayIndex + l.id) % 28 == 0 && st.cash > 20000)
+      if ((st.dayIndex + l.id) % 28 == 0 && st.cash > 20000) {
         sim.apply(const StartCampaign('localAd'));
-      if ((st.dayIndex + l.id) % 56 == 7 && st.cash > 20000)
+      }
+      if ((st.dayIndex + l.id) % 56 == 7 && st.cash > 20000) {
         sim.apply(const ReworkMenu());
+      }
     }
     sim.apply(SelectLocation(st.ownerLocationId));
-    if (st.stage >= 4 && !st.centralKitchen && st.cash > 150000)
+    if (st.stage >= 4 && !st.centralKitchen && st.cash > 150000) {
       sim.apply(const BuildCentralKitchen());
+    }
     if (st.stage >= 5 && st.cash > 50000) sim.apply(const StartFranchise());
     // Visit the outlet you have not seen for longest, every few days.
     final stale = st.openLocations
@@ -158,21 +167,24 @@ void main(List<String> args) {
           bot.service(sim);
           check(sim, 'seed $seed day ${sim.state.dayIndex}');
         }
-        if (guard >= 1000)
+        if (guard >= 1000) {
           throw StateError('service never ended on day ${sim.state.dayIndex}');
+        }
         bot.close(sim);
         // Save and reload now and then: the game must continue identically.
         if (sim.state.dayIndex % 11 == 5) {
           final json = jsonEncode(sim.toSave());
           sim = Sim.fromSave(content, jsonDecode(json) as Map<String, dynamic>);
-          if (jsonEncode(sim.toSave()) != json)
+          if (jsonEncode(sim.toSave()) != json) {
             throw StateError('save round-trip differs');
+          }
         }
         if (sim.state.phase == 'close') {
           final d = sim.state.dayIndex;
           sim.apply(const EndDay());
-          if (sim.state.phase != 'gameOver' && sim.state.dayIndex != d + 1)
+          if (sim.state.phase != 'gameOver' && sim.state.dayIndex != d + 1) {
             throw StateError('EndDay did not advance');
+          }
         }
       }
       if (args.contains('-v')) {

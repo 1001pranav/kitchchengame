@@ -377,8 +377,9 @@ extension _Service on Sim {
       d *= 1 - b.d('PREP_BONUS') * math.min(2, prep);
       if (themeOfLoc.isMixed) d *= b.d('MIXED_COOK_MULT');
       if (!_hasWorking('eq_hood')) d *= b.d('HOOD_BROKEN_COOK_MULT');
-      if (area == 'pass' && who != null)
+      if (area == 'pass' && who != null) {
         d *= _zoneBoost(b.d('PASS_COOK_BOOST'));
+      }
     }
     if (type == 'bill') {
       if (!_hasWorking('eq_pos')) d *= 2;

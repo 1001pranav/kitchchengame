@@ -47,8 +47,9 @@ void main(List<String> args) {
           sim.state.dayIndex < weeks * 7 + 1 && sim.state.phase != 'gameOver') {
         if (args.contains('--market') && sim.state.phase == 'prep') {
           sim.apply(SelectLocation(l2.id));
-          if (sim.state.dayIndex % 28 == 2)
+          if (sim.state.dayIndex % 28 == 2) {
             sim.apply(const StartCampaign('localAd'));
+          }
           if (sim.state.dayIndex % 56 == 9) sim.apply(const ReworkMenu());
           sim.apply(SelectLocation(sim.state.locations.first.id));
         }
