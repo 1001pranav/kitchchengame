@@ -271,17 +271,46 @@ extension _Chain on Sim {
       }
     }
     // People: a good manager develops the weakest cook when the course fits the limit.
-    if (m.people >= 60 && state.weekday == 1) {
+    if (state.weekday == 1) {
       final cooks = l.staff
           .where((s) =>
               s.isCook && s.skill < 70 && s.trainingUntil < state.dayIndex)
           .toList()
         ..sort((a, c) => a.skill.compareTo(c.skill));
-      if (cooks.isNotEmpty &&
-          b.d('TRAIN_COST_PER_SKILL') * cooks.first.skill <= p.spendingLimit &&
-          state.cash > 5000) {
-        _train(cooks.first.id);
-        _managerNote('${m.name} sent ${cooks.first.name} on a course', -200);
+      if (cooks.isNotEmpty) {
+        final c = cooks.first;
+        final cost = (b.d('TRAIN_COST_PER_SKILL') * c.skill).round();
+        if (cost <= p.spendingLimit) {
+          if (m.people >= 60 && state.cash > 5000) {
+            _train(c.id);
+            _managerNote('${m.name} sent ${c.name} on a course', -200);
+          }
+        } else {
+          // Beyond their authority: ask (doc 02 §15.10, kind "training").
+          _request('training',
+              cost: cost,
+              subjectId: c.id,
+              text:
+                  '${c.name} (cook, skill ${c.skill.round()}) needs a cooking course. Pay ${money(cost)}?',
+              skill: m.people);
+        }
+      }
+    }
+    // No head chef: ask to promote the best line cook (the head chef lifts every
+    // cook's work, doc 02 §7). A promotion means a raise, so it is a request.
+    if (!l.staff.any((s) => s.role == 'headChef')) {
+      final lc = l.staff.where((s) => s.role == 'lineCook').toList()
+        ..sort((a, c) => c.skill.compareTo(a.skill));
+      if (lc.isNotEmpty && lc.first.skill >= 50) {
+        final c = lc.first;
+        final raise =
+            math.max(0, _expectedWage('headChef', c.skill) - c.wage) * 7;
+        _request('promote',
+            cost: raise,
+            subjectId: c.id,
+            text:
+                'There is no head chef. Promote ${c.name} (skill ${c.skill.round()})? Their pay rises by ${money(raise)} a week.',
+            skill: m.people);
       }
     }
     // Upkeep: servicing, repairs within the spending limit, early warnings.
@@ -381,7 +410,10 @@ extension _Chain on Sim {
             skill: m.people);
       }
     }
-    if (l.buzz < 0.25 && state.stage >= 2) {
+    // Buzz recovers slowly after an ad: ask again only once the last one is
+    // three weeks gone.
+    final lastAd = l.campaigns.fold<int>(-999, (a, c) => math.max(a, c.endDay));
+    if (l.buzz < 0.25 && state.stage >= 2 && state.dayIndex - lastAd > 21) {
       _request('marketing',
           cost: 3000,
           subjectKey: 'localAd',
@@ -851,6 +883,20 @@ extension _Chain on Sim {
           return _setWage(s.id, cheaper ? ((s.wage + exp) / 2).round() : exp);
         case 'marketing':
           return _startCampaign(r.subjectKey ?? 'localAd');
+        case 'training':
+          final s = l.staffById(r.subjectId);
+          if (s == null || s.trainingUntil > state.dayIndex) {
+            return const CommandResult(true);
+          }
+          return _train(s.id);
+        case 'promote':
+          final s = l.staffById(r.subjectId);
+          if (s == null ||
+              s.role != 'lineCook' ||
+              l.staff.any((o) => o.role == 'headChef')) {
+            return const CommandResult(true);
+          }
+          return _promote(s.id);
       }
       return const CommandResult(true);
     });

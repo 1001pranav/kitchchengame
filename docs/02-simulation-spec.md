@@ -795,7 +795,7 @@ An incident at a location where the owner is not present is raised as a **call**
 graceDays = managerSkill² / NEGLECT_GRACE_SQ_DIV (70)
             (Trainee 27 → 10 days, Junior 42 → 25, Capable 57 → 46, Senior 72 → 74, Veteran 86 → 106)
 neglect   = max(0, (today − lastOwnerVisitDayIndex) − graceDays)
-slack     = min(NEGLECT_MAX (0.20), neglect × NEGLECT_PER_DAY (0.01))
+slack     = min(NEGLECT_MAX (0.10), neglect × NEGLECT_PER_DAY (0.01))
 ```
 The grace period grows steeply with manager skill so that the grade table in §15.14
 holds: a weak manager needs the owner within days, a Senior can be left for about ten
@@ -964,11 +964,14 @@ Policy fields: `spendingLimit` (default 500), `mayHire` (default false), `mayGiv
 - A manager acts alone on: rota, par-level orders, maintenance, and any incident option
   or purchase whose cash cost ≤ `spendingLimit`.
 - Anything else becomes a **request** `{locationId, kind, subjectId?, cost, reason}` with
-  kind ∈ `hire, raise, repair, replace, training, marketing, extraStaffDay`. Managers
+  kind ∈ `hire, raise, repair, replace, training, promote, marketing, extraStaffDay`. Managers
   raise requests from the same conditions the competent bot uses (doc 06 §6.1): a role
   uncovered ≥ 2 days in the coming week → hire; morale < 45 with wage below expected →
-  raise; broken equipment above limit → repair/replace; skill below the outlet's dish
-  requirements → training.
+  raise; broken equipment above limit → repair/replace; on Mondays the weakest cook
+  below 70 → training when the course (`TRAIN_COST_PER_SKILL × skill`) is above the
+  spending limit (a manager with people ≥ 60 books it alone when it fits); no head chef
+  and a line cook of skill ≥ 50 → promote (cost = the weekly raise); buzz < 0.25 and the
+  last ad ended more than 21 days ago → marketing (balance-log entry 18).
 - At most `REQUESTS_PER_DAY_MAX (5)` requests are shown per day across all outlets,
   ranked by estimated weekly cash impact; the rest wait.
 - Owner answers: **approve**, **deny**, or **cheaper** (where a cheaper variant exists:
@@ -1148,9 +1151,12 @@ is a working member of the crew**.
   mean of their three sub-skills. A managed outlet therefore needs **no cashier**; an
   outlet taken over with one can transfer, retrain (as server) or let them go.
 - When another role is uncovered (absence the manager could not call cover for, a day
-  off, a vacancy), the manager **fills in**: they take the
+  off, a vacancy, or someone not yet arrived), the manager **fills in**: they take the
   oldest waiting task of the uncovered role at skill 50, and the till falls back to
-  servers (×1.5 time, §6.2). One role at a time.
+  servers (×1.5 time, §6.2). One role at a time, in the order cook (line cook or head
+  chef), server, dishwasher; an outlet that never had a dishwasher keeps its stand-ins.
+- At the till the manager works at skill = the mean of the sub-skills, with no
+  off-role penalty.
 - While filling in on the floor the manager still performs prep-time duties (rota,
   orders, maintenance) — those happen before service.
 - Large outlets (20+ tables, doc 02 §15.9) may hire a cashier as well; the manager then

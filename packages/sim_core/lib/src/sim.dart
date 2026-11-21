@@ -248,6 +248,7 @@ class Sim {
   }
 
   Forecast forecast() => _forecast();
+  Map<String, double> formatInfo(Location l) => _format(l);
 
   Explanation explain(String target, {int? id}) => _explain(target, id: id);
 }
