@@ -16,6 +16,7 @@ part 'systems/incidents.dart';
 part 'systems/handlers.dart';
 part 'systems/explain.dart';
 part 'systems/queries.dart';
+part 'systems/chain.dart';
 
 /// Something the UI may animate or log. The sim never reads it back.
 class SimEvent {
@@ -133,7 +134,27 @@ class Sim {
 
   // ------------------------------------------------------------ helpers
 
-  Location get loc => state.loc;
+  /// The location being processed. Commands act on the location the player is viewing;
+  /// day and tick processing set it for each outlet in turn.
+  Location? _ctx;
+  Location get loc => _ctx ?? state.viewLoc;
+  // Before a restaurant is bought there is no location: callers must pass one explicitly.
+
+  /// Runs [f] with [l] as the current location.
+  T at<T>(Location l, T Function() f) {
+    final prev = _ctx;
+    _ctx = l;
+    try {
+      return f();
+    } finally {
+      _ctx = prev;
+    }
+  }
+
+  /// Location-scoped flags (pests, leak, bookings …).
+  bool lf(String k) => state.flag('${loc.id}:$k');
+
+  CuisineTheme get themeOfLoc => content.themes[loc.themeId] ?? theme;
   CuisineTheme get theme => content.themes[state.themeId]!;
   double diff(String key) => b.byDifficulty(key, state.difficulty);
   void emit(String type, [Map<String, Object?> args = const {}]) =>
@@ -146,7 +167,7 @@ class Sim {
   }
 
   void _note(String kind, String text, [int value = 0]) =>
-      state.today.add(kind, text, value);
+      loc.today.add(kind, text, value);
   void _timeline(String text) {
     state.timeline.add(TimelineEntry(state.dayIndex, text));
     if (state.timeline.length > 60) state.timeline.removeAt(0);
@@ -155,7 +176,7 @@ class Sim {
   /// Every coin movement goes through here so the day's P&L stays complete.
   void spend(int amount, String bucket) {
     state.cash -= amount;
-    final t = state.today;
+    final t = loc.today;
     switch (bucket) {
       case 'ingredients':
         t.ingredientSpend += amount;
@@ -182,9 +203,9 @@ class Sim {
   void earn(int amount, String bucket) {
     state.cash += amount;
     if (bucket == 'revenue') {
-      state.today.revenue += amount;
+      loc.today.revenue += amount;
     } else if (bucket == 'other') {
-      state.today.other -= amount;
+      loc.today.other -= amount;
     }
     emit('cashChanged', {'delta': amount});
   }
@@ -217,7 +238,7 @@ class Sim {
   /// Advance one service tick. Only valid during service.
   List<SimEvent> tick() {
     if (state.phase != 'service') return const [];
-    _serviceTick();
+    _serviceTickAll();
     return _drain();
   }
 

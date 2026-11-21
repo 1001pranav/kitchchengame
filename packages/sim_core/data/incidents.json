@@ -3312,5 +3312,62 @@
   "tags": [
    "indian"
   ]
+ },
+ {
+  "id": "inc_location_failing",
+  "title": "{outlet} is failing",
+  "text": "Eight losing weeks in a row. The staff know it, the regulars know it. Rescue it, close it, or let it drift?",
+  "timing": "close",
+  "category": "money",
+  "trigger": {},
+  "weight": 0,
+  "cooldownDays": 28,
+  "forced": true,
+  "subject": "none",
+  "options": [
+   {
+    "id": "rescue",
+    "label": "Rescue plan: be there 4 of 7 days",
+    "effects": [
+     {
+      "type": "flag",
+      "key": "rescue",
+      "days": 7,
+      "text": "You promise to be there. The team takes heart."
+     },
+     {
+      "type": "morale",
+      "target": "all",
+      "delta": 8
+     }
+    ]
+   },
+   {
+    "id": "close",
+    "label": "Close it",
+    "effects": [
+     {
+      "type": "closeOutletNow"
+     }
+    ]
+   },
+   {
+    "id": "drift",
+    "label": "Let it drift",
+    "effects": [
+     {
+      "type": "reputation",
+      "delta": -0.3
+     },
+     {
+      "type": "morale",
+      "target": "all",
+      "delta": -10,
+      "text": "Two staff start looking for other jobs."
+     }
+    ]
+   }
+  ],
+  "defaultOption": "drift"
  }
 ]

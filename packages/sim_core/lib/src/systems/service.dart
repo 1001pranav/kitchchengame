@@ -3,6 +3,7 @@ part of '../sim.dart';
 // Service: tick loop, group state machine, tasks, kitchen, owner (doc 02 §3.2, §6, §8).
 
 const taskRoles = {
+  'pack': ['cashier', 'server'],
   'seat': ['cashier', 'server'],
   'takeOrder': ['server'],
   'cook': ['headChef', 'lineCook'],
@@ -11,6 +12,7 @@ const taskRoles = {
   'clear': ['server', 'cleaner'],
 };
 const standInRoles = {
+  'pack': ['server'],
   'seat': ['server'],
   'bill': ['server'],
   'takeOrder': ['cashier'],
@@ -18,7 +20,15 @@ const standInRoles = {
   'clear': ['cashier'],
   'cook': ['prepCook'],
 };
-const assignOrder = ['bill', 'deliver', 'takeOrder', 'seat', 'cook', 'clear'];
+const assignOrder = [
+  'bill',
+  'deliver',
+  'pack',
+  'takeOrder',
+  'seat',
+  'cook',
+  'clear'
+];
 const areaTasks = {
   'door': ['seat', 'bill'],
   'tables': ['takeOrder', 'clear'],
@@ -55,13 +65,24 @@ extension _Service on Sim {
           TableRt(i + 1, l.tableSeats[i])
       ],
       favours: b.i('FAVOURS_MAX'),
-      ownerArea: state.owner.restingToday ? null : state.owner.startArea,
+      ownerArea: _ownerPresent ? state.owner.startArea : null,
       forecast: fc.groups,
     );
     l.service = service;
-    final film = state.flag('film_crew_today');
+    final film = lf('film_crew_today');
     if (film) service.seatingStartTick = b.i('FILM_CREW_TICKS');
     service.arrivals = _rollArrivals(l, groups);
+    // Takeaway and delivery orders (doc 11 §C.1, format 3).
+    if (l.deliveryOn) {
+      final n = (groups * b.d('DELIVERY_SHARE')).round();
+      final orders = _rollArrivals(l, n);
+      for (final a in orders) {
+        a.delivery = true;
+        a.size = a.size > 2 ? 2 : a.size;
+      }
+      service.arrivals.addAll(orders);
+      service.arrivals.sort((a, c) => a.tick.compareTo(c.tick));
+    }
     if (film) {
       for (final a in service.arrivals) {
         if (a.tick < service.seatingStartTick) {
@@ -70,18 +91,18 @@ extension _Service on Sim {
       }
       service.arrivals.sort((a, c) => a.tick.compareTo(c.tick));
     }
-    if (state.flag('big_booking_today')) {
+    if (lf('big_booking_today')) {
       final bt = 8 * b.i('TICKS_PER_HOUR');
       for (var i = 0; i < 3; i++) {
         service.arrivals.add(Arrival(bt, 4, 'family'));
       }
       service.arrivals.sort((a, c) => a.tick.compareTo(c.tick));
-      state.flags.remove('big_booking_today');
+      state.flags.remove('${loc.id}:big_booking_today');
     }
-    if (state.flag('critic_next')) {
+    if (lf('critic_next')) {
       final later = service.arrivals.where((a) => a.tick > 60).toList();
       if (later.isNotEmpty) _rng.pick(later).critic = true;
-      state.flags.remove('critic_next');
+      state.flags.remove('${loc.id}:critic_next');
     }
     // Shift target (doc 02 §8.2d).
     final rostered = l.staff.where((s) => _rosteredToday(s)).length;
@@ -92,8 +113,8 @@ extension _Service on Sim {
         (fc.groups * (b.d('TARGET_BASE') + b.d('TARGET_PER_ABSENT') * absent))
             .round());
     if (rostered == 0) service.target = fc.groups;
-    state.today.forecast = fc.groups;
-    state.today.target = service.target;
+    loc.today.forecast = fc.groups;
+    loc.today.target = service.target;
     // A breakdown during service (doc 02 §10.1), rolled once.
     final stations = l.equipment
         .where((e) =>
@@ -106,9 +127,61 @@ extension _Service on Sim {
         break;
       }
     }
-    // Owner energy: resting owner is absent.
+    emit('serviceStarted',
+        {'groups': groups, 'target': service.target, 'locationId': l.id});
+  }
+
+  /// Opens every outlet at once (doc 02 §15.1). An outlet with neither the owner nor a
+  /// manager does not open; one that is closed or still being built has no service.
+  void _startServiceAll() {
     state.phase = 'service';
-    emit('serviceStarted', {'groups': groups, 'target': service.target});
+    for (final l in state.openLocations) {
+      at(l, () {
+        final noBoss = state.ownerLocationId != l.id && l.manager == null;
+        final building = l.openDay > state.dayIndex;
+        if (l.closedUntil > state.dayIndex || building || noBoss) {
+          l.today.closed = true;
+          if (building) {
+            l.today.add('building',
+                'Still being fitted out: opens on day ${l.openDay + 1}', 0);
+          } else if (noBoss) {
+            l.today.add('closed',
+                'Nobody to run it today: it needs you or a manager', 500);
+          } else {
+            l.today.add('closed', 'The restaurant was closed today', 500);
+          }
+          l.service = ServiceState(done: true, forecast: 0);
+        } else {
+          _startService();
+        }
+      });
+    }
+    _maybeCloseAll();
+  }
+
+  /// One tick at every outlet, in id order (lockstep).
+  void _serviceTickAll() {
+    _travelTick();
+    for (final l in state.openLocations) {
+      final s = l.service;
+      if (s == null || s.done) continue;
+      at(l, () {
+        if (_ownerPresent) l.ownerTicksToday++;
+        _serviceTick();
+      });
+      if (state.phase == 'gameOver') return;
+    }
+    _maybeCloseAll();
+  }
+
+  void _maybeCloseAll() {
+    if (state.phase != 'service') return;
+    if (state.openLocations
+        .every((l) => l.service == null || l.service!.done)) {
+      state.phase = 'close';
+      emit('serviceEnded');
+      _closeAll();
+    }
   }
 
   // ---------------------------------------------------------- helpers
@@ -125,10 +198,15 @@ extension _Service on Sim {
     for (final s in loc.staff) {
       if (!s.workingToday) continue;
       if (s.lateTick > t) continue;
-      out.add(_Worker(s, loc.service?.moves['${s.id}'] ?? s.role));
+      out.add(_Worker(s,
+          loc.service?.moves['${s.id}'] ?? (s.isManager ? 'cashier' : s.role)));
     }
     return out;
   }
+
+  /// A central kitchen does the prep: cooking is faster at every outlet (doc 11 §C.1).
+  double get _ckMult =>
+      state.centralKitchen ? b.d('CENTRAL_KITCHEN_PREP_MULT') : 1.0;
 
   bool _stationOff(String station) {
     final s = loc.service;
@@ -256,6 +334,7 @@ extension _Service on Sim {
     d *= 1 + math.max(0, fatigue - 60) / 100;
     if (who != null) {
       d *= 1 + (50 - morale) / 500;
+      d *= 1 + _slack();
       if (who.hasTrait('trait_perfectionist')) d *= 1.1;
       d *= ss.roleSlow[who.role] ?? 1.0;
     }
@@ -269,7 +348,7 @@ extension _Service on Sim {
       final prep =
           loc.staff.where((s) => s.role == 'prepCook' && s.workingToday).length;
       d *= 1 - b.d('PREP_BONUS') * math.min(2, prep);
-      if (theme.isMixed) d *= b.d('MIXED_COOK_MULT');
+      if (themeOfLoc.isMixed) d *= b.d('MIXED_COOK_MULT');
       if (!_hasWorking('eq_hood')) d *= b.d('HOOD_BROKEN_COOK_MULT');
       if (area == 'pass' && who != null) d *= b.d('PASS_COOK_BOOST');
     }
@@ -287,7 +366,7 @@ extension _Service on Sim {
     final s = ss;
     if (s.done) return;
     final t = s.tick;
-    final today = state.today;
+    final today = loc.today;
 
     // 1. Arrivals.
     while (s.arrivals.isNotEmpty && s.arrivals.first.tick <= t) {
@@ -299,6 +378,14 @@ extension _Service on Sim {
           arriveTick: t,
           critic: a.critic);
       s.groups.add(g);
+      if (a.delivery) {
+        // A delivery order goes straight to the kitchen; no table, no waiter.
+        g.delivery = true;
+        g.state = 'waitFood';
+        g.totalLimit = _patienceLimit(g);
+        _takeOrder(g);
+        continue;
+      }
       g.totalLimit = _patienceLimit(g);
       today.groupsArrived++;
       if (s.noSeatUntil > t) {
@@ -364,12 +451,11 @@ extension _Service on Sim {
 
     // 8. Incident countdowns.
     for (final inc in state.openIncidents) {
+      if (inc.locationId != l.id) continue;
       if (inc.countdown > 0) {
         inc.countdown--;
-        if (inc.countdown == 0) {
-          final def = content.incidents[inc.incidentId]!;
-          _resolveIncident(inc, def.defaultOption, ignored: true);
-        }
+        if (inc.countdown == 0)
+          _resolveIncident(inc, _ignoredChoice(inc), ignored: true);
       }
     }
 
@@ -425,9 +511,10 @@ extension _Service on Sim {
             _walkOut(g, 'waitFood');
             continue;
           }
+          final handOff = g.delivery ? 'pack' : 'deliver';
           if (live.every((k) => k.state == 'ready') &&
-              !_hasTask('deliver', groupId: g.id)) {
-            _newTask('deliver', groupId: g.id, tableId: g.tableId);
+              !_hasTask(handOff, groupId: g.id)) {
+            _newTask(handOff, groupId: g.id, tableId: g.tableId);
           }
           for (final k in live) {
             if (k.state == 'wait' && !_hasTask('cook', ticketId: k.id)) {
@@ -455,7 +542,10 @@ extension _Service on Sim {
     return s.tasks.any((k) => k.assignee == 'owner');
   }
 
-  bool get _ownerPresent => !state.owner.restingToday;
+  bool get _ownerPresent =>
+      !state.owner.restingToday &&
+      !state.travelling &&
+      state.ownerLocationId == loc.id;
 
   void _assign() {
     final s = ss;
@@ -538,7 +628,7 @@ extension _Service on Sim {
         }
       }
       final base = k.type == 'cook'
-          ? content.dishes[s.ticket(k.ticketId)!.dishId]!.prepTicks.toDouble()
+          ? content.dishes[s.ticket(k.ticketId)!.dishId]!.prepTicks * _ckMult
           : b.dmap('TASK_TICKS')[k.type]!;
       final sk = _effectiveSkill(w, k.type, standIn: standIn);
       var dur = _duration(k.type, base, sk,
@@ -664,7 +754,7 @@ extension _Service on Sim {
         s.tasks.remove(k);
         final g = s.group(ticket.groupId);
         if (g != null) g.unavailable++;
-        state.today.unavailable++;
+        loc.today.unavailable++;
         loc.menu[dish.id]?.unavailableToday++;
         if (s.eightySix.add(dish.id)) {
           emit('dishUnavailable', {'dishId': dish.id});
@@ -680,9 +770,11 @@ extension _Service on Sim {
       qN++;
       if (daysLeft <= 1) stale = true;
     });
-    state.today.ingredientsUsedCost += cost;
+    loc.today.ingredientsUsedCost += cost;
     final ingQ = qN == 0 ? 60 : qSum / qN;
-    final effSkill = skill < dish.skillReq ? skill - 15 : skill;
+    final req = dish.skillReq -
+        (state.centralKitchen ? b.i('CENTRAL_KITCHEN_SKILL') : 0);
+    final effSkill = skill < req ? skill - 15 : skill;
     var stationCond = 100.0;
     if (dish.station != 'cold') {
       final units = loc.equipment.where((e) =>
@@ -709,7 +801,7 @@ extension _Service on Sim {
     final byOwner = k.assignee == 'owner';
     var mistake = false;
     if (byOwner) {
-      state.today.ownerTasks++;
+      loc.today.ownerTasks++;
       if (state.owner.energy < b.d('OWNER_LOW_ENERGY') &&
           _rng.chance(b.d('OWNER_MISTAKE_CHANCE'))) {
         mistake = true;
@@ -726,7 +818,7 @@ extension _Service on Sim {
         g.state = 'waitOrder';
         g.counter = 0;
         g.totalLimit += _patienceLimit(g);
-        state.today.groupsSeated++;
+        loc.today.groupsSeated++;
         emit('groupSeated', {'groupId': g.id, 'tableId': table.id});
       case 'takeOrder':
         if (g == null || g.state != 'waitOrder') return;
@@ -751,6 +843,10 @@ extension _Service on Sim {
         emit('foodDelivered', {'groupId': g.id});
       case 'bill':
         if (g == null || g.state != 'waitBill') return;
+        _pay(g, waitScoreZero: false, mistake: mistake);
+      case 'pack':
+        if (g == null || g.state != 'waitFood') return;
+        g.foodDelivered = true;
         _pay(g, waitScoreZero: false, mistake: mistake);
       case 'clear':
         final table = s.table(k.tableId)!;
@@ -792,7 +888,7 @@ extension _Service on Sim {
       final main = choose('main');
       if (main == null) {
         g.unavailable++;
-        state.today.unavailable++;
+        loc.today.unavailable++;
       } else {
         ordered.add(main);
       }
@@ -849,6 +945,10 @@ extension _Service on Sim {
   }
 
   void _pay(Group g, {required bool waitScoreZero, bool mistake = false}) {
+    if (g.delivery) {
+      _payDelivery(g);
+      return;
+    }
     final s = ss;
     var payment = 0;
     for (final id in g.ticketIds) {
@@ -858,8 +958,8 @@ extension _Service on Sim {
       if (_promoActive(loc)) p *= 0.75;
       payment += p.round();
       loc.menu[k.dishId]!.soldToday++;
-      state.today.foodQualitySum += k.quality;
-      state.today.foodTickets++;
+      loc.today.foodQualitySum += k.quality;
+      loc.today.foodTickets++;
     }
     if (mistake) payment = (payment * 0.9).round();
     final sat = _satisfaction(g, waitZero: waitScoreZero);
@@ -876,21 +976,19 @@ extension _Service on Sim {
         x.hasTrait('trait_charming'))) {
       tip = (tip * 1.25).round();
     }
-    state.today.tips += tip;
+    loc.today.tips += tip;
     final weight = g.critic ? b.d('CRITIC_WEIGHT') : 1.0;
-    state.today.starsSum += g.stars * weight;
-    state.today.starsN += weight;
-    state.today.groupsServed++;
+    loc.today.starsSum += g.stars * weight;
+    loc.today.starsN += weight;
+    loc.today.groupsServed++;
     if (g.critic) {
       _note(
           'critic',
           'A food critic gave you ${g.stars.toStringAsFixed(1)} stars',
           (g.stars * 100).round());
     }
-    if (g.ill) state.flags['ill_guest'] = state.dayIndex + 1;
-    if (state.flag('blogger_pending') &&
-        !state.flag('blogger_done') &&
-        g.size <= 2) {
+    if (g.ill) state.flags['${loc.id}:ill_guest'] = state.dayIndex + 1;
+    if (lf('blogger_pending') && !lf('blogger_done') && g.size <= 2) {
       _bloggerVisit(g.stars);
     }
     g.state = 'left';
@@ -906,9 +1004,51 @@ extension _Service on Sim {
     });
   }
 
+  /// Delivery platforms take a commission; packaging costs per dish; no tips, no table.
+  void _payDelivery(Group g) {
+    final s = ss;
+    var payment = 0, dishes = 0;
+    var qSum = 0.0;
+    for (final id in g.ticketIds) {
+      final k = s.ticket(id);
+      if (k == null || k.state != 'ready') continue;
+      payment += loc.menu[k.dishId]!.price;
+      loc.menu[k.dishId]!.soldToday++;
+      qSum += k.quality;
+      dishes++;
+    }
+    final commission = state.perks.contains('perk_officeDistrict')
+        ? 0.16
+        : b.d('DELIVERY_COMMISSION');
+    final net = (payment * (1 - commission)).round();
+    earn(net, 'revenue');
+    spend((dishes * b.d('PACKAGING_PER_DISH')).round(), 'ingredients');
+    final food = dishes == 0 ? 0.0 : qSum / dishes;
+    final wait = g.totalLimit == 0
+        ? 0.0
+        : (100 * (1 - g.totalWait / g.totalLimit)).clamp(0, 100).toDouble();
+    g.stars = ((0.6 * food + 0.4 * wait) / 20).clamp(0, 5).toDouble();
+    g.payment = net;
+    loc.today.starsSum += g.stars * 0.5;
+    loc.today.starsN += 0.5;
+    loc.today.deliveries++;
+    g.state = 'left';
+    emit('deliverySent', {'groupId': g.id, 'amount': net});
+  }
+
   void _walkOut(Group g, String from) {
     final s = ss;
-    final today = state.today;
+    final today = loc.today;
+    if (g.delivery) {
+      for (final id in g.ticketIds) {
+        final k = s.ticket(id);
+        if (k != null && k.state == 'wait') k.state = 'cancel';
+      }
+      s.tasks.removeWhere((k) => k.groupId == g.id && !k.started);
+      g.state = 'walkedOut';
+      today.deliveriesCancelled++;
+      return;
+    }
     if (from == 'waitBill') {
       // They leave money on the table (doc 02 §6.3).
       today.walkBill++;
@@ -1017,9 +1157,7 @@ extension _Service on Sim {
     }
     s.done = true;
     s.tasks.clear();
-    state.phase = 'close';
-    emit('serviceEnded');
-    _closeDay();
+    emit('locationServiceEnded', {'locationId': loc.id});
   }
 
   String _clock(int tick) {

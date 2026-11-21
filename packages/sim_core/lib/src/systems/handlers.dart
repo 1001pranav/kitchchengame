@@ -40,6 +40,21 @@ extension _Handlers on Sim {
       state.pendingNotices.clear();
       return const CommandResult(true);
     }
+    if (c is SelectLocation) {
+      final l = state.locationById(c.locationId);
+      if (l == null || l.closedForGood)
+        return CommandResult.fail(SimError.unknownId);
+      state.viewLocationId = l.id;
+      return const CommandResult(true);
+    }
+    if (c is OwnerTravel) {
+      if (!state.hasLocation) return CommandResult.fail(SimError.wrongPhase);
+      return _ownerTravel(c.locationId);
+    }
+    if (c is EndGame) {
+      state.ended = true;
+      return const CommandResult(true);
+    }
     if (!state.hasLocation) {
       return CommandResult.fail(SimError.wrongPhase, 'Buy a restaurant first.');
     }
@@ -48,15 +63,7 @@ extension _Handlers on Sim {
         if (!_inPhase(['prep'])) return CommandResult.fail(SimError.wrongPhase);
         _applyPendingDefaults('prep');
         if (state.phase == 'gameOver') return const CommandResult(true);
-        if (loc.closedUntil > state.dayIndex) {
-          state.today.closed = true;
-          state.today.add('closed', 'The restaurant was closed today', 500);
-          loc.service = ServiceState(done: true, forecast: 0);
-          state.phase = 'close';
-          _closeDay();
-          return const CommandResult(true);
-        }
-        _startService();
+        _startServiceAll();
         return const CommandResult(true);
       case EndService():
         // Skip to the end: run the remaining ticks at once.
@@ -68,7 +75,7 @@ extension _Handlers on Sim {
           for (final inc in state.openIncidents.where((i) => i.countdown > 0)) {
             inc.countdown = 1;
           }
-          _serviceTick();
+          _serviceTickAll();
         }
         return const CommandResult(true);
       case EndDay():
@@ -77,8 +84,10 @@ extension _Handlers on Sim {
         }
         _applyPendingDefaults('close');
         if (state.phase == 'gameOver') return const CommandResult(true);
-        state.days.add(state.today);
-        if (state.days.length > 56) state.days.removeAt(0);
+        for (final l in state.openLocations) {
+          l.days.add(l.today);
+          if (l.days.length > 56) l.days.removeAt(0);
+        }
         state.dayIndex++;
         _beginDay();
         return const CommandResult(true);
@@ -92,6 +101,9 @@ extension _Handlers on Sim {
           return CommandResult.fail(SimError.invalidValue);
         }
         if (state.phase == 'service') {
+          if (!_ownerPresent)
+            return CommandResult.fail(
+                SimError.locked, 'You are not at this restaurant.');
           ss.ownerArea = area;
         } else if (state.phase == 'prep') {
           state.owner.startArea = area;
@@ -131,7 +143,7 @@ extension _Handlers on Sim {
           return CommandResult.fail(SimError.limitReached,
               'A menu needs at least ${b.i('MENU_MIN')} dishes.');
         }
-        final maxMenu = b.i(theme.isMixed ? 'MENU_MAX_MIXED' : 'MENU_MAX');
+        final maxMenu = b.i(themeOfLoc.isMixed ? 'MENU_MAX_MIXED' : 'MENU_MAX');
         if (enabled &&
             !m.enabled &&
             loc.menu.values.where((x) => x.enabled).length >= maxMenu) {
@@ -267,6 +279,88 @@ extension _Handlers on Sim {
         return _payPayable(payableId);
       case TakeLifeline(:final kind, :final equipmentId):
         return _lifeline(kind, equipmentId);
+      case BuyOutlet(:final offerIndex, :final themeId):
+        return _buyOutlet(offerIndex, themeId);
+      case InspectOutlet(:final offerIndex):
+        return _inspectOutlet(offerIndex);
+      case BuildOutlet(
+          :final siteId,
+          :final size,
+          :final fitOut,
+          :final themeId
+        ):
+        return _buildOutlet(siteId, size, fitOut, themeId);
+      case HireManager(:final applicantId):
+        return _hireManager(applicantId);
+      case PromoteToManager(:final staffId):
+        return _promoteToManager(staffId);
+      case TransferStaff(:final staffId, :final toLocationId):
+        return _transfer(staffId, toLocationId);
+      case Renovate(:final tables):
+        return _renovate(tables);
+      case SetPolicies(
+          :final spendingLimit,
+          :final maintenanceThreshold,
+          :final stance,
+          :final mayHire,
+          :final mayGiveRaises,
+          :final autoOrder
+        ):
+        final p = loc.policies;
+        if (spendingLimit != null)
+          p.spendingLimit = spendingLimit.clamp(0, 20000);
+        if (maintenanceThreshold != null)
+          p.maintenanceThreshold = maintenanceThreshold.clamp(20, 90);
+        if (stance != null &&
+            ['frugal', 'balanced', 'quality'].contains(stance))
+          p.stance = stance;
+        if (mayHire != null) p.mayHire = mayHire;
+        if (mayGiveRaises != null) p.mayGiveRaises = mayGiveRaises;
+        if (autoOrder != null) p.autoOrder = autoOrder;
+        return const CommandResult(true);
+      case SetManagerBonus(:final pct):
+        final m = loc.manager;
+        if (m == null)
+          return CommandResult.fail(SimError.unknownId, 'No manager here.');
+        m.bonusPct = pct.clamp(0, 10);
+        return const CommandResult(true);
+      case AnswerRequest(:final requestId, :final answer):
+        return _answerRequest(requestId, answer);
+      case Audit():
+        return _audit();
+      case ListOutlet(:final list):
+        if (list) {
+          final chk = _sellCheck();
+          if (!chk.ok) return chk;
+          loc.listedDay = state.dayIndex;
+          for (final s in loc.staff) {
+            s.moodMods.add(MoodMod('Job security', -8, state.dayIndex + 28));
+          }
+        } else {
+          loc.listedDay = -1;
+          loc.saleOffers.clear();
+        }
+        return const CommandResult(true);
+      case AcceptSaleOffer(:final index):
+        if (index < 0 || index >= loc.saleOffers.length)
+          return CommandResult.fail(SimError.unknownId);
+        final chk = _sellCheck();
+        if (!chk.ok) return chk;
+        _completeSale(loc.saleOffers[index].amount);
+        return const CommandResult(true);
+      case QuickSale():
+        return _quickSale();
+      case CloseOutlet():
+        return _closeOutlet();
+      case SetDelivery(:final on):
+        loc.deliveryOn = on;
+        return const CommandResult(true);
+      case BuildCentralKitchen():
+        return _buildCentralKitchen();
+      case SignBulkContract():
+        return _signBulk();
+      case StartFranchise():
+        return _startFranchise();
       default:
         return CommandResult.fail(SimError.invalidValue);
     }
@@ -277,7 +371,7 @@ extension _Handlers on Sim {
     for (final inst in state.openIncidents) {
       final def = content.incidents[inst.incidentId]!;
       if (def.timing == phase || phase == 'close' || inst.countdown < 0) {
-        _resolveIncident(inst, def.defaultOption, ignored: true);
+        _resolveIncident(inst, _ignoredChoice(inst), ignored: true);
       }
     }
     // Keep the list short: drop old resolved cards.
@@ -322,7 +416,15 @@ extension _Handlers on Sim {
     final need = o.price - o.loan;
     if (state.cash < need) return CommandResult.fail(SimError.notEnoughCash);
     state.cash -= need;
+    o.location.id = 1;
+    o.location.themeId = state.themeId;
+    o.location.invested = o.price;
+    o.location.originalTables = o.location.tableSeats.length;
     state.locations = [o.location];
+    state.nextLocId = 2;
+    state.viewLocationId = 1;
+    state.ownerLocationId = 1;
+    state.brands = [state.themeId];
     state.offers.clear();
     if (o.loan > 0) {
       state.loans.add(Loan(

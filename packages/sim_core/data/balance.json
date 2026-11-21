@@ -99,7 +99,8 @@
   "takeOrder": 2,
   "deliver": 1,
   "bill": 2,
-  "clear": 2
+  "clear": 2,
+  "pack": 1
  },
  "EAT_TICKS_BASE": 12,
  "EAT_TICKS_PER_PERSON": 3,
@@ -296,5 +297,95 @@
  "MIXED_DEMAND_MULT": 1.1,
  "MIXED_COOK_MULT": 1.1,
  "MENU_MAX": 12,
- "MENU_MAX_MIXED": 16
+ "MENU_MAX_MIXED": 16,
+ "FORMATS": {
+  "neighbourhood": {
+   "rentMult": 1.0,
+   "footfallMult": 1.0,
+   "weekendMult": 1.0,
+   "lunchMult": 1.0,
+   "eveningMult": 1.0
+  },
+  "highStreet": {
+   "rentMult": 1.4,
+   "footfallMult": 1.25,
+   "weekendMult": 1.15,
+   "lunchMult": 1.0,
+   "eveningMult": 1.0
+  },
+  "officeDistrict": {
+   "rentMult": 1.1,
+   "footfallMult": 1.15,
+   "weekendMult": 0.45,
+   "lunchMult": 2.5,
+   "eveningMult": 0.4
+  }
+ },
+ "DELIVERY_SHARE": 0.25,
+ "DELIVERY_COMMISSION": 0.2,
+ "PACKAGING_PER_DISH": 0.5,
+ "MASTERY_FROM": 65,
+ "MASTERY_FULL": 90,
+ "NEGLECT_GRACE_SQ_DIV": 70,
+ "NEGLECT_MAX": 0.2,
+ "NEGLECT_PER_DAY": 0.01,
+ "VISIT_MIN_TICKS": 60,
+ "TRAVEL_TICKS": 20,
+ "TRAVEL_ENERGY": 6,
+ "OPENING_GRACE_WEEKS": 12,
+ "TAKEOVER_MARKET_PRICE_FACTOR": 0.4,
+ "OPENING_RESERVE_WEEKS": 2,
+ "BUILD_SIZES": {
+  "small": {
+   "tables": 10,
+   "rent": 0.8,
+   "fitOut": 0.7
+  },
+  "medium": {
+   "tables": 14,
+   "rent": 1.0,
+   "fitOut": 1.0
+  },
+  "large": {
+   "tables": 20,
+   "rent": 1.3,
+   "fitOut": 1.4
+  }
+ },
+ "FIT_OUTS": {
+  "basic": {
+   "cost": 8000,
+   "days": 7,
+   "buzz": 0.6
+  },
+  "standard": {
+   "cost": 15000,
+   "days": 14,
+   "buzz": 0.8
+  },
+  "premium": {
+   "cost": 30000,
+   "days": 21,
+   "buzz": 1.0
+  }
+ },
+ "OPENING_LICENCE": 1000,
+ "SCRATCH_START_RATING": 3.0,
+ "SCRATCH_START_AWARENESS": 0.45,
+ "SALE_PROFIT_MULT": 20,
+ "RENOVATION_COST_PER_TABLE": 1500,
+ "CENTRAL_KITCHEN_COST": 40000,
+ "CENTRAL_KITCHEN_WEEKLY": 3000,
+ "CENTRAL_KITCHEN_PREP_MULT": 0.7,
+ "CENTRAL_KITCHEN_SKILL": 15,
+ "BULK_CONTRACT_FEE": 5000,
+ "BULK_CONTRACT_DISCOUNT": 0.05,
+ "FRANCHISE_SIGNING_FEE": 25000,
+ "FRANCHISE_WEEKLY_FEE": 600,
+ "FRANCHISE_SCANDAL_CHANCE": 0.02,
+ "FRANCHISE_VALUE": 30000,
+ "AUDIT_COST": 500,
+ "STAGE4_OUTLETS": 3,
+ "STAGE4_PROFIT_WEEKS": 4,
+ "STAGE5_VALUATION": 2000000
 }

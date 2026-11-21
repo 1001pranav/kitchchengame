@@ -36,7 +36,7 @@ extension _Explain on Sim {
               'A better rating, fair prices, a fresh menu and advertising bring more parties.',
         );
       case 'reputation':
-        final t = state.days.isEmpty ? null : state.days.last;
+        final t = loc.days.isEmpty ? null : loc.days.last;
         final factors = <Factor>[];
         if (t != null && t.starsN > 0) {
           factors.add(Factor('Yesterday\'s average review', t.avgStars,
@@ -53,9 +53,9 @@ extension _Explain on Sim {
             howToImprove:
                 'Good food, short waits, fair prices and a clean room earn better reviews.');
       case 'satisfaction':
-        final t = state.today.starsN > 0
-            ? state.today
-            : (state.days.isEmpty ? state.today : state.days.last);
+        final t = loc.today.starsN > 0
+            ? loc.today
+            : (loc.days.isEmpty ? loc.today : loc.days.last);
         final q = t.foodTickets == 0 ? 0.0 : t.foodQualitySum / t.foodTickets;
         return Explanation('What customers thought',
             '${t.avgStars.toStringAsFixed(1)} ★', 'add', [
@@ -68,9 +68,9 @@ extension _Explain on Sim {
               '−10 per missing dish (${t.unavailable})'),
         ]);
       case 'profit':
-        final t = state.phase == 'prep' && state.days.isNotEmpty
-            ? state.days.last
-            : state.today;
+        final t = state.phase == 'prep' && loc.days.isNotEmpty
+            ? loc.days.last
+            : loc.today;
         return Explanation(
             'Profit for ${dateLabel(t.dayIndex)}', money(t.profit), 'coins', [
           Factor('Sales', t.revenue.toDouble(), '+${money(t.revenue)}'),
@@ -143,8 +143,8 @@ extension _Explain on Sim {
                   : '$cleaners cleaning each night'),
           if (!_hasWorking('eq_hood'))
             const Factor('Exhaust hood broken', -5, '−5 a day'),
-          if (state.flag('pests')) const Factor('Pests', -8, '−8 a day'),
-          if (state.flag('leak')) const Factor('Leak', -10, '−10 a day'),
+          if (lf('pests')) const Factor('Pests', -8, '−8 a day'),
+          if (lf('leak')) const Factor('Leak', -10, '−10 a day'),
           const Factor(
               'Inspection', 80, 'pass at 80+, fine at 50–79, closure below 50'),
         ]);

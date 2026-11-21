@@ -4,10 +4,8 @@ part of '../sim.dart';
 
 extension _Day on Sim {
   void _beginDay() {
-    final l = loc;
     state.phase = 'prep';
-    state.today = DayStats(dayIndex: state.dayIndex);
-    l.service = null;
+    state.travelTo = -1;
     if (state.weekday == 0) state.owner.restDaysThisWeek = 0;
     // Yearly cost creep notice (doc 11 §A.4).
     if (state.dayIndex > 0 && state.dayIndex % 336 == 0) {
@@ -20,13 +18,30 @@ extension _Day on Sim {
       state.pendingNotices.add(
           'You are exhausted and must rest today. The team runs the shift without you.');
     }
+    state.flags.removeWhere((k, v) => v < state.dayIndex);
+    _chainMorning();
+    for (final l in state.openLocations) {
+      at(l, _beginLocationDay);
+    }
+    emit('dayStarted', {'day': state.dayIndex});
+  }
+
+  void _beginLocationDay() {
+    final l = loc;
+    l.today = DayStats(dayIndex: state.dayIndex);
+    l.service = null;
+    l.ownerTicksToday = 0;
+    if (state.weekday == 0) l.ownerDaysThisWeek = 0;
+    if (l.openDay == state.dayIndex && state.dayIndex > 0) {
+      state.pendingNotices.add('${l.name} opens its doors today.');
+      _story('Opened for business');
+    }
     for (final m in l.menu.values) {
       m.soldYesterday = m.soldToday;
       m.soldToday = 0;
       m.unavailableToday = 0;
     }
     l.demandMods.removeWhere((m) => m.untilDay < state.dayIndex);
-    state.flags.removeWhere((k, v) => v < state.dayIndex);
     // Campaign outcomes are revealed the next morning (doc 02 §13.1).
     for (final c in l.campaigns) {
       if (!c.revealed && c.startDay < state.dayIndex && c.type != 'blogger') {
@@ -43,10 +58,10 @@ extension _Day on Sim {
     _updatePrices();
     // Scheduled state changes from hidden problems.
     for (final sc in List<Scheduled>.of(state.scheduled)) {
-      if (sc.day > state.dayIndex) continue;
+      if (sc.day > state.dayIndex || sc.locationId != l.id) continue;
       if (sc.incidentId == '@flag:pests') {
         state.scheduled.remove(sc);
-        state.flags['pests'] = 1 << 30;
+        state.flags['${loc.id}:pests'] = 1 << 30;
       } else if (sc.incidentId == '@fake_reviews') {
         state.scheduled.remove(sc);
         l.reputation = math.max(0, l.reputation - 0.5);
@@ -58,24 +73,47 @@ extension _Day on Sim {
       }
     }
     if (_rng.chance(b.d('GAS_LOW_CHANCE'))) {
-      state.flags['gas_low'] = state.dayIndex;
+      state.flags['${loc.id}:gas_low'] = state.dayIndex;
     }
     // 5. Overnight incidents: forced/scheduled first, then up to two rolls.
     _incidentsAtPrep();
-    if (state.flag('ill_guest')) {
-      state.flags.remove('ill_guest');
+    if (lf('ill_guest')) {
+      state.flags.remove('${loc.id}:ill_guest');
       _raiseIncident('inc_food_poisoning', forced: true);
     }
+    // A manager runs prep wherever the owner is not (doc 02 §15.2).
+    if (state.ownerLocationId != l.id &&
+        l.manager != null &&
+        l.openDay <= state.dayIndex) {
+      _managerPrep();
+    }
     // 6. Forecast.
-    state.today.forecast = _forecast().groups;
-    emit('dayStarted', {'day': state.dayIndex});
+    loc.today.forecast = _forecast().groups;
   }
 
   // ---------------------------------------------------------- close
 
+  /// Close every outlet, then the company's daily, weekly and monthly business.
+  void _closeAll() {
+    for (final l in state.openLocations) {
+      at(l, _closeDay);
+    }
+    _ownerClose();
+    _chainEvening();
+    if (state.weekday == 6) _weekly();
+    if (state.dayOfMonth == 28) _monthly();
+    for (final l in state.openLocations) {
+      at(l, _checkObjectives);
+    }
+    _bankruptcyCheck();
+    state.cashHistory.add(state.cash);
+    if (state.cashHistory.length > 56) state.cashHistory.removeAt(0);
+    emit('dayClosed', {});
+  }
+
   void _closeDay() {
     final l = loc;
-    final t = state.today;
+    final t = loc.today;
     final closedToday = l.closedUntil > state.dayIndex;
     // Fixed costs accrue every day (paid in cash weekly / monthly).
     final d = state.weekday;
@@ -105,8 +143,6 @@ extension _Day on Sim {
     _hygieneClose(closedToday);
     // 5. Staff.
     _staffClose();
-    // 6. Owner energy.
-    _ownerClose();
     // 7. Reputation.
     _reputationClose();
     // 8. Marketing, buzz, freshness.
@@ -115,16 +151,7 @@ extension _Day on Sim {
     _rollIncidents('close');
     // Par levels (stage 2).
     _autoOrder();
-    // 9. Weekly.
-    if (state.weekday == 6) _weekly();
-    // 10. Monthly.
-    if (state.dayOfMonth == 28) _monthly();
-    _checkObjectives();
-    // 11. Bankruptcy.
-    _bankruptcyCheck();
-    state.cashHistory.add(state.cash);
-    if (state.cashHistory.length > 56) state.cashHistory.removeAt(0);
-    emit('dayClosed', {'profit': t.profit});
+    _managerClose();
   }
 
   double _maxCondition(Equipment e) => math
@@ -142,12 +169,12 @@ extension _Day on Sim {
   void _equipmentClose() {
     final l = loc;
     final busy =
-        state.today.groupsArrived > 1.2 * math.max(1, state.today.forecast);
+        loc.today.groupsArrived > 1.2 * math.max(1, loc.today.forecast);
     for (final e in l.equipment) {
       e.ageDays++;
       if (e.broken) continue;
       final t = content.equipment[e.type]!;
-      final wokHei = e.type == 'eq_wok' && state.flag('wok_hei') ? 2 : 1;
+      final wokHei = e.type == 'eq_wok' && lf('wok_hei') ? 2 : 1;
       e.condition =
           math.max(0, e.condition - t.wearPerDay * (busy ? 1.5 : 1) * wokHei);
       if (_rng.chance(_breakChance(e))) {
@@ -155,8 +182,8 @@ extension _Day on Sim {
         _note('breakdown', '${t.name} broke down', t.price ~/ 10);
         _timeline('${t.name} broke down');
         emit('equipmentBroke', {'equipmentId': e.id});
-        state.scheduled.add(
-            Scheduled('inc_breakdown', state.dayIndex + 1, subjectId: e.id));
+        state.scheduled.add(Scheduled('inc_breakdown', state.dayIndex + 1,
+            subjectId: e.id, locationId: loc.id));
       }
     }
   }
@@ -164,7 +191,7 @@ extension _Day on Sim {
   void _hygieneClose(bool closed) {
     final l = loc;
     var h = l.hygiene;
-    h -= state.today.groupsServed * b.d('HYGIENE_PER_GROUP');
+    h -= loc.today.groupsServed * b.d('HYGIENE_PER_GROUP');
     final cleaners =
         l.staff.where((s) => s.workingToday && s.role == 'cleaner').toList();
     var sum = 0.0;
@@ -184,8 +211,8 @@ extension _Day on Sim {
       h -= 5;
     }
     if (!_hasWorking('eq_hood')) h -= 5;
-    if (state.flag('pests')) h -= 8;
-    if (state.flag('leak')) h -= 10;
+    if (lf('pests')) h -= 8;
+    if (lf('leak')) h -= 10;
     l.hygiene = h.clamp(0, 100).toDouble();
   }
 
@@ -215,7 +242,7 @@ extension _Day on Sim {
 
   void _reputationClose() {
     final l = loc;
-    final t = state.today;
+    final t = loc.today;
     if (t.starsN <= 0) return;
     final avg = t.starsSum / t.starsN;
     final weight = math.min(1.0, t.starsN / 20);
@@ -264,7 +291,7 @@ extension _Day on Sim {
             hp.done = true;
           }
         case 'pests':
-          if (state.dayIndex > hp.dueDay && !state.flag('pests')) {
+          if (state.dayIndex > hp.dueDay && !lf('pests')) {
             hp.done = true;
           }
         case 'fridge_failing':
@@ -278,7 +305,7 @@ extension _Day on Sim {
             hp.done = true;
           }
         case 'staff_feud':
-          if (!state.flag('feud')) hp.done = true;
+          if (!lf('feud')) hp.done = true;
         case 'health_violation':
         case 'overdue_licence':
         case 'lease_increase':
@@ -307,6 +334,11 @@ extension _Day on Sim {
           }
         case 'flag':
           state.flags[r['key'] as String] = 1 << 30;
+        case 'flagPerk':
+          state.perks.add(r['key'] as String);
+        case 'credit':
+          state.creditScore =
+              math.min(100, state.creditScore + (r['delta'] as num).toDouble());
       }
     }
     state.pendingNotices
@@ -317,7 +349,7 @@ extension _Day on Sim {
 
   void _checkObjectives() {
     final l = loc;
-    final t = state.today;
+    final t = loc.today;
     _updateHiddenProblems();
     if (t.profit > 0 && !t.closed) _completeObjective('obj_1_first_profit');
     final s = l.service;
@@ -343,24 +375,65 @@ extension _Day on Sim {
     if (state.flag('promoted_trained_chef')) {
       _completeObjective('obj_2_train_chef');
     }
+    // Stage 3–5 goals.
+    if (state.stage >= 3 &&
+        l.id != state.locations.first.id &&
+        l.weeks.length >= 4 &&
+        l.weeks
+            .sublist(l.weeks.length - 4)
+            .every((w) => w.operatingProfit > 0)) {
+      _completeObjective('obj_3_second_profit');
+    }
+    if (state.stage >= 3 &&
+        state.weekday == 6 &&
+        state.openLocations.length > 1 &&
+        state.openLocations.every((x) =>
+            x.days
+                .where((d) => d.dayIndex > state.dayIndex - 7)
+                .every((d) => d.ownerTasks == 0) &&
+            x.today.ownerTasks == 0)) {
+      _completeObjective('obj_3_hands_off');
+    }
+    if (state.stage >= 4 && _companyRating() >= 4.5)
+      _completeObjective('obj_4_brand_45');
+    if (state.stage >= 5) {
+      final second =
+          state.openLocations.where((x) => x.themeId != state.themeId).length;
+      if (second >= 3) _completeObjective('obj_5_second_brand');
+    }
   }
 
   void _checkStage() {
+    final hq = state.openLocations.first;
     if (state.stage == 1 &&
         state.profitableWeeksInRow >= b.i('STAGE2_PROFIT_WEEKS') &&
-        loc.reputation >= b.d('STAGE2_REP')) {
-      state.stage = 2;
-      state.pendingNotices.add('@stage2');
-      _timeline('Reached Stage 2: Stable');
-      emit('stageReached', {'stage': 2});
+        hq.reputation >= b.d('STAGE2_REP')) {
+      _stageUp(2, 'Reached Stage 2: Stable');
     } else if (state.stage == 2 &&
         state.cash >= b.i('STAGE3_CASH') &&
-        loc.reputation >= b.d('STAGE3_REP') &&
+        _companyRating() >= b.d('STAGE3_REP') &&
         state.dayIndex - state.lastMissDay > 56) {
-      state.stage = 3;
-      state.pendingNotices.add('@stage3');
-      _timeline('Ready to expand: Stage 3 reached');
-      emit('stageReached', {'stage': 3});
+      _stageUp(3, 'Stage 3: ready to open a second location');
+    } else if (state.stage == 3) {
+      // Stage 4 (Chain): 3 outlets, each profitable 4 weeks running (doc 01 §3.3).
+      final n = b.i('STAGE4_PROFIT_WEEKS');
+      final good = state.openLocations
+          .where((l) =>
+              l.weeks.length >= n &&
+              l.weeks
+                  .sublist(l.weeks.length - n)
+                  .every((w) => w.operatingProfit > 0))
+          .length;
+      if (good >= b.i('STAGE4_OUTLETS')) _stageUp(4, 'Stage 4: a chain');
+    } else if (state.stage == 4 && _valuation() >= b.i('STAGE5_VALUATION')) {
+      _stageUp(5, 'Stage 5: a restaurant group');
     }
+  }
+
+  void _stageUp(int n, String text) {
+    state.stage = n;
+    state.pendingNotices.add('@stage$n');
+    _timeline(text);
+    emit('stageReached', {'stage': n});
   }
 }

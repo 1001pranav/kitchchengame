@@ -30,13 +30,11 @@ extension _Staff on Sim {
       var p = (100 - s.reliability) / b.d('ABSENCE_DIVISOR');
       if (s.fatigue > 80) p += 0.05;
       if (s.morale < 30) p += 0.05;
-      if (state.flag('festival_refused') &&
-          _festivalOn(state.dayIndex) != null) {
+      if (lf('festival_refused') && _festivalOn(state.dayIndex) != null) {
         p *= 2;
       }
-      if (state.flag('festival_absence') &&
-          _festivalOn(state.dayIndex) != null) {
-        p += (state.flags['festival_absence_pct'] ?? 0) / 100;
+      if (lf('festival_absence') && _festivalOn(state.dayIndex) != null) {
+        p += (state.flags['${loc.id}:festival_absence_pct'] ?? 0) / 100;
       }
       if (_rng.chance(p)) {
         s.absentToday = true;
@@ -84,7 +82,12 @@ extension _Staff on Sim {
       team -= 5;
     }
     f['Team'] = team;
-    f['Boss'] = state.owner.restDaysThisWeek >= 7 ? 0 : 3;
+    final mgr = loc.manager;
+    if (mgr != null && mgr != s && state.ownerLocationId != loc.id) {
+      f['Boss'] = ((mgr.people - 50) / 5).clamp(-10, 10).toDouble();
+    } else {
+      f['Boss'] = state.owner.restDaysThisWeek >= 7 ? 0 : 3;
+    }
     var growth = 0.0;
     final since = state.dayIndex - s.lastGrowthDay;
     if (since < 28) growth += 5;
@@ -129,7 +132,7 @@ extension _Staff on Sim {
           .toDouble();
 
   void _staffClose() {
-    final today = state.today;
+    final today = loc.today;
     // Tips split among those who worked.
     final worked = loc.staff.where((s) => s.workingToday).toList();
     if (worked.isNotEmpty && today.tips > 0) {
@@ -146,14 +149,14 @@ extension _Staff on Sim {
       if (s.workingToday) {
         final overtime =
             s.dayOff == state.weekday && s.workDayOffDay == state.dayIndex;
-        final festivalPay = state.flag('festival_double_pay') &&
-                _festivalOn(state.dayIndex) != null
-            ? 2
-            : 1;
+        final festivalPay =
+            lf('festival_double_pay') && _festivalOn(state.dayIndex) != null
+                ? 2
+                : 1;
         final pay =
             (s.wage * (overtime ? b.d('OVERTIME_MULT') : 1) * festivalPay)
                 .round();
-        state.today.wages += pay;
+        loc.today.wages += pay;
         state.wagesOwed += pay; // paid in cash on Sunday
         s.daysWorked++;
         s.consecutiveDays++;
@@ -162,8 +165,10 @@ extension _Staff on Sim {
         // recovers FATIGUE_OVERNIGHT (balance-log entry 13).
         final wasRush = rush.contains(s.role);
         final gain = b.d('FATIGUE_WORK') + (wasRush ? b.d('FATIGUE_RUSH') : 0);
-        s.fatigue += gain * (s.hasTrait('trait_hard_worker') ? 0.7 : 1) -
-            b.d('FATIGUE_OVERNIGHT');
+        if (!s.isManager) {
+          s.fatigue += gain * (s.hasTrait('trait_hard_worker') ? 0.7 : 1) -
+              b.d('FATIGUE_OVERNIGHT');
+        }
         s.recentRush.add(wasRush ? 1 : 0);
         if (s.recentRush.length > 7) s.recentRush.removeAt(0);
         s.recentTips.add(s.tipsToday);
@@ -203,8 +208,13 @@ extension _Staff on Sim {
       // Quitting (doc 02 §7.5).
       if (s.status == 'active') {
         final quitMult = s.hasTrait('trait_loyal') ? 0.5 : 1.0;
-        final pQuit =
-            math.max(0, 30 - s.morale) / 300 * (1 - s.loyalty / 200) * quitMult;
+        final pQuit = math.max(0, 30 - s.morale) /
+            300 *
+            (1 - s.loyalty / 200) *
+            quitMult *
+            (1 -
+                0.5 *
+                    (loc.manager == null ? 0 : _mastery(loc.manager!.people)));
         if (pQuit > 0 && _rng.chance(pQuit)) {
           var pNo = diff('NO_NOTICE_BASE') +
               (40 - s.morale) / 100 +

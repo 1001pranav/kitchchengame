@@ -60,7 +60,13 @@ extension _Inventory on Sim {
     final ing = content.ingredients[ingredientId]!;
     final creep =
         math.pow(b.d('YEARLY_COST_CREEP_INGREDIENT'), state.dayIndex ~/ 336);
-    final mult = sup.priceMult - (loc.supplierDeal[supplierId] ?? 0);
+    var mult = sup.priceMult - (loc.supplierDeal[supplierId] ?? 0);
+    // A skilled manager negotiates (doc 02 §15.16); a bulk contract cuts every price.
+    final m = loc.manager;
+    if (m != null) mult *= 1 - 0.08 * _mastery(m.stockSkill);
+    if (state.bulkContractUntil > state.dayIndex)
+      mult *= 1 - b.d('BULK_CONTRACT_DISCOUNT');
+    if (state.perks.contains('perk_bulk3')) mult *= 0.97;
     return ((ing.baseCost * creep * _effectivePriceIndex(ingredientId) * mult) *
                 100)
             .round() /
@@ -191,7 +197,7 @@ extension _Inventory on Sim {
         !cashOnly) {
       loc.payables.add(Payable(state.allocId(), o.supplierId, o.total,
           state.dayIndex + sup.creditDays, '${sup.name} invoice', false));
-      state.today.ingredientSpend += o.total; // booked as a cost when received
+      loc.today.ingredientSpend += o.total; // booked as a cost when received
     } else {
       spend(o.total, 'ingredients');
       loc.supplierRel[o.supplierId] =
@@ -293,7 +299,7 @@ extension _Inventory on Sim {
       }
     }
     loc.stock.removeWhere((x) => x.daysLeft <= 0);
-    state.today.wasteCost = waste.round();
+    loc.today.wasteCost = waste.round();
     if (waste >= 1) {
       final names = wasted.entries.toList()
         ..sort((a, c) => c.value.compareTo(a.value));

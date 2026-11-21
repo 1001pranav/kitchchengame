@@ -206,3 +206,125 @@ class TakeLifeline extends Command {
 class AckNotices extends Command {
   const AckNotices();
 }
+
+// ------------------------------------------------------------ Phase 2: the chain
+
+/// Which outlet the player is looking at; commands act on it.
+class SelectLocation extends Command {
+  final int locationId;
+  const SelectLocation(this.locationId);
+}
+
+/// Prep: choose where to start the day (free). Service: drive there (takes time and energy).
+class OwnerTravel extends Command {
+  final int locationId;
+  const OwnerTravel(this.locationId);
+}
+
+class BuyOutlet extends Command {
+  final int offerIndex;
+  final String? themeId;
+  const BuyOutlet(this.offerIndex, {this.themeId});
+}
+
+class InspectOutlet extends Command {
+  final int offerIndex;
+  const InspectOutlet(this.offerIndex);
+}
+
+class BuildOutlet extends Command {
+  final int siteId;
+  final String size; // small medium large
+  final String fitOut; // basic standard premium
+  final String? themeId;
+  const BuildOutlet(this.siteId, this.size, this.fitOut, {this.themeId});
+}
+
+class HireManager extends Command {
+  final int applicantId;
+  const HireManager(this.applicantId);
+}
+
+class PromoteToManager extends Command {
+  final int staffId;
+  const PromoteToManager(this.staffId);
+}
+
+class TransferStaff extends Command {
+  final int staffId, toLocationId;
+  const TransferStaff(this.staffId, this.toLocationId);
+}
+
+class Renovate extends Command {
+  final int tables;
+  const Renovate(this.tables);
+}
+
+class SetPolicies extends Command {
+  final int? spendingLimit, maintenanceThreshold;
+  final String? stance;
+  final bool? mayHire, mayGiveRaises, autoOrder;
+  const SetPolicies(
+      {this.spendingLimit,
+      this.maintenanceThreshold,
+      this.stance,
+      this.mayHire,
+      this.mayGiveRaises,
+      this.autoOrder});
+}
+
+class SetManagerBonus extends Command {
+  final int pct;
+  const SetManagerBonus(this.pct);
+}
+
+class AnswerRequest extends Command {
+  final int requestId;
+  final String answer; // approve deny cheaper
+  const AnswerRequest(this.requestId, this.answer);
+}
+
+class Audit extends Command {
+  const Audit();
+}
+
+class ListOutlet extends Command {
+  final bool list;
+  const ListOutlet(this.list);
+}
+
+class AcceptSaleOffer extends Command {
+  final int index;
+  const AcceptSaleOffer(this.index);
+}
+
+class QuickSale extends Command {
+  const QuickSale();
+}
+
+class CloseOutlet extends Command {
+  const CloseOutlet();
+}
+
+class SetDelivery extends Command {
+  final bool on;
+  const SetDelivery(this.on);
+}
+
+class BuildCentralKitchen extends Command {
+  const BuildCentralKitchen();
+}
+
+class SignBulkContract extends Command {
+  const SignBulkContract();
+}
+
+// ------------------------------------------------------------ Phase 3: the group
+
+class StartFranchise extends Command {
+  const StartFranchise();
+}
+
+class EndGame extends Command {
+  const EndGame();
+}

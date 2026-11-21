@@ -27,8 +27,9 @@ void main(List<String> args) {
     int? s2;
     while (sim.state.dayIndex < weeks * 7 && sim.state.phase != 'gameOver') {
       bot.day(sim);
-      final t =
-          sim.state.days.isNotEmpty ? sim.state.days.last : sim.state.today;
+      final t = sim.state.loc.days.isNotEmpty
+          ? sim.state.loc.days.last
+          : sim.state.loc.today;
       walk += t.walkouts;
       groups += t.groupsArrived;
       incidents += t.events.where((e) => e.kind == 'incident').length;

@@ -23,57 +23,10 @@ const segmentNames = {
 extension _Finance on Sim {
   // ---------------------------------------------------------- weekly and monthly
 
-  void _weekly() {
-    final l = loc;
-    final t = state.today;
-    // 1. Wages.
-    state.cash -= state.wagesOwed;
-    emit('cashChanged', {'delta': -state.wagesOwed});
-    state.wagesOwed = 0;
-    // 2. Rent (accrued daily in the P&L).
-    state.cash -= l.rentWeekly;
-    // 3. Loan instalments.
-    for (final loan in List<Loan>.of(state.loans)) {
-      if (loan.startDay > state.dayIndex - 1) {
-        continue; // first instalment next Sunday
-      }
-      final pay = loan.instalment;
-      final interest = loan.interestDue;
-      if (pay <= 0) continue;
-      if (state.cash >= pay) {
-        state.cash -= pay;
-        t.interest += interest;
-        loan.outstanding -= pay - interest;
-        loan.missedInRow = 0;
-        state.missedInRow = 0;
-        state.creditScore = math.min(100, state.creditScore + 1);
-        if (loan.outstanding <= 0) {
-          state.loans.remove(loan);
-          state.creditScore = math.min(100, state.creditScore + 3);
-          state.pendingNotices.add(
-              'A loan is fully repaid. The bank trusts you a little more.');
-          _timeline('Loan fully repaid');
-        }
-      } else {
-        final private = loan.lender == 'private';
-        loan.outstanding += (pay * (private ? 0.10 : 0.05)).round();
-        loan.missedInRow++;
-        state.missedInRow++;
-        state.lastMissDay = state.dayIndex;
-        state.creditScore =
-            math.max(0, state.creditScore - (private ? 25 : 15));
-        _note(
-            'missedPayment',
-            'Missed a loan payment of ${money(pay)}: penalty added, bank trust down',
-            pay);
-        _timeline('Missed a loan payment (${state.missedInRow} in a row)');
-        emit('loanMissed', {'loanId': loan.id});
-      }
-    }
-    // 4. Weekly record.
+  WeekRecord _weekRecordFor(Location l) {
     final days = [
-      ...state.days.where((d) => d.dayIndex > state.dayIndex - 7),
-      t
+      ...l.days.where((d) => d.dayIndex > state.dayIndex - 7),
+      l.today
     ];
     final w = WeekRecord(week: state.weekIndex);
     var starsSum = 0.0, starsN = 0.0;
@@ -96,79 +49,172 @@ extension _Finance on Sim {
     }
     w.operatingProfit = w.revenue - w.costs;
     w.avgStars = starsN == 0 ? 0 : starsSum / starsN;
-    state.weeks.add(w);
+    return w;
+  }
+
+  void _weekly() {
+    final hq = state.openLocations.first;
+    // 1. Wages (accrued daily at each outlet).
+    state.cash -= state.wagesOwed;
+    emit('cashChanged', {'delta': -state.wagesOwed});
+    state.wagesOwed = 0;
+    // 2. Rent at every outlet, open or still being fitted out.
+    for (final l in state.openLocations) {
+      state.cash -= l.rentWeekly;
+    }
+    // 3. Loan instalments (interest is booked against the first restaurant).
+    for (final loan in List<Loan>.of(state.loans)) {
+      if (loan.startDay > state.dayIndex - 1)
+        continue; // first instalment next Sunday
+      final pay = loan.instalment;
+      final interest = loan.interestDue;
+      if (pay <= 0) continue;
+      if (state.cash >= pay) {
+        state.cash -= pay;
+        hq.today.interest += interest;
+        loan.outstanding -= pay - interest;
+        loan.missedInRow = 0;
+        state.missedInRow = 0;
+        state.creditScore = math.min(100, state.creditScore + 1);
+        if (loan.outstanding <= 0) {
+          state.loans.remove(loan);
+          state.creditScore = math.min(100, state.creditScore + 3);
+          state.pendingNotices.add(
+              'A loan is fully repaid. The bank trusts you a little more.');
+          _timeline('Loan fully repaid');
+        }
+      } else {
+        final private = loan.lender == 'private';
+        loan.outstanding += (pay * (private ? 0.10 : 0.05)).round();
+        loan.missedInRow++;
+        state.missedInRow++;
+        state.lastMissDay = state.dayIndex;
+        state.creditScore =
+            math.max(0, state.creditScore - (private ? 25 : 15));
+        at(
+            hq,
+            () => _note(
+                'missedPayment',
+                'Missed a loan payment of ${money(pay)}: penalty added, bank trust down',
+                pay));
+        _timeline('Missed a loan payment (${state.missedInRow} in a row)');
+        emit('loanMissed', {'loanId': loan.id});
+      }
+    }
+    // 4. Weekly records: each outlet, then the company.
+    final company = WeekRecord(week: state.weekIndex);
+    var starsSum = 0.0, starsN = 0.0;
+    for (final l in state.openLocations) {
+      final w = _weekRecordFor(l);
+      l.weeks.add(w);
+      if (l.weeks.length > 104) l.weeks.removeAt(0);
+      company.revenue += w.revenue;
+      company.costs += w.costs;
+      company.interest += w.interest;
+      company.wasteCost += w.wasteCost;
+      company.groupsServed += w.groupsServed;
+      company.walkouts += w.walkouts;
+      company.ingredientSpend += w.ingredientSpend;
+      company.wages += w.wages;
+      company.rent += w.rent;
+      company.marketing += w.marketing;
+      company.upkeep += w.upkeep;
+      company.other += w.other;
+      company.utilities += w.utilities;
+      starsSum += w.avgStars * w.groupsServed;
+      starsN += w.groupsServed;
+      at(l, () {
+        // Competition (doc 11 §A.5); high streets attract rivals twice as fast.
+        if (l.reputation >= 4.0 && w.operatingProfit > 0) {
+          final up = b.d('COMPETITION_UP') * (l.format == 'highStreet' ? 2 : 1);
+          l.competition = math.min(b.d('COMPETITION_MAX'), l.competition + up);
+        } else {
+          l.competition = math.max(0, l.competition - b.d('COMPETITION_DOWN'));
+        }
+        _weeklyOutlet(w);
+      });
+    }
+    company.operatingProfit = company.revenue - company.costs;
+    company.avgStars = starsN == 0 ? 0 : starsSum / starsN;
+    state.weeks.add(company);
     if (state.weeks.length > 104) state.weeks.removeAt(0);
-    if (w.netProfit > 0) {
+    if (company.netProfit > 0) {
       state.profitableWeeksInRow++;
-      l.lossWeeks = 0;
     } else {
       state.profitableWeeksInRow = 0;
-      l.lossWeeks++;
     }
-    if (state.investorTaken && w.operatingProfit > 0) {
-      final share = (w.operatingProfit * state.investorShare).round();
+    if (state.investorTaken && company.operatingProfit > 0) {
+      final share = (company.operatingProfit * state.investorShare).round();
       state.cash -= share;
-      _note(
-          'investor',
-          'Your investor took their ${(state.investorShare * 100).round()}% share: ${money(share)}',
-          share);
+      at(
+          hq,
+          () => _note(
+              'investor',
+              'Your investor took their ${(state.investorShare * 100).round()}% share: ${money(share)}',
+              share));
     }
-    // Owner rested two days and the week was still profitable.
-    if (state.owner.restDaysThisWeek >= 2 && w.netProfit > 0) {
+    if (state.owner.restDaysThisWeek >= 2 && company.netProfit > 0)
       _completeObjective('obj_2_week_off');
-    }
-    if (w.revenue > 0 && w.wasteCost < 0.03 * w.revenue) {
+    if (company.revenue > 0 && company.wasteCost < 0.03 * company.revenue)
       _completeObjective('obj_1_no_waste');
-    }
-    // Competition (doc 11 §A.5).
-    if (l.reputation >= 4.0 && w.netProfit > 0) {
-      l.competition = math.min(
-          b.d('COMPETITION_MAX'), l.competition + b.d('COMPETITION_UP'));
-    } else {
-      l.competition = math.max(0, l.competition - b.d('COMPETITION_DOWN'));
-    }
-    _generateApplicants();
+    at(hq, _generateApplicants);
+    _weeklyChain();
     _checkStage();
     state.pendingNotices.add('@weekly');
   }
 
   void _monthly() {
-    final l = loc;
     state.cash -= state.monthUtilities;
     state.monthUtilities = 0;
-    // Profit of the last 28 days.
-    final month = [
-      ...state.days.where((d) => d.dayIndex > state.dayIndex - 28),
-      state.today
-    ];
-    final profit = month.fold<int>(0, (a, d) => a + d.profit);
+    // Tax on the company's profit over the last 28 days.
+    var profit = 0;
+    for (final l in state.openLocations) {
+      profit += [
+        ...l.days.where((d) => d.dayIndex > state.dayIndex - 28),
+        l.today
+      ].fold<int>(0, (a, d) => a + d.profit);
+    }
+    final hq = state.openLocations.first;
     if (profit > 0) {
       final tax = (profit * b.d('TAX_RATE')).round();
-      spend(tax, 'other');
-      _note('tax', 'Paid ${money(tax)} tax on this month\'s profit', 0);
+      at(hq, () {
+        spend(tax, 'other');
+        _note('tax', 'Paid ${money(tax)} tax on this month\'s profit', 0);
+      });
     }
-    spend(b.i('LICENCE_FEE'), 'other');
-    // Random inspection scheduling (about once per 8 weeks).
-    if (l.inspectionDay < state.dayIndex &&
-        _rng.chance(28 / b.d('INSPECTION_EVERY_DAYS'))) {
-      final day = state.dayIndex + _rng.nextInt(1, 28);
-      state.scheduled.add(Scheduled('inc_inspection', day));
-      l.inspectionDay = day;
+    for (final l in state.openLocations) {
+      at(l, () {
+        spend(b.i('LICENCE_FEE'), 'other');
+        // Random inspection scheduling (about once per 8 weeks).
+        if (l.inspectionDay < state.dayIndex &&
+            _rng.chance(28 / b.d('INSPECTION_EVERY_DAYS'))) {
+          final day = state.dayIndex + _rng.nextInt(1, 28);
+          state.scheduled
+              .add(Scheduled('inc_inspection', day, locationId: l.id));
+          l.inspectionDay = day;
+        }
+        // The landlord reviews rent every 168 days after the first 84.
+        final since = state.dayIndex - l.openDay;
+        if (since >= 83 &&
+            !state.scheduled.any((s) =>
+                s.incidentId == 'inc_landlord_rent' && s.locationId == l.id)) {
+          final next =
+              state.flags['${l.id}:next_rent_review'] ?? (l.openDay + 84);
+          if (state.dayIndex + 28 >= next) {
+            state.scheduled.add(Scheduled(
+                'inc_landlord_rent', math.max(next, state.dayIndex + 1),
+                locationId: l.id));
+            state.flags['${l.id}:next_rent_review'] = next + 168;
+          }
+        }
+      });
     }
-    // The landlord reviews rent every 168 days from day 84.
-    if (state.dayIndex >= 83 &&
-        !state.scheduled.any((s) => s.incidentId == 'inc_landlord_rent')) {
-      final next = state.flags['next_rent_review'] ?? 84;
-      if (state.dayIndex + 28 >= next) {
-        state.scheduled.add(
-            Scheduled('inc_landlord_rent', math.max(next, state.dayIndex + 1)));
-        state.flags['next_rent_review'] = next + 168;
+    at(hq, () {
+      if (_rng.chance(0.10) &&
+          (state.cooldowns['${hq.id}:inc_tax_audit'] ?? -1) < state.dayIndex) {
+        _raiseIncident('inc_tax_audit', forced: true);
       }
-    }
-    if (_rng.chance(0.10) &&
-        (state.cooldowns['inc_tax_audit'] ?? -1) < state.dayIndex) {
-      _raiseIncident('inc_tax_audit', forced: true);
-    }
+    });
     state.pendingNotices.add('@monthly');
   }
 
@@ -219,14 +265,21 @@ extension _Finance on Sim {
   }
 
   int _valuation() {
-    final resale =
-        loc.equipment.fold<int>(0, (a, e) => a + _equipmentResale(e));
-    final profitPower = b.i('VALUATION_PROFIT_MULT') *
+    var resale = 0;
+    var stars = 0.0;
+    for (final l in state.openLocations) {
+      resale += l.equipment.fold<int>(0, (a, e) => a + _equipmentResale(e));
+      stars += l.reputation;
+    }
+    final profitPower = (state.perks.contains('perk_brand45')
+            ? 45
+            : b.i('VALUATION_PROFIT_MULT')) *
         math.max(0, _avgWeeklyOpProfit()).toInt();
     return state.cash +
         resale +
         profitPower +
-        (b.d('VALUATION_PER_STAR') * loc.reputation).round() -
+        (b.d('VALUATION_PER_STAR') * stars).round() +
+        state.franchises * b.i('FRANCHISE_VALUE') -
         state.totalOutstanding;
   }
 
@@ -425,7 +478,9 @@ extension _Finance on Sim {
     }
     final def = b.map('CAMPAIGNS')[type] as Map?;
     if (def == null) return CommandResult.fail(SimError.unknownId);
-    final cost = (def['cost'] as num).toInt();
+    final cost = ((def['cost'] as num) *
+            (state.perks.contains('perk_highStreet') ? 0.85 : 1))
+        .round();
     if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'This campaign costs ${money(cost)}.');
@@ -437,8 +492,8 @@ extension _Finance on Sim {
     }
     if (type == 'blogger') {
       spend(cost, 'marketing');
-      state.flags['blogger_pending'] = start + 3;
-      state.flags.remove('blogger_done');
+      state.flags['${loc.id}:blogger_pending'] = start + 3;
+      state.flags.remove('${loc.id}:blogger_done');
       loc.campaigns.add(Campaign(
           id: state.allocId(),
           type: type,
@@ -519,8 +574,8 @@ extension _Finance on Sim {
   }
 
   void _bloggerVisit(double stars) {
-    state.flags['blogger_done'] = 1 << 30;
-    state.flags.remove('blogger_pending');
+    state.flags['${loc.id}:blogger_done'] = 1 << 30;
+    state.flags.remove('${loc.id}:blogger_pending');
     final c = loc.campaigns.where((c) => c.type == 'blogger').lastOrNull;
     if (stars >= 4) {
       loc.reputation = math.min(5, loc.reputation + 0.3);
@@ -540,7 +595,7 @@ extension _Finance on Sim {
   /// Return on spend per campaign (doc 02 §13.2).
   void _campaignAccounting() {
     final l = loc;
-    final t = state.today;
+    final t = loc.today;
     final active =
         l.campaigns.where((c) => c.type != 'blogger' && !c.settled).toList();
     if (active.isEmpty) return;

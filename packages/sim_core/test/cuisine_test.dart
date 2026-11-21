@@ -33,7 +33,7 @@ void main() {
       while (sim.state.dayIndex < 7) {
         bot.day(sim);
       }
-      expect(sim.state.days.where((d) => d.groupsServed > 0).length,
+      expect(sim.state.loc.days.where((d) => d.groupsServed > 0).length,
           greaterThan(4));
     });
   }

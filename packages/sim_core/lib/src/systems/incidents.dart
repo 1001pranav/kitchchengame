@@ -96,6 +96,7 @@ const effectTypes = {
   'scheduleInspection',
   'clearFlag',
   'markHidden',
+  'closeOutletNow',
 };
 
 extension _Incidents on Sim {
@@ -182,9 +183,9 @@ extension _Incidents on Sim {
         case 'hygieneAbove':
           if (l.hygiene <= (v as num)) return false;
         case 'flag':
-          if (!state.flag(v as String)) return false;
+          if (!lf(v as String)) return false;
         case 'notFlag':
-          if (state.flag(v as String)) return false;
+          if (lf(v as String)) return false;
         case 'hasStaff':
           final f = (v as Map).cast<String, dynamic>();
           final n = l.staff.where((s) => _staffMatches(s, f)).length;
@@ -245,7 +246,7 @@ extension _Incidents on Sim {
   }
 
   double _stat(String name) {
-    final t = state.today;
+    final t = loc.today;
     switch (name) {
       case 'walkoutShare':
         return t.groupsArrived == 0 ? 0 : t.walkouts / t.groupsArrived;
@@ -275,12 +276,15 @@ extension _Incidents on Sim {
     if (def == null) return null;
     if (state.phase == 'gameOver') return null;
     // One open card per incident type.
-    if (state.openIncidents
-        .any((i) => i.incidentId == id && i.subjectId == subjectId)) {
+    if (state.openIncidents.any((i) =>
+        i.incidentId == id &&
+        i.subjectId == subjectId &&
+        i.locationId == loc.id)) {
       return null;
     }
     final inst = IncidentInstance(
         id: state.allocId(),
+        locationId: loc.id,
         incidentId: id,
         createdDay: state.dayIndex,
         vars: vars);
@@ -351,7 +355,7 @@ extension _Incidents on Sim {
     // Service incidents get a countdown; the UI pauses and shows the card.
     if (state.phase == 'service') inst.countdown = b.i('INCIDENT_COUNTDOWN');
     state.incidents.add(inst);
-    state.cooldowns[id] = state.dayIndex + def.cooldownDays;
+    state.cooldowns['${loc.id}:$id'] = state.dayIndex + def.cooldownDays;
     _note('incident', _fill(def.title, inst), 0);
     emit('incidentRaised', {'instanceId': inst.id, 'incidentId': id});
     // Auto-resolution: a working generator handles a power cut on its own.
@@ -364,7 +368,9 @@ extension _Incidents on Sim {
   void _incidentsAtPrep() {
     // Scheduled (hidden problems, follow-ups, breakdowns, inspections).
     for (final sc in List<Scheduled>.of(state.scheduled)) {
-      if (sc.day > state.dayIndex || sc.incidentId.startsWith('@')) continue;
+      if (sc.day > state.dayIndex ||
+          sc.incidentId.startsWith('@') ||
+          sc.locationId != loc.id) continue;
       state.scheduled.remove(sc);
       if (sc.incidentId == 'inc_resignation') {
         final s = loc.staffById(sc.subjectId);
@@ -386,12 +392,13 @@ extension _Incidents on Sim {
     // Forced-by-condition incidents.
     for (final def in content.incidents.values) {
       if (!def.forced || def.timing != 'prep' || def.trigger.isEmpty) continue;
-      if ((state.cooldowns[def.id] ?? -1) >= state.dayIndex) continue;
+      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex)
+        continue;
       if (_cond(def.trigger)) _raiseIncident(def.id, forced: true);
     }
     // Random inspection chance (about once per 8 weeks).
     if (_rng.chance(1 / b.d('INSPECTION_EVERY_DAYS')) &&
-        (state.cooldowns['inc_inspection'] ?? -1) < state.dayIndex) {
+        (state.cooldowns['${loc.id}:inc_inspection'] ?? -1) < state.dayIndex) {
       _raiseIncident('inc_inspection', forced: true);
     }
     for (var i = 0; i < 2; i++) {
@@ -405,12 +412,15 @@ extension _Incidents on Sim {
     final idle = loc.service?.ownerIdleTicks ?? 999;
     for (final def in content.incidents.values) {
       if (def.timing != timing || def.forced || def.weight <= 0) continue;
-      if ((state.cooldowns[def.id] ?? -1) >= state.dayIndex) continue;
+      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex)
+        continue;
       if (def.tags.contains('observation') && idle < 10) continue;
-      if (state.openIncidents.any((i) => i.incidentId == def.id)) continue;
+      if (state.openIncidents
+          .any((i) => i.incidentId == def.id && i.locationId == loc.id))
+        continue;
       if (!_cond(def.trigger)) continue;
       var w = def.weight;
-      if (def.id == 'inc_staff_conflict' && state.flag('feud')) w *= 3;
+      if (def.id == 'inc_staff_conflict' && lf('feud')) w *= 3;
       if (def.id == 'inc_power_cut' && state.season == 'summer') w *= 2;
       if (timing == 'service') w /= 12;
       eligible.add(def);
@@ -432,7 +442,8 @@ extension _Incidents on Sim {
         .replaceAll('{supplier}', inst.subjectName)
         .replaceAll('{ingredient}', inst.subjectName)
         .replaceAll('{category}', inst.subjectName)
-        .replaceAll('{festival}', inst.subjectName);
+        .replaceAll('{festival}', inst.subjectName)
+        .replaceAll('{outlet}', loc.name);
     if (inst.vars['weekday'] != null) {
       t = t.replaceAll('{weekday}', _weekdayName(inst.vars['weekday']!));
     }
@@ -523,8 +534,8 @@ extension _Incidents on Sim {
         return ((eq == null ? 3000 : content.equipment[eq.type]!.price) * k)
             .round();
       case 'dayRevenue':
-        return (math.max(state.today.revenue,
-                    state.days.isEmpty ? 1000 : state.days.last.revenue) *
+        return (math.max(loc.today.revenue,
+                    loc.days.isEmpty ? 1000 : loc.days.last.revenue) *
                 k)
             .round();
       case 'rent':
@@ -537,6 +548,11 @@ extension _Incidents on Sim {
 
   void _resolveIncident(IncidentInstance inst, String optionId,
       {bool ignored = false}) {
+    final l = state.locationById(inst.locationId);
+    if (l != null && l != loc) {
+      at(l, () => _resolveIncident(inst, optionId, ignored: ignored));
+      return;
+    }
     if (inst.resolved) return;
     final def = content.incidents[inst.incidentId]!;
     var opt = def.options.where((o) => o.id == optionId).firstOrNull ??
@@ -607,7 +623,7 @@ extension _Incidents on Sim {
         break;
       case 'cash':
         final a = e['pctOfDayRevenue'] != null
-            ? (state.today.revenue * (e['pctOfDayRevenue'] as num)).round()
+            ? (loc.today.revenue * (e['pctOfDayRevenue'] as num)).round()
             : _amount(e['amount'], inst);
         if (a < 0) {
           spend(-a, (e['bucket'] as String?) ?? 'other');
@@ -833,18 +849,20 @@ extension _Incidents on Sim {
       case 'flag':
         final days =
             e['days'] == null ? (1 << 30) : state.dayIndex + n('days').toInt();
-        state.flags[e['key'] as String] = days;
+        state.flags['${loc.id}:${e['key']}'] = days;
       case 'clearFlag':
-        state.flags.remove(e['key'] as String);
+        state.flags.remove('${loc.id}:${e['key']}');
       case 'followUp':
         state.scheduled.add(Scheduled(
             e['incidentId'] as String, state.dayIndex + n('days', 1).toInt(),
             subjectId: e['sameSubject'] == true ? inst.subjectId : null,
-            subjectKey: e['sameSubject'] == true ? 'force' : null));
+            subjectKey: e['sameSubject'] == true ? 'force' : null,
+            locationId: loc.id));
       case 'inspection':
       case 'scheduleInspection':
         final day = state.dayIndex + n('days', 7).toInt();
-        state.scheduled.add(Scheduled('inc_inspection', day));
+        state.scheduled
+            .add(Scheduled('inc_inspection', day, locationId: loc.id));
         l.inspectionDay = day;
       case 'inspect':
         _inspect(out);
@@ -904,10 +922,10 @@ extension _Incidents on Sim {
               .lastOrNull;
           if (p != null) {
             l.payables.remove(p);
-            state.today.ingredientSpend -= p.amount;
+            loc.today.ingredientSpend -= p.amount;
           } else {
             earn(refund, 'none');
-            state.today.ingredientSpend -= refund;
+            loc.today.ingredientSpend -= refund;
           }
         }
       case 'refundOrder':
@@ -957,20 +975,26 @@ extension _Incidents on Sim {
       case 'removeTrait':
         st?.traits.remove(e['trait']);
       case 'critic':
-        state.flags['critic_next'] = state.dayIndex;
+        state.flags['${loc.id}:critic_next'] = state.dayIndex;
       case 'bigBooking':
-        state.flags['big_booking_today'] = state.dayIndex;
+        state.flags['${loc.id}:big_booking_today'] = state.dayIndex;
       case 'filmCrew':
-        state.flags['film_crew_today'] = state.dayIndex;
+        state.flags['${loc.id}:film_crew_today'] = state.dayIndex;
       case 'festivalLeave':
-        state.flags['festival_absence'] = state.dayIndex + 6;
-        state.flags['festival_absence_pct'] = (n('pct') * 100).round();
+        state.flags['${loc.id}:festival_absence'] = state.dayIndex + 6;
+        state.flags['${loc.id}:festival_absence_pct'] =
+            (n('pct') * 100).round();
       case 'festivalPay':
-        state.flags['festival_double_pay'] = state.dayIndex + 6;
+        state.flags['${loc.id}:festival_double_pay'] = state.dayIndex + 6;
       case 'train':
         if (st != null) _train(st.id);
       case 'markHidden':
         _markHidden(e['kind'] as String);
+      case 'closeOutletNow':
+        final r = _closeOutlet();
+        out.add(r.ok
+            ? 'The outlet is closed for good.'
+            : (r.message ?? 'It could not be closed.'));
       default:
         throw StateError('Unknown effect ${e['type']}');
     }
@@ -1008,7 +1032,8 @@ extension _Incidents on Sim {
       if (h >= 90) _completeObjective('obj_2_inspection_a');
     } else if (h >= b.d('INSPECTION_WARN')) {
       spend(b.i('INSPECTION_FINE_WARN'), 'other');
-      state.scheduled.add(Scheduled('inc_inspection', state.dayIndex + 7));
+      state.scheduled.add(
+          Scheduled('inc_inspection', state.dayIndex + 7, locationId: loc.id));
       out.add(
           'Warning and a ${money(b.i('INSPECTION_FINE_WARN'))} fine (cleanliness ${h.round()}). They will be back in 7 days.');
       _timeline('Health inspection warning (${h.round()})');

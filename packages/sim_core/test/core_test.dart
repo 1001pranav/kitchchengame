@@ -150,7 +150,7 @@ void main() {
       sim.apply(const OwnerRest(true));
       sim.apply(const StartService());
       runService(sim);
-      final t = sim.state.today;
+      final t = sim.state.loc.today;
       expect(t.groupsServed, 0);
       expect(t.walkouts, t.groupsArrived);
     });
@@ -163,8 +163,8 @@ void main() {
       sim.apply(const OwnerRest(true));
       sim.apply(const StartService());
       runService(sim);
-      expect(sim.state.today.foodTickets, 0);
-      expect(sim.state.today.walkFood, greaterThan(0));
+      expect(sim.state.loc.today.foodTickets, 0);
+      expect(sim.state.loc.today.walkFood, greaterThan(0));
     });
     test(
         'owner standing in the busy area cuts lost parties when a server is off',
@@ -195,7 +195,7 @@ void main() {
             }
             sim.tick();
           }
-          final lost = sim.state.today.walkouts;
+          final lost = sim.state.loc.today.walkouts;
           if (ownerWorks) {
             working += lost;
           } else {

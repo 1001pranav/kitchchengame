@@ -30,6 +30,7 @@ const hiddenProblemText = {
 
 extension _Gen on Sim {
   int _expectedWage(String role, double skill) {
+    if (role == 'manager') return _expectedManagerWage(skill);
     final base = b.dmap('BASE_WAGE')[role]!;
     return (base * (0.6 + 0.8 * skill / 100)).round();
   }
@@ -160,6 +161,7 @@ extension _Gen on Sim {
       freshness: b.d('FRESHNESS_START'),
       awareness: b.d('TAKEOVER_START_AWARENESS'),
     );
+    loc.themeId = theme.id;
     // Staff.
     final usedNames = <String>{};
     final badIndex =
@@ -318,24 +320,28 @@ extension _Gen on Sim {
               'Old bill from City Foodservice (left by the last owner)',
               true));
         case 'health_violation':
-          state.scheduled.add(Scheduled('inc_inspection', hp.dueDay));
+          state.scheduled
+              .add(Scheduled('inc_inspection', hp.dueDay, locationId: loc.id));
         case 'chef_leaving':
           final chef = loc.staff.where((s) => s.role == 'headChef').firstOrNull;
           if (chef != null) {
-            state.scheduled.add(
-                Scheduled('inc_resignation', hp.dueDay, subjectId: chef.id));
+            state.scheduled.add(Scheduled('inc_resignation', hp.dueDay,
+                subjectId: chef.id, locationId: loc.id));
           }
         case 'pests':
-          state.scheduled.add(Scheduled('@flag:pests', hp.dueDay));
+          state.scheduled
+              .add(Scheduled('@flag:pests', hp.dueDay, locationId: loc.id));
         case 'lease_increase':
-          state.scheduled.add(
-              Scheduled('inc_landlord_rent', hp.dueDay, subjectKey: 'hidden'));
+          state.scheduled.add(Scheduled('inc_landlord_rent', hp.dueDay,
+              subjectKey: 'hidden', locationId: loc.id));
         case 'overdue_licence':
-          state.scheduled.add(Scheduled('inc_licence_overdue', hp.dueDay));
+          state.scheduled.add(
+              Scheduled('inc_licence_overdue', hp.dueDay, locationId: loc.id));
         case 'staff_feud':
-          state.flags['feud'] = 28;
+          state.flags['${loc.id}:feud'] = 28;
         case 'fake_reviews':
-          state.scheduled.add(Scheduled('@fake_reviews', hp.dueDay));
+          state.scheduled
+              .add(Scheduled('@fake_reviews', hp.dueDay, locationId: loc.id));
         default:
           break;
       }

@@ -68,7 +68,13 @@ extension _Demand on Sim {
     f['Menu freshness'] = 0.94 + 0.10 * l.freshness;
     f['Rivals'] = 1 - 0.30 * l.competition;
     f['Awareness'] = l.awareness;
-    if (theme.isMixed) f['Wide menu'] = b.d('MIXED_DEMAND_MULT');
+    if (l.format != 'neighbourhood') {
+      final fm = _format(l);
+      f['Type of outlet'] =
+          fm['footfallMult']! * (day % 7 >= 5 ? fm['weekendMult']! : 1);
+    }
+    if (content.themes[l.themeId]?.isMixed ?? false)
+      f['Wide menu'] = b.d('MIXED_DEMAND_MULT');
     return f;
   }
 
@@ -116,7 +122,14 @@ extension _Demand on Sim {
 
   /// Arrivals for today's service (doc 02 §5.2–5.3).
   List<Arrival> _rollArrivals(Location l, int groups) {
-    final hours = b.list('HOUR_WEIGHTS');
+    final fm = _format(l);
+    final hours = [
+      for (var h = 0; h < b.list('HOUR_WEIGHTS').length; h++)
+        b.list('HOUR_WEIGHTS')[h] *
+            (h == 1 || h == 2
+                ? fm['lunchMult']!
+                : (h >= 6 ? fm['eveningMult']! : 1)),
+    ];
     final cls = content.locationClasses[l.classId]!;
     final sizeW = b.list('GROUP_SIZE_WEIGHTS');
     final out = <Arrival>[];

@@ -79,6 +79,12 @@ class Staff {
   bool rushToday;
   int tipsToday;
   int askingWage; // applicants only
+  // Managers only (role 'manager', doc 02 §15.12–15.14).
+  double people, upkeep, stockSkill, potential;
+  String profile;
+  int bonusPct;
+  int lastCoachDay;
+  int lastLearnDay;
 
   Staff({
     required this.id,
@@ -118,6 +124,14 @@ class Staff {
     this.rushToday = false,
     this.tipsToday = 0,
     this.askingWage = 0,
+    this.people = 0,
+    this.upkeep = 0,
+    this.stockSkill = 0,
+    this.potential = 0,
+    this.profile = '',
+    this.bonusPct = 0,
+    this.lastCoachDay = -99,
+    this.lastLearnDay = 0,
   })  : moodMods = moodMods ?? [],
         recentRush = recentRush ?? [],
         recentTips = recentTips ?? [];
@@ -127,6 +141,17 @@ class Staff {
   bool get reliabilityKnown => daysWorked >= 7;
   bool get honestyKnown => daysWorked >= 14;
   bool get isCook => role == 'headChef' || role == 'lineCook';
+  bool get isManager => role == 'manager';
+  double get managerSkill => (people + upkeep + stockSkill) / 3;
+  String get grade {
+    final m = managerSkill;
+    if (m < 35) return 'Trainee';
+    if (m < 50) return 'Junior';
+    if (m < 65) return 'Capable';
+    if (m < 80) return 'Senior';
+    return 'Veteran';
+  }
+
   bool get isKitchen =>
       role == 'headChef' ||
       role == 'lineCook' ||
@@ -171,6 +196,14 @@ class Staff {
         'rushToday': rushToday,
         'tipsToday': tipsToday,
         'askingWage': askingWage,
+        'people': people,
+        'upkeep': upkeep,
+        'stockSkill': stockSkill,
+        'potential': potential,
+        'profile': profile,
+        'bonusPct': bonusPct,
+        'lastCoachDay': lastCoachDay,
+        'lastLearnDay': lastLearnDay,
       };
 
   factory Staff.fromJson(Map<String, dynamic> j) => Staff(
@@ -211,6 +244,14 @@ class Staff {
         rushToday: j['rushToday'] as bool,
         tipsToday: _i(j['tipsToday']),
         askingWage: _i(j['askingWage']),
+        people: _d(j['people'] ?? 0),
+        upkeep: _d(j['upkeep'] ?? 0),
+        stockSkill: _d(j['stockSkill'] ?? 0),
+        potential: _d(j['potential'] ?? 0),
+        profile: (j['profile'] as String?) ?? '',
+        bonusPct: _i(j['bonusPct'] ?? 0),
+        lastCoachDay: _i(j['lastCoachDay'] ?? -99),
+        lastLearnDay: _i(j['lastLearnDay'] ?? 0),
       );
 }
 
@@ -572,6 +613,7 @@ class Group {
   bool foodDelivered;
   double stars;
   bool seatTaskOpen;
+  bool delivery;
   Group({
     required this.id,
     required this.size,
@@ -595,6 +637,7 @@ class Group {
     this.foodDelivered = false,
     this.stars = 0,
     this.seatTaskOpen = false,
+    this.delivery = false,
   }) : ticketIds = ticketIds ?? [];
   bool get waiting =>
       state == 'waitTable' ||
@@ -625,6 +668,7 @@ class Group {
         'foodDelivered': foodDelivered,
         'stars': stars,
         'seatTaskOpen': seatTaskOpen,
+        'delivery': delivery,
       };
   factory Group.fromJson(Map<String, dynamic> j) => Group(
         id: _i(j['id']),
@@ -649,6 +693,7 @@ class Group {
         foodDelivered: j['foodDelivered'] as bool,
         stars: _d(j['stars']),
         seatTaskOpen: j['seatTaskOpen'] as bool,
+        delivery: (j['delivery'] as bool?) ?? false,
       );
 }
 
@@ -755,14 +800,22 @@ class Arrival {
   int tick, size;
   String segment;
   bool critic;
-  Arrival(this.tick, this.size, this.segment, {this.critic = false});
-  Map<String, dynamic> toJson() =>
-      {'tick': tick, 'size': size, 'segment': segment, 'critic': critic};
+  bool delivery;
+  Arrival(this.tick, this.size, this.segment,
+      {this.critic = false, this.delivery = false});
+  Map<String, dynamic> toJson() => {
+        'tick': tick,
+        'size': size,
+        'segment': segment,
+        'critic': critic,
+        'delivery': delivery
+      };
   Arrival.fromJson(Map<String, dynamic> j)
       : tick = _i(j['tick']),
         size = _i(j['size']),
         segment = j['segment'] as String,
-        critic = j['critic'] as bool;
+        critic = j['critic'] as bool,
+        delivery = (j['delivery'] as bool?) ?? false;
 }
 
 class ServiceState {
@@ -996,6 +1049,8 @@ class DayStats {
   int ingredientsUsedCost;
   bool closed;
   bool ownerRested;
+  int deliveries;
+  int deliveriesCancelled;
   List<DayEvent> events;
   DayStats({
     required this.dayIndex,
@@ -1029,6 +1084,8 @@ class DayStats {
     this.ingredientsUsedCost = 0,
     this.closed = false,
     this.ownerRested = false,
+    this.deliveries = 0,
+    this.deliveriesCancelled = 0,
     List<DayEvent>? events,
   }) : events = events ?? [];
 
@@ -1073,6 +1130,8 @@ class DayStats {
         'ingredientsUsedCost': ingredientsUsedCost,
         'closed': closed,
         'ownerRested': ownerRested,
+        'deliveries': deliveries,
+        'deliveriesCancelled': deliveriesCancelled,
         'events': events.map((e) => e.toJson()).toList(),
       };
   factory DayStats.fromJson(Map<String, dynamic> j) => DayStats(
@@ -1107,6 +1166,8 @@ class DayStats {
         ingredientsUsedCost: _i(j['ingredientsUsedCost']),
         closed: j['closed'] as bool,
         ownerRested: j['ownerRested'] as bool,
+        deliveries: _i(j['deliveries'] ?? 0),
+        deliveriesCancelled: _i(j['deliveriesCancelled'] ?? 0),
         events: _l(j['events'], DayEvent.fromJson),
       );
 }
@@ -1187,6 +1248,7 @@ class WeekRecord {
 
 class IncidentInstance {
   int id;
+  int locationId;
   String incidentId;
   int? subjectId; // staff or equipment id
   String? subjectKey; // supplier id / ingredient id / dish id
@@ -1199,6 +1261,7 @@ class IncidentInstance {
   Map<String, int> vars;
   IncidentInstance({
     required this.id,
+    this.locationId = 1,
     required this.incidentId,
     this.subjectId,
     this.subjectKey,
@@ -1212,6 +1275,7 @@ class IncidentInstance {
   }) : vars = vars ?? {};
   Map<String, dynamic> toJson() => {
         'id': id,
+        'locationId': locationId,
         'incidentId': incidentId,
         'subjectId': subjectId,
         'subjectKey': subjectKey,
@@ -1225,6 +1289,7 @@ class IncidentInstance {
       };
   factory IncidentInstance.fromJson(Map<String, dynamic> j) => IncidentInstance(
         id: _i(j['id']),
+        locationId: _i(j['locationId'] ?? 1),
         incidentId: j['incidentId'] as String,
         subjectId: _ni(j['subjectId']),
         subjectKey: j['subjectKey'] as String?,
@@ -1243,18 +1308,131 @@ class Scheduled {
   int day;
   int? subjectId;
   String? subjectKey;
-  Scheduled(this.incidentId, this.day, {this.subjectId, this.subjectKey});
+  int locationId;
+  Scheduled(this.incidentId, this.day,
+      {this.subjectId, this.subjectKey, this.locationId = 1});
   Map<String, dynamic> toJson() => {
         'incidentId': incidentId,
         'day': day,
         'subjectId': subjectId,
-        'subjectKey': subjectKey
+        'subjectKey': subjectKey,
+        'locationId': locationId,
       };
   Scheduled.fromJson(Map<String, dynamic> j)
-      : incidentId = j['incidentId'] as String,
+      : locationId = _i(j['locationId'] ?? 1),
+        incidentId = j['incidentId'] as String,
         day = _i(j['day']),
         subjectId = _ni(j['subjectId']),
         subjectKey = j['subjectKey'] as String?;
+}
+
+// ---------------------------------------------------------------- chain (doc 02 §15)
+
+/// Standing orders a manager follows (doc 03 §3, doc 02 §15.10).
+class Policies {
+  int spendingLimit;
+  int maintenanceThreshold;
+  String stance; // frugal | balanced | quality
+  bool mayHire;
+  bool mayGiveRaises;
+  bool autoOrder;
+  Policies({
+    this.spendingLimit = 500,
+    this.maintenanceThreshold = 55,
+    this.stance = 'balanced',
+    this.mayHire = false,
+    this.mayGiveRaises = false,
+    this.autoOrder = true,
+  });
+  Map<String, dynamic> toJson() => {
+        'spendingLimit': spendingLimit,
+        'maintenanceThreshold': maintenanceThreshold,
+        'stance': stance,
+        'mayHire': mayHire,
+        'mayGiveRaises': mayGiveRaises,
+        'autoOrder': autoOrder,
+      };
+  factory Policies.fromJson(Map<String, dynamic> j) => Policies(
+        spendingLimit: _i(j['spendingLimit']),
+        maintenanceThreshold: _i(j['maintenanceThreshold']),
+        stance: j['stance'] as String,
+        mayHire: j['mayHire'] as bool,
+        mayGiveRaises: j['mayGiveRaises'] as bool,
+        autoOrder: j['autoOrder'] as bool,
+      );
+}
+
+/// A manager asking the owner for something beyond their limit.
+class Request {
+  int id;
+  int locationId;
+  String kind; // hire repair replace raise training marketing
+  int? subjectId;
+  String? subjectKey;
+  int cost;
+  int? cheaperCost;
+  String text;
+  int raisedDay;
+  Request({
+    required this.id,
+    required this.locationId,
+    required this.kind,
+    this.subjectId,
+    this.subjectKey,
+    required this.cost,
+    this.cheaperCost,
+    required this.text,
+    required this.raisedDay,
+  });
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'locationId': locationId,
+        'kind': kind,
+        'subjectId': subjectId,
+        'subjectKey': subjectKey,
+        'cost': cost,
+        'cheaperCost': cheaperCost,
+        'text': text,
+        'raisedDay': raisedDay,
+      };
+  factory Request.fromJson(Map<String, dynamic> j) => Request(
+        id: _i(j['id']),
+        locationId: _i(j['locationId']),
+        kind: j['kind'] as String,
+        subjectId: _ni(j['subjectId']),
+        subjectKey: j['subjectKey'] as String?,
+        cost: _i(j['cost']),
+        cheaperCost: _ni(j['cheaperCost']),
+        text: j['text'] as String,
+        raisedDay: _i(j['raisedDay']),
+      );
+}
+
+/// A buyer's offer for a listed outlet (doc 02 §14.7).
+class SaleOffer {
+  int amount;
+  int expiresDay;
+  SaleOffer(this.amount, this.expiresDay);
+  Map<String, dynamic> toJson() => {'amount': amount, 'expiresDay': expiresDay};
+  SaleOffer.fromJson(Map<String, dynamic> j)
+      : amount = _i(j['amount']),
+        expiresDay = _i(j['expiresDay']);
+}
+
+/// A site to build a new outlet on (doc 02 §15.9 route B).
+class Site {
+  int id;
+  String classId;
+  String format;
+  String name;
+  Site(this.id, this.classId, this.format, this.name);
+  Map<String, dynamic> toJson() =>
+      {'id': id, 'classId': classId, 'format': format, 'name': name};
+  Site.fromJson(Map<String, dynamic> j)
+      : id = _i(j['id']),
+        classId = j['classId'] as String,
+        format = j['format'] as String,
+        name = j['name'] as String;
 }
 
 // ---------------------------------------------------------------- location
@@ -1299,6 +1477,32 @@ class Location {
   int lossWeeks;
   List<HiddenProblem> hidden;
   ServiceState? service;
+  // Per-outlet reports (Phase 2).
+  DayStats today;
+  List<DayStats> days;
+  List<WeekRecord> weeks;
+  // Chain.
+  String format;
+  String themeId;
+  int openDay; // first trading day (built outlets open after their build period)
+  int lastVisitDay;
+  int ownerTicksToday;
+  int invested;
+  int returned;
+  bool crisis;
+  int listedDay; // -1 when not for sale
+  List<SaleOffer> saleOffers;
+  String badge; // '' bronze silver gold
+  int goldWeeks;
+  int ownerDaysThisWeek;
+  bool deliveryOn;
+  bool closedForGood;
+  Policies policies;
+  List<TimelineEntry> story;
+  int managerCostWeek;
+  int managerSaveWeek;
+  List<String> managerNotes;
+  int originalTables;
   Location({
     required this.id,
     required this.name,
@@ -1339,6 +1543,30 @@ class Location {
     this.lossWeeks = 0,
     List<HiddenProblem>? hidden,
     this.service,
+    DayStats? today,
+    List<DayStats>? days,
+    List<WeekRecord>? weeks,
+    this.format = 'neighbourhood',
+    this.themeId = 'italian',
+    this.openDay = 0,
+    this.lastVisitDay = 0,
+    this.ownerTicksToday = 0,
+    this.invested = 0,
+    this.returned = 0,
+    this.crisis = false,
+    this.listedDay = -1,
+    List<SaleOffer>? saleOffers,
+    this.badge = '',
+    this.goldWeeks = 0,
+    this.ownerDaysThisWeek = 0,
+    this.deliveryOn = false,
+    this.closedForGood = false,
+    Policies? policies,
+    List<TimelineEntry>? story,
+    this.managerCostWeek = 0,
+    this.managerSaveWeek = 0,
+    List<String>? managerNotes,
+    this.originalTables = 0,
   })  : menu = menu ?? {},
         staff = staff ?? [],
         equipment = equipment ?? [],
@@ -1354,7 +1582,14 @@ class Location {
         campaigns = campaigns ?? [],
         demandMods = demandMods ?? [],
         categorySpikeUntil = categorySpikeUntil ?? {},
-        hidden = hidden ?? [];
+        hidden = hidden ?? [],
+        today = today ?? DayStats(dayIndex: 0),
+        days = days ?? [],
+        weeks = weeks ?? [],
+        saleOffers = saleOffers ?? [],
+        policies = policies ?? Policies(),
+        story = story ?? [],
+        managerNotes = managerNotes ?? [];
 
   Staff? staffById(int? id) {
     if (id == null) return null;
@@ -1371,6 +1606,15 @@ class Location {
     }
     return null;
   }
+
+  Staff? get manager {
+    for (final s in staff) {
+      if (s.role == 'manager') return s;
+    }
+    return null;
+  }
+
+  bool get trading => !closedForGood;
 
   int stockOf(String ingredientId) {
     var n = 0;
@@ -1420,6 +1664,30 @@ class Location {
         'lossWeeks': lossWeeks,
         'hidden': hidden.map((e) => e.toJson()).toList(),
         'service': service?.toJson(),
+        'today': today.toJson(),
+        'days': days.map((e) => e.toJson()).toList(),
+        'weeks': weeks.map((e) => e.toJson()).toList(),
+        'format': format,
+        'themeId': themeId,
+        'openDay': openDay,
+        'lastVisitDay': lastVisitDay,
+        'ownerTicksToday': ownerTicksToday,
+        'invested': invested,
+        'returned': returned,
+        'crisis': crisis,
+        'listedDay': listedDay,
+        'saleOffers': saleOffers.map((e) => e.toJson()).toList(),
+        'badge': badge,
+        'goldWeeks': goldWeeks,
+        'ownerDaysThisWeek': ownerDaysThisWeek,
+        'deliveryOn': deliveryOn,
+        'closedForGood': closedForGood,
+        'policies': policies.toJson(),
+        'story': story.map((e) => e.toJson()).toList(),
+        'managerCostWeek': managerCostWeek,
+        'managerSaveWeek': managerSaveWeek,
+        'managerNotes': managerNotes,
+        'originalTables': originalTables,
       };
 
   factory Location.fromJson(Map<String, dynamic> j) => Location(
@@ -1469,6 +1737,34 @@ class Location {
             ? null
             : ServiceState.fromJson(
                 (j['service'] as Map).cast<String, dynamic>()),
+        today: j['today'] == null
+            ? null
+            : DayStats.fromJson((j['today'] as Map).cast<String, dynamic>()),
+        days: _l(j['days'], DayStats.fromJson),
+        weeks: _l(j['weeks'], WeekRecord.fromJson),
+        format: (j['format'] as String?) ?? 'neighbourhood',
+        themeId: (j['themeId'] as String?) ?? 'italian',
+        openDay: _i(j['openDay'] ?? 0),
+        lastVisitDay: _i(j['lastVisitDay'] ?? 0),
+        ownerTicksToday: _i(j['ownerTicksToday'] ?? 0),
+        invested: _i(j['invested'] ?? 0),
+        returned: _i(j['returned'] ?? 0),
+        crisis: (j['crisis'] as bool?) ?? false,
+        listedDay: _i(j['listedDay'] ?? -1),
+        saleOffers: _l(j['saleOffers'], SaleOffer.fromJson),
+        badge: (j['badge'] as String?) ?? '',
+        goldWeeks: _i(j['goldWeeks'] ?? 0),
+        ownerDaysThisWeek: _i(j['ownerDaysThisWeek'] ?? 0),
+        deliveryOn: (j['deliveryOn'] as bool?) ?? false,
+        closedForGood: (j['closedForGood'] as bool?) ?? false,
+        policies: j['policies'] == null
+            ? null
+            : Policies.fromJson((j['policies'] as Map).cast<String, dynamic>()),
+        story: _l(j['story'], TimelineEntry.fromJson),
+        managerCostWeek: _i(j['managerCostWeek'] ?? 0),
+        managerSaveWeek: _i(j['managerSaveWeek'] ?? 0),
+        managerNotes: _ls(j['managerNotes']),
+        originalTables: _i(j['originalTables'] ?? 0),
       );
 }
 
@@ -1569,9 +1865,25 @@ class GameState {
   List<Scheduled> scheduled;
   Map<String, int> flags; // key → expiry day (inclusive), or 1<<30 forever
   List<Staff> applicants;
-  DayStats today;
-  List<DayStats> days; // history, capped
-  List<WeekRecord> weeks;
+  List<WeekRecord> weeks; // company totals
+  // Chain (Phase 2).
+  int viewLocationId;
+  int ownerLocationId; // where the owner is now (start of day: chosen in prep)
+  int travelTo; // -1 when not travelling
+  int travelUntilTick;
+  List<Request> requests;
+  List<Staff> managerApplicants;
+  List<Offer> outletMarket;
+  int marketRefreshDay;
+  List<Site> sites;
+  int nextLocId;
+  Set<String> perks;
+  bool centralKitchen;
+  int bulkContractUntil;
+  // Group (Phase 3).
+  List<String> brands; // cuisine ids, first = original brand
+  int franchises;
+  bool ended;
   List<int> cashHistory;
   int monthProfit;
   int monthRevenue;
@@ -1612,9 +1924,23 @@ class GameState {
     List<Scheduled>? scheduled,
     Map<String, int>? flags,
     List<Staff>? applicants,
-    DayStats? today,
-    List<DayStats>? days,
     List<WeekRecord>? weeks,
+    this.viewLocationId = 1,
+    this.ownerLocationId = 1,
+    this.travelTo = -1,
+    this.travelUntilTick = -1,
+    List<Request>? requests,
+    List<Staff>? managerApplicants,
+    List<Offer>? outletMarket,
+    this.marketRefreshDay = -1,
+    List<Site>? sites,
+    this.nextLocId = 2,
+    Set<String>? perks,
+    this.centralKitchen = false,
+    this.bulkContractUntil = -1,
+    List<String>? brands,
+    this.franchises = 0,
+    this.ended = false,
     List<int>? cashHistory,
     this.monthProfit = 0,
     this.monthRevenue = 0,
@@ -1635,14 +1961,29 @@ class GameState {
         scheduled = scheduled ?? [],
         flags = flags ?? {},
         applicants = applicants ?? [],
-        today = today ?? DayStats(dayIndex: 0),
-        days = days ?? [],
         weeks = weeks ?? [],
+        requests = requests ?? [],
+        managerApplicants = managerApplicants ?? [],
+        outletMarket = outletMarket ?? [],
+        sites = sites ?? [],
+        perks = perks ?? {},
+        brands = brands ?? [],
         cashHistory = cashHistory ?? [],
         timeline = timeline ?? [],
         pendingNotices = pendingNotices ?? [];
 
   Location get loc => locations.first;
+  Location? locationById(int id) {
+    for (final l in locations) {
+      if (l.id == id) return l;
+    }
+    return null;
+  }
+
+  Location get viewLoc => locationById(viewLocationId) ?? locations.first;
+  List<Location> get openLocations =>
+      locations.where((l) => !l.closedForGood).toList();
+  bool get travelling => travelTo >= 0;
   bool get hasLocation => locations.isNotEmpty;
   int get weekday => dayIndex % 7;
   int get weekIndex => dayIndex ~/ 7;
@@ -1686,9 +2027,23 @@ class GameState {
         'scheduled': scheduled.map((e) => e.toJson()).toList(),
         'flags': flags,
         'applicants': applicants.map((e) => e.toJson()).toList(),
-        'today': today.toJson(),
-        'days': days.map((e) => e.toJson()).toList(),
         'weeks': weeks.map((e) => e.toJson()).toList(),
+        'viewLocationId': viewLocationId,
+        'ownerLocationId': ownerLocationId,
+        'travelTo': travelTo,
+        'travelUntilTick': travelUntilTick,
+        'requests': requests.map((e) => e.toJson()).toList(),
+        'managerApplicants': managerApplicants.map((e) => e.toJson()).toList(),
+        'outletMarket': outletMarket.map((e) => e.toJson()).toList(),
+        'marketRefreshDay': marketRefreshDay,
+        'sites': sites.map((e) => e.toJson()).toList(),
+        'nextLocId': nextLocId,
+        'perks': perks.toList()..sort(),
+        'centralKitchen': centralKitchen,
+        'bulkContractUntil': bulkContractUntil,
+        'brands': brands,
+        'franchises': franchises,
+        'ended': ended,
         'cashHistory': cashHistory,
         'monthProfit': monthProfit,
         'monthRevenue': monthRevenue,
@@ -1731,9 +2086,23 @@ class GameState {
         scheduled: _l(j['scheduled'], Scheduled.fromJson),
         flags: _mi(j['flags']),
         applicants: _l(j['applicants'], Staff.fromJson),
-        today: DayStats.fromJson((j['today'] as Map).cast<String, dynamic>()),
-        days: _l(j['days'], DayStats.fromJson),
         weeks: _l(j['weeks'], WeekRecord.fromJson),
+        viewLocationId: _i(j['viewLocationId'] ?? 1),
+        ownerLocationId: _i(j['ownerLocationId'] ?? 1),
+        travelTo: _i(j['travelTo'] ?? -1),
+        travelUntilTick: _i(j['travelUntilTick'] ?? -1),
+        requests: _l(j['requests'], Request.fromJson),
+        managerApplicants: _l(j['managerApplicants'], Staff.fromJson),
+        outletMarket: _l(j['outletMarket'], Offer.fromJson),
+        marketRefreshDay: _i(j['marketRefreshDay'] ?? -1),
+        sites: _l(j['sites'], Site.fromJson),
+        nextLocId: _i(j['nextLocId'] ?? 2),
+        perks: _ls(j['perks']).toSet(),
+        centralKitchen: (j['centralKitchen'] as bool?) ?? false,
+        bulkContractUntil: _i(j['bulkContractUntil'] ?? -1),
+        brands: _ls(j['brands']),
+        franchises: _i(j['franchises'] ?? 0),
+        ended: (j['ended'] as bool?) ?? false,
         cashHistory: _li(j['cashHistory']),
         monthProfit: _i(j['monthProfit']),
         monthRevenue: _i(j['monthRevenue']),
