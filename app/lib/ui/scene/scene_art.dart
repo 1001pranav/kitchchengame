@@ -123,6 +123,13 @@ class Look {
     };
   }
 
+  static const rider = Look(
+      skin: Color(0xFFC98E62),
+      hair: Color(0xFF2B1D16),
+      shirt: Color(0xFF1B998B),
+      hat: Hat.cap,
+      apron: Color(0xFF2EC4B6));
+
   static const owner = Look(
       skin: Color(0xFFE8B98F),
       hair: Color(0xFF3A2618),
@@ -159,6 +166,9 @@ void drawPerson(Canvas c, Offset p, Look look,
     bool carryDirty = false,
     bool notepad = false,
     double alpha = 1,
+    double walk = -1,
+    bool mop = false,
+    bool box = false,
     Color? foodColor}) {
   c.save();
   c.translate(p.dx, p.dy);
@@ -172,15 +182,35 @@ void drawPerson(Canvas c, Offset p, Look look,
       const Rect.fromLTWH(-8, -2.5, 16, 5), _fill(const Color(0x2A000000)));
   final y = -bob;
   // Legs (hidden when seated).
+  // Walking: legs step in turn and arms swing against them.
+  final stride = walk < 0 ? 0.0 : math.sin(walk);
   if (!seated) {
+    final lift1 = math.max(0.0, stride) * 2.2,
+        lift2 = math.max(0.0, -stride) * 2.2;
     c.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(-4.5, y - 6, 3.6, 6), const Radius.circular(1.5)),
+            Rect.fromLTWH(-4.5 - stride * 0.8, y - 6 - lift1, 3.6, 6),
+            const Radius.circular(1.5)),
         _fill(const Color(0xFF3A3A44)));
     c.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(0.9, y - 6, 3.6, 6), const Radius.circular(1.5)),
+            Rect.fromLTWH(0.9 + stride * 0.8, y - 6 - lift2, 3.6, 6),
+            const Radius.circular(1.5)),
         _fill(const Color(0xFF3A3A44)));
+    // Shoes.
+    c.drawOval(Rect.fromLTWH(-5 - stride * 0.8, y - 1.6 - lift1, 4.6, 2.4),
+        _fill(const Color(0xFF1F1A17)));
+    c.drawOval(Rect.fromLTWH(0.4 + stride * 0.8, y - 1.6 - lift2, 4.6, 2.4),
+        _fill(const Color(0xFF1F1A17)));
+  }
+  if (box) {
+    // A delivery rider's insulated box on their back.
+    c.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(-8, y - 27, 16, 13), const Radius.circular(2)),
+        _fill(const Color(0xFF2EC4B6)));
+    c.drawRect(
+        Rect.fromLTWH(-8, y - 22, 16, 2), _fill(const Color(0xFF1B998B)));
   }
   final bodyTop = y - (seated ? 13 : 17);
   final body = RRect.fromRectAndCorners(Rect.fromLTWH(-7, bodyTop, 14, 12),
@@ -234,12 +264,24 @@ void drawPerson(Canvas c, Offset p, Look look,
       c.drawLine(Offset(8.4, armY - 2.6), Offset(11.6, armY - 2.6),
           _stroke(const Color(0xFF9AA5B1), 0.6));
     }
+  } else if (mop) {
+    // Cleaner pushing a mop.
+    c.drawLine(Offset(6.2, armY), Offset(9, armY + 5), _stroke(look.shirt, 3));
+    c.drawLine(Offset(12, armY - 6), Offset(8, armY + 14),
+        _stroke(const Color(0xFF8D6E63), 1.4));
+    final sweep = walk < 0 ? 0.0 : math.sin(walk * 0.5) * 2;
+    c.drawOval(
+        Rect.fromCenter(
+            center: Offset(7 + sweep, armY + 15), width: 9, height: 3.4),
+        _fill(const Color(0xFFB0BEC5)));
   } else {
-    c.drawLine(
-        Offset(6.2, armY), Offset(7.4, armY + 6), _stroke(look.shirt, 3));
+    c.drawLine(Offset(6.2, armY), Offset(7.4 - stride * 1.6, armY + 6),
+        _stroke(look.shirt, 3));
   }
-  c.drawLine(
-      Offset(-6.2, armY), Offset(-7.4, armY + 6), _stroke(look.shirt, 3));
+  c.drawLine(Offset(-6.2, armY), Offset(-7.4 + stride * 1.6, armY + 6),
+      _stroke(look.shirt, 3));
+  // Hands.
+  c.drawCircle(Offset(-7.4 + stride * 1.6, armY + 6.6), 1.5, _fill(look.skin));
   // Head.
   final hc = Offset(0, bodyTop - 6);
   if (look.longHair) {
@@ -736,3 +778,152 @@ void strokeRRect(Canvas c, RRect r, Color color, double w) =>
     c.drawRRect(r, _stroke(color, w));
 void line(Canvas c, Offset a, Offset b, Color color, double w) =>
     c.drawLine(a, b, _stroke(color, w));
+
+/// The entrance door on the left wall; [open] 0..1 swings it inwards.
+void drawDoor(Canvas c, Rect frame, double open) {
+  c.drawRect(frame.inflate(2), _fill(const Color(0xFF4E342E)));
+  c.drawRect(frame, _fill(const Color(0xFF263238)));
+  // Daylight through the open door.
+  if (open > 0.02) {
+    c.drawRect(
+        frame.deflate(1), _fill(Color.fromRGBO(255, 236, 179, 0.85 * open)));
+  }
+  final w = frame.width * 4.2;
+  final leaf = Rect.fromLTWH(
+      frame.right, frame.top, w * (1 - open * 0.85), frame.height);
+  c.drawRRect(RRect.fromRectAndRadius(leaf, const Radius.circular(1.5)),
+      _fill(const Color(0xFF8D5A3B)));
+  c.drawRect(leaf.deflate(2.2), _fill(const Color(0xFF9E6B4A)));
+  if (leaf.width > 6) {
+    c.drawCircle(Offset(leaf.right - 3, leaf.center.dy), 1.2,
+        _fill(const Color(0xFFFFD166)));
+  }
+}
+
+/// A tall double fridge with a shelf of jars beside it.
+void drawFridge(Canvas c, Rect r) {
+  c.drawRRect(
+      RRect.fromRectAndRadius(
+          r.shift(const Offset(0, 2)), const Radius.circular(4)),
+      _fill(const Color(0x40000000)));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(4)),
+      _fill(const Color(0xFFE6EEF2)));
+  c.drawLine(Offset(r.center.dx, r.top + 3), Offset(r.center.dx, r.bottom - 3),
+      _stroke(const Color(0xFFB0BEC5), 1));
+  for (final x in [r.center.dx - 3, r.center.dx + 3]) {
+    c.drawLine(Offset(x, r.center.dy - 5), Offset(x, r.center.dy + 5),
+        _stroke(const Color(0xFF78909C), 1.6));
+  }
+}
+
+void drawShelf(Canvas c, Rect r) {
+  c.drawRect(r, _fill(const Color(0xFF8D6E63)));
+  c.drawRect(Rect.fromLTWH(r.left, r.bottom - 2, r.width, 2),
+      _fill(const Color(0xFF6D4C41)));
+  const jars = [
+    Color(0xFFE76F51),
+    Color(0xFFF4A261),
+    Color(0xFF2A9D8F),
+    Color(0xFFE9C46A),
+    Color(0xFF8AB17D)
+  ];
+  var x = r.left + 3;
+  var i = 0;
+  while (x + 5 < r.right) {
+    c.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(x, r.top - 7, 5, 7), const Radius.circular(1.5)),
+        _fill(jars[i % jars.length]));
+    c.drawRect(
+        Rect.fromLTWH(x, r.top - 8, 5, 1.6), _fill(const Color(0xFFBDBDBD)));
+    x += 7;
+    i++;
+  }
+}
+
+/// Steel prep table with a chopping board and vegetables.
+void drawPrepTable(Canvas c, Rect r, double t, bool busy) {
+  c.drawRRect(
+      RRect.fromRectAndRadius(
+          r.shift(const Offset(0, 2)), const Radius.circular(3)),
+      _fill(const Color(0x33000000)));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
+      _fill(const Color(0xFFB0BEC5)));
+  c.drawRRect(RRect.fromRectAndRadius(r.deflate(1.5), const Radius.circular(2)),
+      _fill(const Color(0xFFCFD8DC)));
+  final board = Rect.fromLTWH(
+      r.left + 6, r.top + 3, math.min(22, r.width * 0.4), r.height - 6);
+  c.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(2)),
+      _fill(const Color(0xFFD7A86E)));
+  c.drawCircle(
+      board.center.translate(-3, 0), 2.6, _fill(const Color(0xFFD62828)));
+  c.drawCircle(
+      board.center.translate(3, 1), 2.2, _fill(const Color(0xFF6A994E)));
+  if (busy) {
+    // A knife chopping.
+    final k = math.sin(t * 18).abs() * 2.5;
+    c.drawLine(
+        Offset(board.right - 4, board.top + 1 - k),
+        Offset(board.right - 1, board.bottom - 2 - k),
+        _stroke(const Color(0xFF90A4AE), 1.4));
+  }
+  c.drawCircle(
+      Offset(r.right - 10, r.center.dy), 4, _fill(const Color(0xFFF2CC8F)));
+  c.drawCircle(Offset(r.right - 10, r.center.dy), 4,
+      _stroke(const Color(0x33000000), 0.6));
+}
+
+/// What sits on a free table: a little vase and, in the evening, a candle.
+void drawTableSetting(Canvas c, Rect r, double evening, double t) {
+  final o = r.center;
+  c.drawRRect(
+      RRect.fromRectAndRadius(
+          Rect.fromCenter(center: o.translate(0, 1), width: 4, height: 5),
+          const Radius.circular(1.5)),
+      _fill(const Color(0xFF90CAF9)));
+  c.drawCircle(o.translate(0, -2.5), 2, _fill(const Color(0xFFE63946)));
+  c.drawCircle(o.translate(-1.8, -1.4), 1.2, _fill(const Color(0xFF52B788)));
+  if (evening > 0.05) {
+    final x = o.dx + r.width * 0.28;
+    c.drawRect(
+        Rect.fromLTWH(x - 1, o.dy - 2, 2, 4), _fill(const Color(0xFFFFF8E1)));
+    final f = 0.8 + 0.2 * math.sin(t * 11 + o.dx);
+    c.drawOval(
+        Rect.fromCenter(
+            center: Offset(x, o.dy - 3.6), width: 2 * f, height: 3.4 * f),
+        _fill(Color.fromRGBO(255, 183, 3, evening)));
+    c.drawCircle(Offset(x, o.dy - 3.4), 7,
+        _fill(Color.fromRGBO(255, 214, 140, 0.18 * evening)));
+  }
+}
+
+void drawRug(Canvas c, Rect r) {
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(4)),
+      _fill(const Color(0xFFB5523B)));
+  c.drawRRect(RRect.fromRectAndRadius(r.deflate(3), const Radius.circular(3)),
+      _stroke(const Color(0xFFF2CC8F), 1.2));
+  c.drawRRect(RRect.fromRectAndRadius(r.deflate(7), const Radius.circular(2)),
+      _stroke(const Color(0x66F2CC8F), 1));
+}
+
+void drawOpenSign(Canvas c, Offset o, bool open) {
+  final r = Rect.fromCenter(center: o, width: 30, height: 12);
+  c.drawLine(o.translate(-8, -10), o.translate(-8, -6),
+      _stroke(const Color(0xFF6D4C41), 0.8));
+  c.drawLine(o.translate(8, -10), o.translate(8, -6),
+      _stroke(const Color(0xFF6D4C41), 0.8));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
+      _fill(open ? const Color(0xFF2F7D4F) : const Color(0xFFC24A3A)));
+  final tp =
+      labelPainter(open ? 'OPEN' : 'CLOSED', 7, Colors.white, shadow: false);
+  tp.paint(c, o - Offset(tp.width / 2, tp.height / 2));
+}
+
+/// A ripple where the player tapped to send their character.
+void drawRipple(Canvas c, Offset o, double k) {
+  final a = (1 - k).clamp(0.0, 1.0);
+  c.drawOval(Rect.fromCenter(center: o, width: 10 + 26 * k, height: 5 + 13 * k),
+      _stroke(Color.fromRGBO(122, 63, 160, a), 2));
+  c.drawOval(Rect.fromCenter(center: o, width: 6, height: 3),
+      _fill(Color.fromRGBO(122, 63, 160, a)));
+}

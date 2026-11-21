@@ -179,6 +179,8 @@ class _Actor {
   bool busy = false;
   bool seated = false;
   bool carryPlate = false, carryDirty = false, notepad = false;
+  bool mop = false, box = false;
+  double wanderAt = 0;
   Mood mood = Mood.happy;
   double alpha = 1;
   bool leaving = false;
@@ -205,7 +207,12 @@ class _Actor {
           : (seated ? 0 : (math.sin(phase) + 1) * 0.35);
       return;
     }
-    var left = speed * dt;
+    if (speed <= 0) {
+      moving = false;
+      return;
+    }
+    final total = speed * dt;
+    var left = total;
     while (left > 0 && path.isNotEmpty) {
       final d = path.first - pos;
       final dist = d.distance;
@@ -218,8 +225,9 @@ class _Actor {
       }
     }
     moving = path.isNotEmpty;
-    phase += dt * 14;
-    bob = moving ? (math.sin(phase).abs() * 1.6) : bob * 0.8;
+    // One step per ~7 px walked, so legs keep pace with any game speed.
+    phase += (total - left) * 0.45;
+    bob = moving ? (math.cos(phase).abs() * 1.4) : bob * 0.8;
   }
 }
 
@@ -269,6 +277,10 @@ class _RestaurantSceneState extends State<RestaurantScene>
   int _layoutTables = -1;
   ui.Picture? _bg;
   double _steamClock = 0;
+  double _doorOpen = 0;
+  double _shake = 0;
+  Offset? _ownerSpot; // where the player sent their character
+  String? _spotArea;
   bool _fresh = true;
   final _rnd = math.Random(5);
 
@@ -300,7 +312,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
       _sync(sim, sim.service!, l, reduced);
       final speed = 95.0 * math.max(rate, 0.0) * (reduced ? 50 : 1);
       for (final a in _staff.values) {
-        a.step(dt, speed);
+        a.step(dt, a.id == 'owner' ? speed * 1.4 : speed);
       }
       for (final p in _parties.values) {
         for (final a in p.people) {
@@ -310,6 +322,12 @@ class _RestaurantSceneState extends State<RestaurantScene>
           }
         }
       }
+      final near = [
+        ..._staff.values,
+        for (final p in _parties.values) ...p.people
+      ].any((a) => (a.pos - l.doorIn).distance < 30 && a.alpha > 0.1);
+      _doorOpen += ((near ? 1.0 : 0.0) - _doorOpen) * math.min(1, dt * 8);
+      _shake = math.max(0, _shake - dt * 12);
       _parties.removeWhere((_, p) =>
           p.removed && p.people.every((a) => a.alpha <= 0 || a.pos.dx < -10));
       if (!reduced && rate > 0) _ambient(sim, l, dt * math.min(rate, 2));
@@ -366,7 +384,8 @@ class _RestaurantSceneState extends State<RestaurantScene>
     _staff.removeWhere((k, _) => !seen.contains(k));
 
     // Parties.
-    final queue = ss.groups.where((g) => g.state == 'waitTable').toList();
+    final queue =
+        ss.groups.where((g) => g.state == 'waitTable' && !g.delivery).toList();
     final qIndex = <int, int>{};
     var slot = 0;
     for (final g in queue) {
@@ -374,7 +393,10 @@ class _RestaurantSceneState extends State<RestaurantScene>
       slot += g.size;
     }
     for (final g in ss.groups) {
-      if (g.delivery) continue;
+      if (g.delivery) {
+        _rider(g, l, snap);
+        continue;
+      }
       var p = _parties[g.id];
       if (p == null) {
         if (g.gone) continue; // left before we ever saw them
@@ -440,6 +462,38 @@ class _RestaurantSceneState extends State<RestaurantScene>
     _fresh = false;
   }
 
+  /// A delivery order: a rider waits at the till for the bag, then rides off.
+  void _rider(Group g, _Layout l, bool snap) {
+    var p = _parties[g.id];
+    if (p == null) {
+      if (g.gone) return;
+      final a = _Actor('d${g.id}', Look.rider, snap ? Offset.zero : l.spawn)
+        ..box = true;
+      p = _Party(g.id, [a], 'rider');
+      _parties[g.id] = p;
+    }
+    final a = p.people.first;
+    final wait = Offset(
+        l.till.center.dx - 14 - (g.id % 3) * 14.0, l.lobby.center.dy + 6);
+    if (snap && !g.gone) {
+      a.pos = wait;
+      a.path.clear();
+    } else if (g.gone) {
+      if (!a.leaving) {
+        a.leaving = true;
+        a.goTo(l.spawn, via: [l.doorIn]);
+        if (g.payment > 0) {
+          _particles.add(_Particle(
+              1, wait.translate(0, -30), wait.translate(0, -60), 1.2,
+              text: '+${g.payment}', color: const Color(0xFF1B998B)));
+        }
+      }
+      p.removed = true;
+    } else {
+      a.goTo(wait);
+    }
+  }
+
   void _onPartyChange(_Party p, Group g, Sim sim, _Layout l) {
     final tr = g.tableId == null ? null : l.table[g.tableId];
     final at = tr?.center ?? l.queueSlot(0);
@@ -461,6 +515,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
         }
       }
     } else if (g.state == 'walkedOut') {
+      _shake = 4;
       for (final a in p.people) {
         a.mood = Mood.angry;
       }
@@ -486,6 +541,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
     a.carryPlate = false;
     a.carryDirty = false;
     a.notepad = false;
+    a.mop = false;
     a.busy = task != null || (role == 'dishwasher' && ss.dirtyDishes > 0.5);
     Offset target;
     double prog() => task == null || task.endTick <= task.startTick
@@ -526,6 +582,28 @@ class _RestaurantSceneState extends State<RestaurantScene>
           target = l.tableSide(task.tableId ?? 0);
           a.notepad = task.type == 'takeOrder';
       }
+    } else if (role == 'cleaner') {
+      // Mops the floor between the tables, moving on every few seconds.
+      a.mop = true;
+      if (_time > a.wanderAt) {
+        a.wanderAt = _time + 4 + _rnd.nextDouble() * 4;
+        final x = l.aislesX[_rnd.nextInt(l.aislesX.length)];
+        final y = l.lanesY[_rnd.nextInt(l.lanesY.length)];
+        if (!snap) a.goTo(Offset(x, y), via: l.route(a.pos, Offset(x, y)));
+      }
+      if (snap) a.pos = l.dining.center;
+      return;
+    } else if (role == 'owner' &&
+        _ownerSpot != null &&
+        ss.ownerArea == _spotArea) {
+      final t = _ownerSpot!;
+      if (snap) {
+        a.pos = t;
+      } else if ((a.target - t).distance > 0.5) {
+        final kitchen = a.pos.dy < l.dining.top && t.dy < l.dining.top;
+        a.goTo(t, via: kitchen ? const [] : l.route(a.pos, t));
+      }
+      return;
     } else {
       final rs = l.stationRect.values.toList();
       target = switch (role) {
@@ -581,6 +659,20 @@ class _RestaurantSceneState extends State<RestaurantScene>
     final washing = sim.state.viewLoc.staff
             .any((s) => s.workingToday && s.role == 'dishwasher') &&
         ss.dirtyDishes > 0.5;
+    // Diners now and then show how they feel.
+    for (final pt in _parties.values) {
+      if (pt.removed || pt.people.isEmpty || pt.state == 'rider') continue;
+      final a = pt.people[_rnd.nextInt(pt.people.length)];
+      if (!a.seated) continue;
+      if (pt.state == 'eating' && _rnd.nextDouble() < 0.025) {
+        _particles.add(_Particle(
+            8, a.pos.translate(0, -30), a.pos.translate(0, -46), 0.9,
+            color: const Color(0xFFFFC145)));
+      } else if (a.mood == Mood.angry && _rnd.nextDouble() < 0.05) {
+        _particles.add(_Particle(
+            9, a.pos.translate(6, -36), a.pos.translate(8, -44), 0.8));
+      }
+    }
     if (washing && _rnd.nextDouble() < 0.5) {
       final from =
           Offset(l.sink.left + 10 + _rnd.nextDouble() * 24, l.sink.top + 14);
@@ -601,6 +693,32 @@ class _RestaurantSceneState extends State<RestaurantScene>
         return;
       }
     }
+    // Empty floor: walk there. Where you stand decides what you help with.
+    final c = GameScope.read(context);
+    final l = _layout;
+    if (l == null || c.sim == null || !c.sim!.ownerPresent) {
+      if (l != null) {
+        showToast(context, 'You are not at this restaurant right now.');
+      }
+      return;
+    }
+    String area;
+    Offset spot;
+    if (p.dy < l.dining.top) {
+      area = p.dx > l.sink.left - 24 ? 'dishes' : 'pass';
+      spot = Offset(p.dx.clamp(14, l.size.width - 14),
+          p.dy.clamp(l.sink.bottom + 18, l.kitchen.bottom - 18));
+    } else if (p.dy > l.dining.bottom - 26) {
+      area = 'door';
+      spot = Offset(p.dx.clamp(20, l.size.width - 20), l.dining.bottom - 12);
+    } else {
+      area = 'tables';
+      spot = p;
+    }
+    _ownerSpot = spot;
+    _spotArea = area;
+    _particles.add(_Particle(7, spot, spot, 0.7));
+    if (c.sim!.service?.ownerArea != area) sendCmd(context, OwnerStand(area));
   }
 
   @override
@@ -720,13 +838,18 @@ class _RestaurantSceneState extends State<RestaurantScene>
     c.drawRect(Rect.fromLTWH(0, l.lobby.top - 3, l.gap.left, 6), low);
     c.drawRect(
         Rect.fromLTWH(l.gap.right, l.lobby.top - 3, w - l.gap.right, 6), low);
-    // Door on the left.
-    fillRRect(
-        c,
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(0, l.lobby.top + 8, 8, l.lobby.height - 16),
-            const Radius.circular(2)),
-        const Color(0xFF6B4226));
+    // Kitchen: fridge and a shelf of jars beside the stations.
+    final last = l.stationRect.values.isEmpty
+        ? 10.0
+        : l.stationRect.values.map((r) => r.right).reduce(math.max);
+    final room = l.sink.left - 8 - (last + 8);
+    if (room >= 26) {
+      final f = Rect.fromLTWH(last + 8, 14, math.min(32.0, room), 40);
+      drawFridge(c, f);
+      if (room - f.width >= 26) {
+        drawShelf(c, Rect.fromLTWH(f.right + 6, 30, room - f.width - 6, 4));
+      }
+    }
     // Till counter.
     fillRRect(
         c,
@@ -775,8 +898,14 @@ class _ScenePainter extends CustomPainter {
   void paint(Canvas c, Size size) {
     final t = s._time;
     s._hits.clear();
+    if (s._shake > 0) {
+      c.translate(
+          math.sin(t * 90) * s._shake, math.cos(t * 77) * s._shake * 0.6);
+    }
     c.drawPicture(s._bg!);
+    final evening = ((ss.tick - 220) / 120).clamp(0.0, 1.0);
     _kitchen(c, t);
+    _prepTable(c, t);
     // Tables with the people at them: far side, table, near side.
     final byTable = <int, _Party>{};
     for (final p in s._parties.values) {
@@ -797,6 +926,9 @@ class _ScenePainter extends CustomPainter {
       drawTable(c, r,
           dirty: tb.state == 'dirty',
           selected: g != null && g.id == selected && !g.gone);
+      if (tb.state != 'dirty' && (g == null || g.gone || !g.foodDelivered)) {
+        drawTableSetting(c, r, evening, t);
+      }
       if (g != null && !g.gone && (g.state == 'eating' || g.foodDelivered)) {
         final eatLeft = g.state == 'eating'
             ? ((g.eatUntil - ss.tick) / math.max(1, sim.eatTicks(g.size)))
@@ -839,10 +971,70 @@ class _ScenePainter extends CustomPainter {
           Palette.owner);
       tp.paint(c, r.center - Offset(tp.width / 2, tp.height / 2));
     }
+    drawDoor(c, Rect.fromLTWH(0, l.lobby.top + 8, 5, l.lobby.height - 16),
+        s._doorOpen);
+    drawOpenSign(c, Offset(l.size.width * 0.5, l.lobby.bottom - 9), true);
     _queue(c);
     _bubbles(c, t);
     _particles(c);
     _lighting(c, size);
+    _banner(c, size);
+  }
+
+  /// "Doors open!" at the start of service and "Last orders!" near the end.
+  void _banner(Canvas c, Size size) {
+    String? text;
+    double k;
+    if (ss.tick < 10) {
+      text = 'Doors open!';
+      k = ss.tick / 10;
+    } else if (ss.tick >= 340 && ss.tick < 352) {
+      text = 'Last orders!';
+      k = (ss.tick - 340) / 12;
+    } else {
+      return;
+    }
+    final appear = Curves.elasticOut.transform((k * 3).clamp(0.0, 1.0));
+    final fade = k > 0.8 ? (1 - k) / 0.2 : 1.0;
+    final tp = labelPainter(text, 18, Colors.white, shadow: false);
+    final center = Offset(size.width / 2, l.dining.top + 46);
+    c.save();
+    c.translate(center.dx, center.dy);
+    c.scale(0.4 + 0.6 * appear);
+    final r =
+        Rect.fromCenter(center: Offset.zero, width: tp.width + 40, height: 34);
+    final ribbon = Paint()
+      ..color =
+          (text == 'Doors open!' ? Palette.tomato : const Color(0xFF7A3FA0))
+              .withValues(alpha: fade);
+    final tail = Paint()
+      ..color = (text == 'Doors open!'
+              ? const Color(0xFF9B3524)
+              : const Color(0xFF55297A))
+          .withValues(alpha: fade);
+    for (final sx in [-1.0, 1.0]) {
+      final path = Path()
+        ..moveTo(sx * (r.width / 2 - 6), -10)
+        ..lineTo(sx * (r.width / 2 + 18), -10)
+        ..lineTo(sx * (r.width / 2 + 10), 4)
+        ..lineTo(sx * (r.width / 2 + 18), 18)
+        ..lineTo(sx * (r.width / 2 - 6), 18)
+        ..close();
+      c.drawPath(path, tail);
+    }
+    c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(6)), ribbon);
+    if (fade > 0.3) tp.paint(c, Offset(-tp.width / 2, -tp.height / 2));
+    c.restore();
+  }
+
+  void _prepTable(Canvas c, double t) {
+    final last = l.stationRect.values.isEmpty
+        ? 10.0
+        : l.stationRect.values.map((r) => r.right).reduce(math.max);
+    final room = l.sink.left - 8 - (last + 8);
+    if (room < 40) return;
+    final busy = ss.tasks.any((k) => k.type == 'cook' && k.started);
+    drawPrepTable(c, Rect.fromLTWH(last + 8, 64, room, 15), t, busy);
   }
 
   void _person(Canvas c, _Actor a) {
@@ -855,6 +1047,9 @@ class _ScenePainter extends CustomPainter {
         carryDirty: a.carryDirty,
         notepad: a.notepad,
         alpha: a.alpha,
+        walk: a.moving ? a.phase : -1,
+        mop: a.mop,
+        box: a.box,
         foodColor: a.food);
   }
 
@@ -1060,6 +1255,24 @@ class _ScenePainter extends CustomPainter {
         case 5:
           final pos = Offset.lerp(p.from, p.to, Curves.easeOut.transform(k))!;
           drawHeart(c, pos, 4, p.color.withValues(alpha: 1 - k));
+        case 7:
+          drawRipple(c, p.from, k);
+        case 8:
+          final pos = Offset.lerp(p.from, p.to, Curves.easeOut.transform(k))!;
+          drawStar(
+              c, pos, 3.4 * (1 - k * 0.4), p.color.withValues(alpha: 1 - k));
+        case 9:
+          final pos = Offset.lerp(p.from, p.to, k)!;
+          final col = Color.fromRGBO(214, 40, 40, 1 - k);
+          for (final (dx, dy) in [
+            (-1.0, -1.0),
+            (1.0, -1.0),
+            (-1.0, 1.0),
+            (1.0, 1.0)
+          ]) {
+            line(c, pos + Offset(dx * 1.2, dy * 1.2),
+                pos + Offset(dx * 3.6, dy * 3.6), col, 1.4);
+          }
         case 6:
           final pos = Offset.lerp(p.from, p.to, k)!;
           c.drawCircle(

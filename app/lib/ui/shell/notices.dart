@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import '../widgets/juice.dart';
 import '../widgets/common.dart';
 
 /// Morning notices: yesterday's news, weekly/monthly statements, stage-ups (doc 07 §4.5, §4.10).
@@ -18,13 +19,13 @@ Future<void> showNotices(BuildContext context) async {
       case '@welcome':
         await _sheet(context, const _Welcome());
       case '@stage2':
-        await _sheet(context, const _StageUp(stage: 2));
+        await _sheet(context, const Confetti(child: _StageUp(stage: 2)));
       case '@stage3':
-        await _sheet(context, const _StageUp(stage: 3));
+        await _sheet(context, const Confetti(child: _StageUp(stage: 3)));
       case '@stage4':
-        await _sheet(context, const _StageUp(stage: 4));
+        await _sheet(context, const Confetti(child: _StageUp(stage: 4)));
       case '@stage5':
-        await _sheet(context, const _StageUp(stage: 5));
+        await _sheet(context, const Confetti(child: _StageUp(stage: 5)));
       case '@weekly':
         await _sheet(
             context, _Statement(week: st.weeks.isEmpty ? null : st.weeks.last));
@@ -186,8 +187,8 @@ class _StageUp extends StatelessWidget {
     final body = bodies[stage]!;
     final unlocks = unlockLists[stage]!;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Icon(Icons.emoji_events, color: Palette.gold, size: 72),
-      const SizedBox(height: 8),
+      Center(child: Trophy(size: 110, stars: stage)),
+      const SizedBox(height: 4),
       Text(title,
           textAlign: TextAlign.center,
           style: Theme.of(context)
@@ -285,31 +286,35 @@ Future<void> showEnding(BuildContext context) async {
   final value = c.sim!.valuation();
   await _sheet(
     context,
-    Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      const Icon(Icons.auto_awesome, color: Palette.gold, size: 72),
-      Text('From one tired restaurant to a group',
-          textAlign: TextAlign.center,
-          style: Theme.of(context)
-              .textTheme
-              .headlineSmall
-              ?.copyWith(fontWeight: FontWeight.w900)),
-      const SizedBox(height: 10),
-      Text(
-        'You bought ${st.locations.first.name} on day 1. ${st.dayIndex + 1} days later you run ${st.openLocations.length} restaurants across ${st.brands.length} brands'
-        '${st.franchises > 0 ? ' and ${st.franchises} franchises' : ''}.',
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 16, height: 1.4),
-      ),
-      const SizedBox(height: 14),
-      const Text('Final company value',
-          textAlign: TextAlign.center, style: TextStyle(color: Palette.muted)),
-      Center(child: Money(value, size: 30, weight: FontWeight.w900)),
-      const SizedBox(height: 10),
-      const Text(
-          'This is your score. You can keep playing as long as you like.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Palette.muted)),
-    ]),
+    Confetti(
+        pieces: 120,
+        child:
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Center(child: Trophy(size: 120, stars: 5)),
+          Text('From one tired restaurant to a group',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          Text(
+            'You bought ${st.locations.first.name} on day 1. ${st.dayIndex + 1} days later you run ${st.openLocations.length} restaurants across ${st.brands.length} brands'
+            '${st.franchises > 0 ? ' and ${st.franchises} franchises' : ''}.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16, height: 1.4),
+          ),
+          const SizedBox(height: 14),
+          const Text('Final company value',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Palette.muted)),
+          Center(child: RollingMoney(value, size: 30, weight: FontWeight.w900)),
+          const SizedBox(height: 10),
+          const Text(
+              'This is your score. You can keep playing as long as you like.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Palette.muted)),
+        ])),
   );
   c.send(const EndGame());
 }

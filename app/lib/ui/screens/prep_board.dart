@@ -4,6 +4,8 @@ import 'package:sim_core/sim_core.dart';
 import '../shell/shell.dart';
 import 'chain_screens.dart';
 import '../theme.dart';
+import '../widgets/juice.dart';
+import '../scene/shopfront.dart';
 import '../widgets/common.dart';
 
 const areaLabels = {
@@ -131,6 +133,19 @@ class PrepBoard extends StatelessWidget {
       child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Shopfront(
+                  name: l.name,
+                  accent: accentOf(c.content.themes[l.themeId]?.accent),
+                  quality: tierQuality(l.tierId),
+                  time: DayTime.morning,
+                  open: false,
+                  animate: true,
+                  height: MediaQuery.of(context).size.height < 700 ? 84 : 128,
+                  seed: l.id),
+            ),
+            const SizedBox(height: 10),
             if (c.settings.tutorial && st.dayIndex < 3)
               _Tutorial(day: st.dayIndex),
             const OwnersDesk(),
@@ -327,7 +342,8 @@ class PrepBoard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 flex: 3,
-                child: FilledButton.icon(
+                child: Pressable(
+                    child: FilledButton.icon(
                   style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(56),
                       backgroundColor: Palette.tomato),
@@ -336,7 +352,7 @@ class PrepBoard extends StatelessWidget {
                   label: Text(l.closedUntil > st.dayIndex
                       ? 'SKIP THE DAY'
                       : 'OPEN DOORS'),
-                ),
+                )),
               ),
             ]),
           ]),

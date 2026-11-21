@@ -7,6 +7,7 @@ import '../../state/game_controller.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'prep_board.dart';
+import '../widgets/juice.dart';
 import '../scene/restaurant_scene.dart';
 
 /// The live restaurant (doc 07 §4.4). Drawn with widgets instead of Flame (see README).
@@ -157,8 +158,8 @@ class _ClockBar extends StatelessWidget {
               child: StatBar(ss.tick / 360, color: Palette.accent, height: 6)),
           const SizedBox(width: 10),
           Flexible(
-              child:
-                  Money(sim.state.viewLoc.today.revenue, size: 14, sign: true)),
+              child: RollingMoney(sim.state.viewLoc.today.revenue,
+                  size: 14, sign: true)),
           const SizedBox(width: 10),
           Semantics(
             label: 'Lost ${ss.lost} of target ${ss.target}',
@@ -256,7 +257,10 @@ class _Controls extends StatelessWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Waiting: door $atDoor · order $waitOrder · food $waitFood · bill $waitBill',
+                          sim.state.dayIndex < 3 && present
+                              ? 'Tap the floor to walk there, or a bubble to do that job.'
+                              : 'Waiting: door $atDoor · order $waitOrder · food $waitFood · bill $waitBill',
+                          maxLines: 2,
                           style: const TextStyle(
                               color: Palette.muted,
                               fontWeight: FontWeight.w600),

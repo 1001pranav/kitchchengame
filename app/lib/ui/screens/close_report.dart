@@ -5,6 +5,8 @@ import '../shell/shell.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'kitchen_tab.dart';
+import '../widgets/juice.dart';
+import '../scene/shopfront.dart';
 import 'stock_tab.dart';
 
 /// Close report in three pages (doc 07 §4.5).
@@ -39,13 +41,15 @@ class CloseReport extends StatelessWidget {
             color: Palette.surface,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
             child: Centered(
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(54)),
-                onPressed: () => sendCmd(context, const EndDay()),
-                icon: const Icon(Icons.bedtime),
-                label: Text(
-                    'Sleep · next day (${weekdays[(sim.state.weekday + 1) % 7]})'),
+              child: Pressable(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(54)),
+                  onPressed: () => sendCmd(context, const EndDay()),
+                  icon: const Icon(Icons.bedtime),
+                  label: Text(
+                      'Sleep · next day (${weekdays[(sim.state.weekday + 1) % 7]})'),
+                ),
               ),
             ),
           ),
@@ -103,6 +107,20 @@ class _DayPage extends StatelessWidget {
       child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
           children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Shopfront(
+                  name: sim.state.viewLoc.name,
+                  accent: accentOf(
+                      sim.content.themes[sim.state.viewLoc.themeId]?.accent),
+                  quality: tierQuality(sim.state.viewLoc.tierId),
+                  time: DayTime.night,
+                  open: false,
+                  animate: true,
+                  height: 120,
+                  seed: sim.state.viewLoc.id),
+            ),
+            const SizedBox(height: 12),
             Text(sim.dayInOneLine(t),
                 style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 14),

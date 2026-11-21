@@ -14,6 +14,7 @@ import '../screens/stock_tab.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'incident_card.dart';
+import '../widgets/juice.dart';
 import 'notices.dart';
 
 /// Lets any screen switch the bottom tab (deep links from attention lines and reports).
@@ -232,7 +233,7 @@ class TopBar extends StatelessWidget {
                 onTap: () => showWhy(context, sim.explain('cash')),
                 child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Money(st.cash, size: 16)),
+                    child: RollingMoney(st.cash, size: 16)),
               ),
             ),
             Semantics(

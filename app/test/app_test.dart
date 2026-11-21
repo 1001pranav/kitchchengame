@@ -73,6 +73,9 @@ void main() {
       c.send(const BuyRestaurant(2));
       await t.pump(const Duration(milliseconds: 500));
       await _closeSheets(t, c);
+      // On small phones the forecast sits below the shopfront and the tutorial.
+      await t.scrollUntilVisible(find.text('FORECAST'), 200,
+          scrollable: find.byType(Scrollable).first);
       expect(find.text('FORECAST'), findsOneWidget);
       for (final tab in ['Staff', 'Stock', 'Kitchen', 'Money', 'Today']) {
         await t.tap(find.descendant(

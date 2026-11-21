@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import '../scene/pictures.dart';
 import '../widgets/common.dart';
 
 const _roleOrder = [
@@ -133,10 +134,10 @@ class StaffRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(children: [
         Stack(clipBehavior: Clip.none, children: [
-          CircleAvatar(
-              radius: 22,
-              backgroundColor: Palette.surface2,
-              child: Icon(AssetCatalog.role(s.role), color: Palette.ink)),
+          StaffAvatar(
+              seed: s.id,
+              role: s.isManager ? 'manager' : s.role,
+              mood: moodFromMorale(s.morale)),
           Positioned(
               right: -6,
               bottom: -6,
@@ -249,11 +250,11 @@ class _StaffDetail extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
             Row(children: [
-              CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Palette.surface2,
-                  child: Icon(AssetCatalog.role(s.role),
-                      size: 30, color: Palette.ink)),
+              StaffAvatar(
+                  seed: s.id,
+                  role: s.isManager ? 'manager' : s.role,
+                  size: 60,
+                  mood: moodFromMorale(s.morale)),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

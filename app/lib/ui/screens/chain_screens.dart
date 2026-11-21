@@ -5,6 +5,8 @@ import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../scene/pictures.dart';
+import '../scene/shopfront.dart';
 import 'title_screen.dart' show cuisines, tierColors;
 
 const formatLabels = {
@@ -351,6 +353,17 @@ class OutletCard extends StatelessWidget {
               builder: (_) => OutletSheet(locationId: l.id));
         },
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Shopfront(
+                name: l.name,
+                accent: accentOf(c.content.themes[l.themeId]?.accent),
+                quality: tierQuality(l.tierId),
+                open: !l.closedForGood,
+                height: 70,
+                seed: l.id),
+          ),
+          const SizedBox(height: 8),
           Row(children: [
             Container(
                 width: 10,
@@ -748,9 +761,7 @@ class ManagerCard extends StatelessWidget {
     return Panel(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          const CircleAvatar(
-              backgroundColor: Palette.surface2,
-              child: Icon(Icons.badge, color: Palette.ink)),
+          StaffAvatar(seed: m.id, role: 'manager', size: 44),
           const SizedBox(width: 10),
           Expanded(
             child:

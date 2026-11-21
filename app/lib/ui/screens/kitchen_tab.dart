@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import '../scene/pictures.dart';
 import '../widgets/common.dart';
 
 class KitchenTab extends StatelessWidget {
@@ -115,11 +116,7 @@ class _DishRow extends StatelessWidget {
         child: Panel(
           padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
           child: Row(children: [
-            CircleAvatar(
-                radius: 20,
-                backgroundColor: Palette.surface2,
-                child: Icon(AssetCatalog.course(dish.course),
-                    color: Palette.tomato, size: 20)),
+            DishPicture(dishId: dish.id, size: 44, off: !m.enabled),
             const SizedBox(width: 10),
             Expanded(
               child: InkWell(
@@ -313,8 +310,8 @@ class _EqRow extends StatelessWidget {
         borderColor: e.broken ? Palette.bad : Palette.line,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Icon(AssetCatalog.equipment(e.type),
-                color: e.broken ? Palette.bad : Palette.ink),
+            EquipmentPicture(
+                type: e.type, station: t.station, size: 40, broken: e.broken),
             const SizedBox(width: 8),
             Expanded(
                 child: Text(t.name,

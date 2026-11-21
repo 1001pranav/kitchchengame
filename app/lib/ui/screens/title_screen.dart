@@ -1,10 +1,10 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../scene/pictures.dart';
+import '../scene/shopfront.dart';
 import 'misc_screens.dart';
 
 class TitleScreen extends StatefulWidget {
@@ -48,7 +48,16 @@ class _TitleScreenState extends State<TitleScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(children: [
                       const Spacer(flex: 2),
-                      const _Logo(),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: const Shopfront(
+                            name: 'Kitchen Chain',
+                            accent: Palette.accent,
+                            quality: 3,
+                            animate: true,
+                            height: 210,
+                            seed: 3),
+                      ),
                       const SizedBox(height: 18),
                       Text('Kitchen Chain',
                           style: Theme.of(context)
@@ -133,43 +142,6 @@ class _TitleScreenState extends State<TitleScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Logo extends StatelessWidget {
-  const _Logo();
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 112,
-      height: 112,
-      decoration: BoxDecoration(
-        color: Palette.accent,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-              color: Palette.accent.withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 10))
-        ],
-      ),
-      child: Stack(alignment: Alignment.center, children: [
-        Transform.rotate(
-            angle: -math.pi / 14,
-            child: const Icon(Icons.restaurant_menu,
-                size: 58, color: Colors.white)),
-        Positioned(
-          right: 14,
-          bottom: 14,
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
-                color: Palette.tomato, shape: BoxShape.circle),
-            child: const Icon(Icons.trending_up, size: 18, color: Colors.white),
-          ),
-        ),
-      ]),
     );
   }
 }
@@ -354,6 +326,12 @@ class OfferCard extends StatelessWidget {
       onTap: () => Navigator.push(context,
           MaterialPageRoute(builder: (_) => OfferDetail(index: index))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Shopfront(
+            name: l.name,
+            accent: accentOf(c.content.themes[c.state!.themeId]?.accent),
+            quality: tierQuality(o.tierId),
+            height: 104,
+            seed: index + 1),
         Container(
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
           decoration: BoxDecoration(
@@ -532,10 +510,11 @@ class OfferDetail extends StatelessWidget {
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                      backgroundColor: Palette.surface2,
-                      child: Icon(AssetCatalog.role(s.role),
-                          color: Palette.ink, size: 20)),
+                  leading: StaffAvatar(
+                      seed: s.id,
+                      role: s.role,
+                      size: 40,
+                      mood: moodFromMorale(s.morale)),
                   title: Text(s.name,
                       style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(

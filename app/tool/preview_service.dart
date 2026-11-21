@@ -16,7 +16,16 @@ Future<void> main() async {
       content: content,
       saves: SaveService(),
       settings: Settings(tutorial: false, sound: false));
+  final screen = Uri.base.queryParameters['screen'] ?? 'service';
+  if (screen == 'title') {
+    runApp(KitchenChainApp(controller: c));
+    return;
+  }
   c.newGame(seed: 11, difficulty: 'easy', themeId: theme);
+  if (screen == 'market') {
+    runApp(KitchenChainApp(controller: c));
+    return;
+  }
   c.send(const BuyRestaurant(2));
   void clear() {
     for (final i in List.of(c.state!.openIncidents)) {
@@ -27,8 +36,18 @@ Future<void> main() async {
   }
 
   clear();
+  if (screen == 'prep') {
+    runApp(KitchenChainApp(controller: c));
+    return;
+  }
   // Skip ahead in the day so the room is busy when the recording starts.
   c.send(const StartService());
+  if (screen == 'close') {
+    c.send(const EndService());
+    clear();
+    runApp(KitchenChainApp(controller: c));
+    return;
+  }
   final skip = int.tryParse(Uri.base.queryParameters['skip'] ?? '') ?? 60;
   for (var i = 0; i < skip && c.state!.phase == 'service'; i++) {
     c.sim!.tick();
