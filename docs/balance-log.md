@@ -2,6 +2,43 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 18 — manager-run outlets meet the Veteran target
+
+Measured with `packages/sim_core/tool/managers.dart` (Good-tier second outlet in an
+**average neighbourhood** site, cashier let go, owner never visits but runs a local ad
+every 4 weeks and reworks the menu every 8, competent owner approves affordable requests).
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Measurement site | whatever the market offered → forced to average / neighbourhood | Entries 16–17 bought random formats: at Stage 3, 40% of market outlets are high street or office district. 4 of the 12 seeds behind entry 17's Veteran number were office-district outlets, which lose money even with a Veteran (below) |
+| Manager fills in (doc 02 §15.15) | spec rule not built → the manager takes one uncovered role (cook, then server, then dishwasher, vacancy included) at skill 50; the till falls back to the servers | Without it one absent cook on a day off left a single cook for the night; this was the largest single cause of walk-outs |
+| Manager's till skill (§15.15) | staff `skill` − 15 off-role penalty → the mean of the three sub-skills, no penalty | Bug: a Veteran worked the till like a 40-skill cashier, and coaching or learning never showed on the floor |
+| Training request (§15.10) | course allowed only within the spending limit (a 60-skill cook costs 600 > 500, so **never**) → above the limit it becomes a `training` request | Bug: managed outlets' cooks stayed at ~62 while the owner's reached 70–74; food quality 62 vs 68 |
+| Promotion request (new kind `promote`) | none → no head chef: ask to promote the best line cook (≥ 50), cost = the weekly raise | The head chef gives every line cook +5 (`HEAD_CHEF_LINE_BONUS`). The competent owner always has one; manager-run outlets never did |
+| Marketing request | every day buzz < 0.25 → also only when the last ad ended > 21 days ago | Bug: two 3,000 ads in consecutive weeks (buzz recovers slowly after an ad) |
+| `NEGLECT_MAX` (§15.5) | 0.20 → **0.10** | At 0.20 a Trainee's unvisited outlet lost 1.3k a week and the 35/80 gap was 4.1k (target 1.0–2.5k). Neglect alone accounted for 1.7k of it |
+
+Results, weeks 5–12 (24 seeds):
+
+| Manager | Avg weekly operating profit | Losing weeks | Doc 06 target | Verdict |
+|---|---|---|---|---|
+| Sub-skills 80 | +2.8k | 9% (weeks 5–12), 14% (weeks 2–26) | ≤ 1 in 8 (12.5%); ≤ 1 in 3 over weeks 13–26; profitable after 12 weeks | **PASS** |
+| Sub-skills 35 | −0.5k | 56%; first losing 4-week block ends week 5.0 | first losing 4-week block within weeks 3–8 | **PASS** |
+| Gap 80 vs 35 (operating profit, wages included) | 3.4k | — | 1,000–2,500 | **FAIL** (above) |
+
+By grade (12 seeds): 27 → −2.6k, 42 → −2.0k, 57 → +0.5k, 72 → +1.7k, 86 → +2.4k. Without
+the owner's remote ads and menu reworks a Veteran still makes +1.5k (menu freshness
+decays to 0, buzz to ~0.3).
+
+**Office district is not viable yet.** A Veteran-run office-district outlet (delivery on)
+loses 2.8–3.2k a week, 91–97% of weeks; high street makes +3.4k. In the last 28 days ~30%
+of office-district parties are lost: no free table (T ~180), waiting to order (O ~50),
+waiting for food (F ~160). Cause: lunch demand ×2.5 lands on a 14-table dining room with
+three cooks, and the delivery orders share the same kitchen. Doc 11 §C.1 also has
+takeaway at the till, without a table, and that is not built. This needs its own pass
+(takeaway stream; maybe a lower `lunchMult`). An owner-run office district has not been
+measured; with a manager, the market currently offers an outlet that loses money.
+
 ## Entry 17 — managers lead the floor; a careful chain survives
 
 | Change | Old → new | Evidence |

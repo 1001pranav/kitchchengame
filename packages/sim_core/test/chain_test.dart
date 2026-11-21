@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:sim_core/sim_core.dart';
 import 'package:test/test.dart';
@@ -184,6 +185,94 @@ void main() {
     final req = sim.state.requests.firstWhere((r) => r.kind == 'repair');
     expect(sim.apply(AnswerRequest(req.id, 'approve')).ok, isTrue);
     expect(oven.broken, isFalse);
+  });
+
+  Location managedOutlet(Sim sim, {double skill = 80}) {
+    sim.apply(const BuyOutlet(2));
+    final l2 = sim.state.locations.last;
+    sim.apply(SelectLocation(l2.id));
+    final m = sim.state.managerApplicants.first;
+    sim.apply(HireManager(m.id));
+    m
+      ..people = skill
+      ..upkeep = skill
+      ..stockSkill = skill;
+    sim.apply(SelectLocation(sim.state.locations.first.id));
+    return l2;
+  }
+
+  test('a manager fills in for a missing cook (doc 02 §15.15)', () {
+    final sim = stage3();
+    final l2 = managedOutlet(sim);
+    finishDay(sim); // the outlet trades from tomorrow
+    l2.staff.removeWhere((s) => s.isCook);
+    finishDay(sim);
+    final day = l2.days.last;
+    expect(day.groupsServed, greaterThan(0));
+    expect(day.foodTickets, greaterThan(0));
+  });
+
+  test('a course above the spending limit becomes a training request', () {
+    final sim = stage3();
+    final l2 = managedOutlet(sim);
+    final cook = l2.staff.firstWhere((s) => s.isCook);
+    for (final s in l2.staff.where((s) => s.isCook)) {
+      s.skill = 68; // every cook needs a course, each costs 680
+    }
+    cook.skill = 60;
+    l2.policies.spendingLimit = 500;
+    Request? req;
+    for (var d = 0; d < 9 && req == null; d++) {
+      finishDay(sim);
+      req = sim.state.requests
+          .where((r) => r.kind == 'training' && r.locationId == l2.id)
+          .firstOrNull;
+    }
+    expect(req, isNotNull);
+    expect(req!.cost, greaterThan(500));
+    final who = l2.staffById(req.subjectId)!;
+    expect(sim.apply(AnswerRequest(req.id, 'approve')).ok, isTrue);
+    expect(who.trainingUntil, greaterThan(sim.state.dayIndex));
+  });
+
+  test('no head chef: the manager asks to promote the best line cook', () {
+    final sim = stage3();
+    final l2 = managedOutlet(sim);
+    for (final s in l2.staff.where((s) => s.role == 'headChef')) {
+      s.role = 'lineCook';
+    }
+    final best = (l2.staff.where((s) => s.role == 'lineCook').toList()
+          ..sort((a, c) => c.skill.compareTo(a.skill)))
+        .first;
+    best.skill = math.max(best.skill, 60);
+    finishDay(sim);
+    final req = sim.state.requests
+        .firstWhere((r) => r.kind == 'promote' && r.locationId == l2.id);
+    expect(req.subjectId, best.id);
+    expect(sim.apply(AnswerRequest(req.id, 'approve')).ok, isTrue);
+    expect(best.role, 'headChef');
+  });
+
+  test('no second ad request while the last ad is recent', () {
+    final sim = stage3();
+    final l2 = managedOutlet(sim);
+    finishDay(sim);
+    l2.buzz = 0.1;
+    l2.campaigns.add(Campaign(
+        id: 999,
+        type: 'localAd',
+        startDay: sim.state.dayIndex - 8,
+        endDay: sim.state.dayIndex - 1,
+        cost: 3000,
+        boost: 0.1,
+        mult: 1,
+        outcome: 'normal',
+        reason: ''));
+    finishDay(sim);
+    expect(
+        sim.state.requests
+            .any((r) => r.kind == 'marketing' && r.locationId == l2.id),
+        isFalse);
   });
 
   test('multi-outlet save round-trip and determinism', () {

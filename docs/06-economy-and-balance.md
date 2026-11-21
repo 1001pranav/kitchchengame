@@ -150,10 +150,10 @@ Manager targets (Phase 2; a Good-tier outlet in an average location, owner never
 
 | Metric | Target |
 |---|---|
-| Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 over weeks 5–12 (the handover month, doc 02 §15.9, is not the manager's); ≤ 1 in 3 over weeks 13–26. **Measured 13.9% (just fails) and 20.0%**, Veteran grade, prototype, balance-log entry 10. History: entry 6 split the old single "≤ 1 in 8 over 26 weeks" because of the seed bug; incidents keep the split necessary (entry 9). |
-| Manager sub-skills all 80: still profitable on average after 12 weeks unvisited | yes |
-| Manager sub-skills all 35: first 4-week period with negative total profit | within weeks 3–8 |
-| Weekly profit gap between the two (after their wage difference) | 1,000 – 2,500 in favour of the experienced manager (the outlet's whole profit is ~4,000, so the earlier 1,500–4,000 band was impossible) |
+| Manager sub-skills all 80: weeks with negative operating profit | ≤ 1 in 8 over weeks 5–12 (the handover month, doc 02 §15.9, is not the manager's); ≤ 1 in 3 over weeks 13–26. **Measured 13.9% (just fails) and 20.0%**, Veteran grade, prototype, balance-log entry 10. Per-tick sim: **9% and 14% (pass)**, balance-log entry 18 (owner runs remote ads and menu reworks). History: entry 6 split the old single "≤ 1 in 8 over 26 weeks" because of the seed bug; incidents keep the split necessary (entry 9). |
+| Manager sub-skills all 80: still profitable on average after 12 weeks unvisited | yes (per-tick sim: +2.8k a week, entry 18) |
+| Manager sub-skills all 35: first 4-week period with negative total profit | within weeks 3–8 (per-tick sim: ends week 5, entry 18) |
+| Weekly profit gap between the two (after their wage difference) | 1,000 – 2,500 in favour of the experienced manager (the outlet's whole profit is ~4,000, so the earlier 1,500–4,000 band was impossible). **Per-tick sim: 3.4k (fails, above)**, entry 18 |
 | Share of that gap visible in "Manager's decisions" report lines | ≥ 70% |
 | Day-to-day swing of an outlet's profit (std. dev. / mean) | 40–80%; at least 1 losing day per week even when the week is profitable |
 | Excellent manager in a poor location with overpriced rent | still loses money (structural) |

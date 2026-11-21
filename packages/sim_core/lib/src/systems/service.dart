@@ -195,11 +195,33 @@ extension _Service on Sim {
   List<_Worker> _workers() {
     final out = <_Worker>[];
     final t = loc.service?.tick ?? 0;
+    _Worker? boss;
     for (final s in loc.staff) {
       if (!s.workingToday) continue;
       if (s.lateTick > t) continue;
-      out.add(_Worker(s,
-          loc.service?.moves['${s.id}'] ?? (s.isManager ? 'cashier' : s.role)));
+      final w = _Worker(s,
+          loc.service?.moves['${s.id}'] ?? (s.isManager ? 'cashier' : s.role));
+      if (s.isManager && loc.service?.moves['${s.id}'] == null) boss = w;
+      out.add(w);
+    }
+    // The manager fills in for one uncovered role; the till falls back to the
+    // servers (doc 02 §15.15).
+    if (boss != null) {
+      bool covered(List<String> roles) =>
+          out.any((w) => w != boss && roles.contains(w.role));
+      for (final need in const [
+        ['lineCook', 'headChef'],
+        ['server'],
+        ['dishwasher'],
+      ]) {
+        // A vacancy counts; an outlet that never had a dishwasher uses stand-ins.
+        if (!covered(need) &&
+            (need.first != 'dishwasher' ||
+                loc.staff.any((s) => s.role == 'dishwasher'))) {
+          out[out.indexOf(boss)] = _Worker(boss.s, need.first);
+          break;
+        }
+      }
     }
     return out;
   }
@@ -329,7 +351,12 @@ extension _Service on Sim {
 
   double _effectiveSkill(_Worker w, String taskType, {bool standIn = false}) {
     var sk = w.s.skill;
-    if (w.role != w.s.role) sk -= b.d('OFF_ROLE_PENALTY');
+    if (w.s.isManager) {
+      // At the till they work at their own level; filling in, at 50 (doc 02 §15.15).
+      sk = w.role == 'cashier' ? w.s.managerSkill : 50;
+    } else if (w.role != w.s.role) {
+      sk -= b.d('OFF_ROLE_PENALTY');
+    }
     if (standIn) sk -= b.d('STAND_IN_SKILL_PENALTY');
     // Mentor in the same role.
     for (final o in loc.staff) {

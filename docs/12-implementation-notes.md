@@ -101,6 +101,12 @@ Simplifications and gaps:
 | Regional manager, brand reputation number | Stage 4 | Not built; the average rating is shown instead |
 | Manager hiring rule (§15.10) | "Same conditions the competent bot uses" | Three cooks, two servers, one of everything else |
 
-Balance of manager-run outlets is measured in balance-log entry 16 and fails doc 06's
-manager targets: an unvisited outlet loses money even with a Veteran. Tuning it is the
-next balance task.
+Balance of manager-run outlets (balance-log entry 18): an unvisited Veteran-run Good
+outlet makes +2.8k a week with 9% losing weeks, which passes doc 06; a Trainee-level
+manager loses 0.5k. The gap between them (3.4k) is still above doc 06's 1,000–2,500 band.
+Either the band should widen or the weak-manager rules (rota mistakes, ordering error,
+neglect) should soften further; that is a design call.
+
+**Office-district outlets lose money even with a Veteran manager** (entry 18; owner-run not measured): lunch demand ×2.5
+on a 14-table room, and takeaway at the till (doc 11 §C.1) is not built. Fix this before
+offering the format to players.
