@@ -45,7 +45,7 @@ class _TeamList extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final hap = sim.outletHappiness();
     final staff = List<Staff>.of(l.staff)
       ..sort((a, b) =>
@@ -212,7 +212,7 @@ class _StaffDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final s = sim.state.loc.staffById(id);
+    final s = sim.state.viewLoc.staffById(id);
     if (s == null) {
       return const SizedBox(
           height: 120, child: Center(child: Text('No longer works here.')));
@@ -360,6 +360,29 @@ class _StaffDetail extends StatelessWidget {
                     'Warn',
                     () =>
                         sendCmd(context, Warn(s.id), okText: 'Warning given.')),
+                if (sim.state.stage >= 3 &&
+                    ['server', 'cashier', 'headChef'].contains(s.role) &&
+                    s.skill >= 60)
+                  _act(
+                      context,
+                      Icons.badge,
+                      'Make manager',
+                      () => sendCmd(context, PromoteToManager(s.id),
+                          okText:
+                              '${s.name} now manages ${sim.state.viewLoc.name}.')),
+                for (final other in sim.state.openLocations
+                    .where((x) => x.id != sim.state.viewLocationId))
+                  _act(context, Icons.swap_horiz, 'Move to ${other.name}',
+                      () async {
+                    final ok = await confirm(context, 'Move ${s.name}?',
+                        '${s.name} starts at ${other.name} the day after tomorrow and is a bit unsettled for a week.');
+                    if (ok &&
+                        context.mounted &&
+                        sendCmd(context, TransferStaff(s.id, other.id),
+                            okText: '${s.name} moves to ${other.name}.')) {
+                      Navigator.pop(context);
+                    }
+                  }),
                 if (s.role == 'lineCook')
                   _act(
                       context,
@@ -400,7 +423,7 @@ class _DaysOff extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final staff = List<Staff>.of(l.staff)
       ..sort((a, b) =>
           _roleOrder.indexOf(a.role).compareTo(_roleOrder.indexOf(b.role)));

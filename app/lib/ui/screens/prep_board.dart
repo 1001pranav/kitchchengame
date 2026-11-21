@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../shell/shell.dart';
+import 'chain_screens.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 
@@ -32,7 +33,7 @@ class PrepBoard extends StatelessWidget {
 
   List<_Attention> _attention(Sim sim) {
     final st = sim.state;
-    final l = st.loc;
+    final l = st.viewLoc;
     final out = <_Attention>[];
     for (final s in l.staff.where((s) => s.absentToday)) {
       out.add(_Attention(
@@ -118,7 +119,7 @@ class PrepBoard extends StatelessWidget {
     final c = GameScope.of(context);
     final sim = c.sim!;
     final st = sim.state;
-    final l = st.loc;
+    final l = st.viewLoc;
     final fc = sim.forecast();
     final att = _attention(sim);
     final working = l.staff.where((s) => s.workingToday).toList();
@@ -132,6 +133,8 @@ class PrepBoard extends StatelessWidget {
           children: [
             if (c.settings.tutorial && st.dayIndex < 3)
               _Tutorial(day: st.dayIndex),
+            const OwnersDesk(),
+            if (st.openLocations.length > 1) SectionTitle('${l.name} today'),
             Panel(
               onTap: () => showWhy(context, sim.explain('demand')),
               child: Row(children: [

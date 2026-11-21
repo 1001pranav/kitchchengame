@@ -4,24 +4,40 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import 'chain_screens.dart';
 import '../widgets/common.dart';
 
 class MoneyTab extends StatelessWidget {
   const MoneyTab({super.key});
   @override
   Widget build(BuildContext context) {
+    final chain = GameScope.of(context).state!.stage >= 3;
+    final tabs = [
+      const Tab(text: 'Overview'),
+      if (chain) const Tab(text: 'Outlets'),
+      if (chain) const Tab(text: 'Expand'),
+      const Tab(text: 'Marketing'),
+      const Tab(text: 'Goals'),
+    ];
     return DefaultTabController(
-      length: 3,
+      key: ValueKey(chain),
+      length: tabs.length,
       child: Column(children: [
         Container(
             color: Palette.surface,
-            child: const TabBar(tabs: [
-              Tab(text: 'Overview'),
-              Tab(text: 'Marketing'),
-              Tab(text: 'Goals')
-            ])),
-        const Expanded(
-            child: TabBarView(children: [_Overview(), _Marketing(), _Goals()])),
+            child: TabBar(
+                isScrollable: chain,
+                tabAlignment: chain ? TabAlignment.start : null,
+                tabs: tabs)),
+        Expanded(
+          child: TabBarView(children: [
+            const _Overview(),
+            if (chain) const OutletsPage(),
+            if (chain) const ExpandPage(),
+            const _Marketing(),
+            const _Goals(),
+          ]),
+        ),
       ]),
     );
   }
@@ -34,11 +50,11 @@ class _Overview extends StatelessWidget {
     final c = GameScope.of(context);
     final sim = c.sim!;
     final st = sim.state;
-    final l = st.loc;
+    final l = st.viewLoc;
     final daysToSunday = (6 - st.weekday) % 7;
     final weekDays = [
-      ...st.days.where((d) => d.dayIndex >= st.dayIndex - st.weekday),
-      if (st.phase != 'prep') st.today
+      ...st.viewLoc.days.where((d) => d.dayIndex >= st.dayIndex - st.weekday),
+      if (st.phase != 'prep') st.viewLoc.today
     ];
     final weekRev = weekDays.fold<int>(0, (a, d) => a + d.revenue);
     final weekProfit = weekDays.fold<int>(0, (a, d) => a + d.profit);
@@ -495,7 +511,7 @@ class _Marketing extends StatelessWidget {
       'blogger':
           'A food blogger visits within 3 days. Great food: +0.3 rating. Bad: −0.2.',
     };
-    final history = List<Campaign>.of(st.loc.campaigns)
+    final history = List<Campaign>.of(st.viewLoc.campaigns)
       ..sort((a, b) => b.startDay.compareTo(a.startDay));
     return Centered(
       child: ListView(
@@ -512,7 +528,7 @@ class _Marketing extends StatelessWidget {
                   final d = defs[type] as Map;
                   final fit = sim.campaignFit(type);
                   final last = sim.lastCampaignDay(type);
-                  final settled = st.loc.campaigns
+                  final settled = st.viewLoc.campaigns
                       .where((x) => x.type == type && x.settled)
                       .toList();
                   return Panel(
@@ -562,7 +578,7 @@ class _Marketing extends StatelessWidget {
                               Pill(
                                   'ran ${st.dayIndex - last} days ago — people have seen it',
                                   color: Palette.warn),
-                            if (st.loc.freshness >= 0.8)
+                            if (st.viewLoc.freshness >= 0.8)
                               const Pill('fresh menu: better odds',
                                   color: Palette.ok),
                           ]),
@@ -650,9 +666,9 @@ class _Goals extends StatelessWidget {
     final st = c.state!;
     final stageNames = {1: 'Takeover', 2: 'Stable', 3: 'Ready to expand'};
     final nextStage = st.stage == 1
-        ? 'Four profitable weeks in a row (now ${st.profitableWeeksInRow}) with a rating of 3.5 or more (now ${st.loc.reputation.toStringAsFixed(2)}).'
+        ? 'Four profitable weeks in a row (now ${st.profitableWeeksInRow}) with a rating of 3.5 or more (now ${st.viewLoc.reputation.toStringAsFixed(2)}).'
         : (st.stage == 2
-            ? 'Cash of 60,000 or more (now ${fmtMoney(st.cash)}), a 4.0 rating (now ${st.loc.reputation.toStringAsFixed(2)}) and no missed loan payment for 8 weeks.'
+            ? 'Cash of 60,000 or more (now ${fmtMoney(st.cash)}), a 4.0 rating (now ${st.viewLoc.reputation.toStringAsFixed(2)}) and no missed loan payment for 8 weeks.'
             : 'You reached the last stage of this version. Keep growing your company value.');
     return Centered(
       child: ListView(
@@ -705,9 +721,9 @@ class _Goals extends StatelessWidget {
                     ),
                   ),
               ],
-            if (st.loc.hidden.isNotEmpty) ...[
+            if (st.viewLoc.hidden.isNotEmpty) ...[
               const SectionTitle('Inherited problems'),
-              for (final h in st.loc.hidden)
+              for (final h in st.viewLoc.hidden)
                 ListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,

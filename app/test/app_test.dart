@@ -4,6 +4,7 @@ import 'package:kitchen_chain/main.dart';
 import 'package:kitchen_chain/state/game_controller.dart';
 import 'package:kitchen_chain/state/save_service.dart';
 import 'package:kitchen_chain/state/settings.dart';
+import 'package:kitchen_chain/ui/screens/chain_screens.dart';
 import 'package:sim_core/sim_core.dart';
 
 Future<GameController> _controller() async {
@@ -139,6 +140,75 @@ void main() {
     await _closeSheets(t, c);
     c.send(const EndService());
     await t.pump(const Duration(milliseconds: 500));
+    await _closeSheets(t, c);
+    expect(c.state!.phase, 'close');
+  });
+
+  testWidgets(
+      'chain: two outlets, strip, desk, Company tab, outlet sheet, expand page at 360x640',
+      (t) async {
+    final c = await t.runAsync(_controller);
+    c!.settings.tutorial = false;
+    await _pump(t, c, const Size(360, 640));
+    c.newGame(seed: 4, difficulty: 'normal');
+    c.send(const BuyRestaurant(2));
+    final st = c.state!;
+    st.stage = 3;
+    st.cash = 400000;
+    for (final i in st.openIncidents) {
+      c.send(ResolveIncident(
+          i.id, c.content.incidents[i.incidentId]!.defaultOption));
+    }
+    c.send(const StartService());
+    c.send(const EndService());
+    for (final i in c.state!.openIncidents) {
+      c.send(ResolveIncident(
+          i.id, c.content.incidents[i.incidentId]!.defaultOption));
+    }
+    c.send(const EndDay());
+    expect(c.send(const BuyOutlet(2)).ok, isTrue);
+    final l2 = c.state!.locations.last;
+    c.send(SelectLocation(l2.id));
+    c.send(HireManager(c.state!.managerApplicants
+        .firstWhere((a) => a.grade != 'Senior' && a.grade != 'Veteran')
+        .id));
+    await t.pump(const Duration(milliseconds: 500));
+    await _closeSheets(t, c);
+    expect(find.text("Owner's desk".toUpperCase()), findsOneWidget);
+    await t.tap(find.descendant(
+        of: find.byType(NavigationBar), matching: find.text('Company')));
+    await t.pump(const Duration(milliseconds: 400));
+    await _closeSheets(t, c);
+    c.state!.requests.clear();
+    await t.tap(find.text('Outlets'));
+    for (var i = 0; i < 10; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+    }
+    await t.tap(find.byType(OutletCard).first);
+    await t.pump(const Duration(milliseconds: 600));
+    expect(find.text('Contribution per week'.toUpperCase()), findsOneWidget);
+    Navigator.of(t.element(find.text('Contribution per week'.toUpperCase())))
+        .pop();
+    await t.pump(const Duration(milliseconds: 400));
+    await t.tap(find.text('Expand'));
+    for (var i = 0; i < 10; i++) {
+      await t.pump(const Duration(milliseconds: 100));
+    }
+    expect(
+        find.text('Managers looking for work'.toUpperCase()), findsOneWidget);
+    // Service at both outlets, watching the one without the owner.
+    await t.tap(find.descendant(
+        of: find.byType(NavigationBar), matching: find.text('Today')));
+    await t.pump(const Duration(milliseconds: 300));
+    await _closeSheets(t, c);
+    c.send(SelectLocation(l2.id));
+    c.send(const StartService());
+    c.setSpeed(Speed.paused);
+    await t.pump(const Duration(milliseconds: 400));
+    await _closeSheets(t, c);
+    expect(find.text('Go there'), findsOneWidget);
+    c.send(const EndService());
+    await t.pump(const Duration(milliseconds: 400));
     await _closeSheets(t, c);
     expect(c.state!.phase, 'close');
   });

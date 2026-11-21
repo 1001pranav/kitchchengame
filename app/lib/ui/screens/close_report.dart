@@ -14,7 +14,7 @@ class CloseReport extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final t = sim.state.today;
+    final t = sim.state.viewLoc.today;
     return DefaultTabController(
       length: 3,
       child: Column(children: [
@@ -172,9 +172,9 @@ class _DayPage extends StatelessWidget {
             Panel(
               onTap: () => showWhy(context, sim.explain('reputation')),
               child: Row(children: [
-                Stars(sim.state.loc.reputation, size: 22),
+                Stars(sim.state.viewLoc.reputation, size: 22),
                 const SizedBox(width: 10),
-                Text(sim.state.loc.reputation.toStringAsFixed(2),
+                Text(sim.state.viewLoc.reputation.toStringAsFixed(2),
                     style: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(width: 10),
@@ -344,7 +344,7 @@ class _TomorrowPage extends StatelessWidget {
     final c = GameScope.of(context);
     final sim = c.sim!;
     final st = sim.state;
-    final l = st.loc;
+    final l = st.viewLoc;
     final tomorrow = (st.weekday + 1) % 7;
     final off = l.staff.where((s) => s.dayOff == tomorrow).toList();
     final uncovered = sim.uncoveredOn(tomorrow);

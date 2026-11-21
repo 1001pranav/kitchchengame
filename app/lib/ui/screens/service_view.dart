@@ -63,6 +63,30 @@ class _ServiceViewState extends State<ServiceView> {
     final sim = c.sim!;
     final ss = sim.service;
     if (ss == null) return const SizedBox();
+    if (ss.tables.isEmpty) {
+      // Closed today (fit-out, inspection, nobody to run it): nothing to watch.
+      final why = sim.state.viewLoc.today.events
+          .where((e) => e.kind == 'closed' || e.kind == 'building')
+          .map((e) => e.text)
+          .firstOrNull;
+      return SingleChildScrollView(
+          child: Centered(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.door_front_door_outlined,
+                size: 56, color: Palette.muted),
+            const SizedBox(height: 10),
+            Text('${sim.state.viewLoc.name} is closed today',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 6),
+            Text(why ?? '',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Palette.muted)),
+          ]),
+        ),
+      ));
+    }
     final sel = ss.group(selectedGroup);
     if (sel != null && sel.gone) selectedGroup = null;
     final room = Padding(
@@ -173,7 +197,9 @@ class _ClockBar extends StatelessWidget {
           Expanded(
               child: StatBar(ss.tick / 360, color: Palette.accent, height: 6)),
           const SizedBox(width: 10),
-          Flexible(child: Money(sim.state.today.revenue, size: 14, sign: true)),
+          Flexible(
+              child:
+                  Money(sim.state.viewLoc.today.revenue, size: 14, sign: true)),
           const SizedBox(width: 10),
           Semantics(
             label: 'Lost ${ss.lost} of target ${ss.target}',
@@ -578,7 +604,7 @@ class _Room extends StatelessWidget {
     }
 
     var serverIndex = 0;
-    for (final s in sim.state.loc.staff) {
+    for (final s in sim.state.viewLoc.staff) {
       if (!s.workingToday || s.lateTick > ss.tick) continue;
       final role = ss.moves['${s.id}'] ?? s.role;
       if (role == 'headChef' || role == 'lineCook' || role == 'prepCook') {
@@ -952,7 +978,7 @@ class _Controls extends StatelessWidget {
     final sim = c.sim!;
     final g = ss.group(selectedGroup);
     final present = sim.ownerPresent;
-    final floor = sim.state.loc.staff
+    final floor = sim.state.viewLoc.staff
         .where((s) => s.workingToday && floorRoles.contains(s.role))
         .toList();
     final waitOrder = ss.groups.where((x) => x.state == 'waitOrder').length;

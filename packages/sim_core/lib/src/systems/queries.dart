@@ -3,7 +3,11 @@ part of '../sim.dart';
 /// Read-only helpers for the UI. They call the same functions the rules use.
 extension SimQueries on Sim {
   ServiceState? get service => state.hasLocation ? loc.service : null;
-  bool get ownerPresent => state.hasLocation && !state.owner.restingToday;
+  bool get ownerPresent =>
+      state.hasLocation &&
+      !state.owner.restingToday &&
+      !state.travelling &&
+      state.ownerLocationId == loc.id;
 
   String clock(int tick) => _clock(tick);
   String role(String r) => roleName(r);
@@ -138,6 +142,14 @@ extension SimQueries on Sim {
   }
 
   bool get canAutoRun => uncoveredRoles().isEmpty;
+
+  int saleEstimate() => _saleEstimate();
+  Map<String, int> buildCost(
+          Site site, String size, String fitOut, String themeId) =>
+      _buildCost(site, size, fitOut, themeId);
+  double companyRating() => _companyRating();
+  double slack() => _slack();
+  bool get ownerAtView => !state.travelling && state.ownerLocationId == loc.id;
 
   /// The shift target the doors will open with (doc 02 §8.2d).
   int targetPreview() {

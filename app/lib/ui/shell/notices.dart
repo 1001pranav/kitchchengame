@@ -21,6 +21,10 @@ Future<void> showNotices(BuildContext context) async {
         await _sheet(context, const _StageUp(stage: 2));
       case '@stage3':
         await _sheet(context, const _StageUp(stage: 3));
+      case '@stage4':
+        await _sheet(context, const _StageUp(stage: 4));
+      case '@stage5':
+        await _sheet(context, const _StageUp(stage: 5));
       case '@weekly':
         await _sheet(
             context, _Statement(week: st.weeks.isEmpty ? null : st.weeks.last));
@@ -114,7 +118,7 @@ class _Welcome extends StatelessWidget {
           ]),
         );
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('The keys to ${st.loc.name} are yours',
+      Text('The keys to ${st.viewLoc.name} are yours',
           style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 8),
       const Text('Every day has three parts. It takes about five minutes.',
@@ -144,21 +148,43 @@ class _StageUp extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final st = c.state!;
-    final title = stage == 2 ? 'Stage 2 · Stable' : 'Stage 3 · Ready to expand';
-    final body = stage == 2
-        ? 'Four profitable weeks in a row with a good rating. The restaurant is no longer a rescue job.'
-        : 'Cash in the bank, a 4-star rating and a clean payment record. You have built a business someone would want to copy.';
-    final unlocks = stage == 2
-        ? [
-            'Marketing: flyers, local ads, promotion days, food bloggers',
-            'Keep-in-stock levels (automatic re-ordering)',
-            'New goals'
-          ]
-        : [
-            'Company value is now your score',
-            'Opening a second location arrives in the next update',
-            'Keep playing: the restaurant still needs you'
-          ];
+    const titles = {
+      2: 'Stage 2 · Stable',
+      3: 'Stage 3 · Second location',
+      4: 'Stage 4 · A chain',
+      5: 'Stage 5 · A restaurant group'
+    };
+    const bodies = {
+      2: 'Four profitable weeks in a row with a good rating. The restaurant is no longer a rescue job.',
+      3: 'Cash in the bank, a 4-star rating and a clean payment record. You have built something worth copying.',
+      4: 'Three outlets, each paying its way. You are no longer a restaurant owner: you run a chain.',
+      5: 'Your company is worth two million. Time to think like a group.',
+    };
+    const unlockLists = {
+      2: [
+        'Marketing: flyers, local ads, promotion days, food bloggers',
+        'Keep-in-stock levels (automatic re-ordering)',
+        'New goals'
+      ],
+      3: [
+        'Buy or build more outlets (Company tab → Expand)',
+        'Hire managers to run them; travel between them',
+        'Standing orders, requests, badges and new kinds of outlet'
+      ],
+      4: [
+        'A central kitchen for the whole chain',
+        'Bulk contracts: cheaper ingredients everywhere',
+        'Your average rating becomes your brand'
+      ],
+      5: [
+        'A second brand: open outlets with another cuisine',
+        'Franchising: sell the right to copy you',
+        'Three outlets of a second brand ends the story'
+      ],
+    };
+    final title = titles[stage]!;
+    final body = bodies[stage]!;
+    final unlocks = unlockLists[stage]!;
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const Icon(Icons.emoji_events, color: Palette.gold, size: 72),
       const SizedBox(height: 8),
@@ -179,7 +205,7 @@ class _StageUp extends StatelessWidget {
             dense: true,
             leading: const Icon(Icons.lock_open, color: Palette.accent),
             title: Text(u)),
-      if (stage == 3) ...[
+      if (stage >= 3) ...[
         const SectionTitle('Company value'),
         Center(child: Money(c.sim!.valuation(), size: 26)),
       ],
@@ -250,4 +276,40 @@ class _Statement extends StatelessWidget {
           style: const TextStyle(color: Palette.muted)),
     ]);
   }
+}
+
+/// The ending (doc 13): three outlets of a second brand.
+Future<void> showEnding(BuildContext context) async {
+  final c = GameScope.read(context);
+  final st = c.state!;
+  final value = c.sim!.valuation();
+  await _sheet(
+    context,
+    Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Icon(Icons.auto_awesome, color: Palette.gold, size: 72),
+      Text('From one tired restaurant to a group',
+          textAlign: TextAlign.center,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900)),
+      const SizedBox(height: 10),
+      Text(
+        'You bought ${st.locations.first.name} on day 1. ${st.dayIndex + 1} days later you run ${st.openLocations.length} restaurants across ${st.brands.length} brands'
+        '${st.franchises > 0 ? ' and ${st.franchises} franchises' : ''}.',
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 16, height: 1.4),
+      ),
+      const SizedBox(height: 14),
+      const Text('Final company value',
+          textAlign: TextAlign.center, style: TextStyle(color: Palette.muted)),
+      Center(child: Money(value, size: 30, weight: FontWeight.w900)),
+      const SizedBox(height: 10),
+      const Text(
+          'This is your score. You can keep playing as long as you like.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Palette.muted)),
+    ]),
+  );
+  c.send(const EndGame());
 }

@@ -62,8 +62,15 @@ class _IncidentSheetState extends State<_IncidentSheet> {
                           Icon(AssetCatalog.category(def.category),
                               color: Colors.white, size: 34),
                           const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text('SITUATION',
+                          Expanded(
+                            child: Text(
+                                sim.state.openLocations.length > 1
+                                    ? (widget.inst.locationId ==
+                                                sim.state.ownerLocationId &&
+                                            !sim.state.travelling
+                                        ? 'SITUATION · ${sim.state.locationById(widget.inst.locationId)?.name ?? ''}'
+                                        : 'CALL FROM ${(sim.state.locationById(widget.inst.locationId)?.name ?? '').toUpperCase()}')
+                                    : 'SITUATION',
                                 style: TextStyle(
                                     color: Colors.white70,
                                     letterSpacing: 2,

@@ -306,7 +306,7 @@ class GameOverScreen extends StatelessWidget {
             const Icon(Icons.sentiment_very_dissatisfied,
                 size: 72, color: Palette.bad),
             const SizedBox(height: 8),
-            Text('${st.loc.name} has closed',
+            Text('${st.viewLoc.name} has closed',
                 textAlign: TextAlign.center,
                 style: Theme.of(context)
                     .textTheme
@@ -333,7 +333,7 @@ class GameOverScreen extends StatelessWidget {
                       child: Column(children: [
                 const Text('Final rating',
                     style: TextStyle(color: Palette.muted)),
-                Text(st.loc.reputation.toStringAsFixed(1),
+                Text(st.viewLoc.reputation.toStringAsFixed(1),
                     style: const TextStyle(
                         fontSize: 24, fontWeight: FontWeight.w900))
               ]))),

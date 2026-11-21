@@ -34,7 +34,7 @@ class _StockList extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final use = sim.expectedDailyUse();
     final used = use.keys.toSet()..addAll(l.stock.map((b) => b.ingredientId));
     final canOrder = sim.state.phase != 'service';
@@ -164,7 +164,7 @@ class _IngRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final ing = sim.content.ingredients[id]!;
     final onHand = l.stockOf(id);
     final batches = l.stock.where((b) => b.ingredientId == id).toList();
@@ -263,7 +263,7 @@ class _OrderSheetState extends State<_OrderSheet> {
     final use = sim.expectedDailyUse();
     final out = <String, int>{};
     use.forEach((k, v) {
-      final need = (v * 1.1).ceil() - sim.state.loc.stockOf(k);
+      final need = (v * 1.1).ceil() - sim.state.viewLoc.stockOf(k);
       if (need > 0 && sim.supplierSells(sup, k)) out[k] = need;
     });
     return out;
@@ -334,7 +334,7 @@ class _OrderSheetState extends State<_OrderSheet> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w700)),
                               Text(
-                                  'have ${sim.state.loc.stockOf(id)} · need ~${use[id]!.ceil()}/day · ${sim.unitPrice(sup, id).toStringAsFixed(2)} each',
+                                  'have ${sim.state.viewLoc.stockOf(id)} · need ~${use[id]!.ceil()}/day · ${sim.unitPrice(sup, id).toStringAsFixed(2)} each',
                                   style: const TextStyle(
                                       fontSize: 11.5, color: Palette.muted)),
                             ]),
@@ -411,7 +411,7 @@ class _SupplierFacts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
-    final rel = c.state!.loc.supplierRel[s.id] ?? 50;
+    final rel = c.state!.viewLoc.supplierRel[s.id] ?? 50;
     return Wrap(spacing: 6, runSpacing: 6, children: [
       Pill('price ×${s.priceMult.toStringAsFixed(2)}',
           color: s.priceMult <= 1 ? Palette.ok : Palette.warn,
@@ -573,15 +573,15 @@ class _ParLevels extends StatelessWidget {
                             context,
                             SetParLevel(
                                 id,
-                                math.max(
-                                    0, (st.loc.parLevels[id]?.par ?? 0) - 5),
+                                math.max(0,
+                                    (st.viewLoc.parLevels[id]?.par ?? 0) - 5),
                                 'sup_standard'))
                         : null,
                     icon: const Icon(Icons.remove_circle_outline),
                   ),
                   SizedBox(
                       width: 34,
-                      child: Text('${st.loc.parLevels[id]?.par ?? 0}',
+                      child: Text('${st.viewLoc.parLevels[id]?.par ?? 0}',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.w800))),
                   IconButton(
@@ -590,7 +590,7 @@ class _ParLevels extends StatelessWidget {
                             context,
                             SetParLevel(
                                 id,
-                                (st.loc.parLevels[id]?.par ?? 0) + 5,
+                                (st.viewLoc.parLevels[id]?.par ?? 0) + 5,
                                 'sup_standard'))
                         : null,
                     icon: const Icon(Icons.add_circle_outline),

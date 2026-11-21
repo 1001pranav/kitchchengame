@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../../state/game_controller.dart';
+import '../screens/chain_screens.dart';
 import '../screens/close_report.dart';
 import '../screens/kitchen_tab.dart';
 import '../screens/misc_screens.dart';
@@ -60,6 +61,14 @@ class _GameShellState extends State<GameShell> {
       });
       return;
     }
+    if (st.flag('ending_unlocked') && !st.ended && st.phase == 'prep') {
+      showingNotices = true;
+      showEnding(context).then((_) {
+        showingNotices = false;
+        _overlays();
+      });
+      return;
+    }
     final open =
         st.openIncidents.where((i) => !deferred.contains(i.id)).toList();
     if (open.isEmpty) return;
@@ -93,7 +102,7 @@ class _GameShellState extends State<GameShell> {
       const KitchenTab(),
       const MoneyTab(),
     ];
-    final loc = st.loc;
+    final loc = st.viewLoc;
     final staffBadge =
         loc.staff.where((s) => s.morale < 30 || s.status == 'notice').length;
     final stockBadge = c.sim!.runOutRisks().length;
@@ -103,6 +112,8 @@ class _GameShellState extends State<GameShell> {
       child: Scaffold(
         body: Column(children: [
           const TopBar(),
+          const LocationStrip(),
+          if (tab == 0) const AwayBanner(),
           if (waitingCards > 0 && !showingCard && deferred.isNotEmpty)
             Material(
               color: Palette.warn.withValues(alpha: 0.15),
@@ -166,8 +177,12 @@ class _GameShellState extends State<GameShell> {
                     label: Text('$kitchenBadge'),
                     child: const Icon(Icons.soup_kitchen)),
                 label: 'Kitchen'),
-            const NavigationDestination(
-                icon: Icon(Icons.account_balance_wallet), label: 'Money'),
+            NavigationDestination(
+                icon: Badge(
+                    isLabelVisible: st.requests.isNotEmpty,
+                    label: Text('${st.requests.length}'),
+                    child: const Icon(Icons.account_balance_wallet)),
+                label: st.stage >= 3 ? 'Company' : 'Money'),
           ],
         ),
       ),
@@ -202,7 +217,7 @@ class TopBar extends StatelessWidget {
                         style: const TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 15)),
                     Text(
-                        '${seasonName(st.season)} · Year ${st.year} · ${st.loc.name}',
+                        '${seasonName(st.season)} · Year ${st.year} · ${st.viewLoc.name}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -223,7 +238,7 @@ class TopBar extends StatelessWidget {
             Semantics(
               button: true,
               label:
-                  'Rating ${st.loc.reputation.toStringAsFixed(1)} stars. Tap for why.',
+                  'Rating ${st.viewLoc.reputation.toStringAsFixed(1)} stars. Tap for why.',
               child: InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap: () => showWhy(context, sim.explain('reputation')),
@@ -232,7 +247,7 @@ class TopBar extends StatelessWidget {
                   child: Row(children: [
                     const Icon(Icons.star_rounded,
                         color: Palette.gold, size: 20),
-                    Text(st.loc.reputation.toStringAsFixed(1),
+                    Text(st.viewLoc.reputation.toStringAsFixed(1),
                         style: const TextStyle(
                             fontWeight: FontWeight.w800, fontSize: 15)),
                   ]),

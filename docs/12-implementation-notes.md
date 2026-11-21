@@ -1,4 +1,4 @@
-# 12 — Implementation Notes (Phase 0 + Phase 1 build)
+# 12 — Implementation Notes (all phases)
 
 The hand-off note doc 10 §1 asks for: where the build departs from the documents, where
 the documents were silent and what was chosen, and what is not done. Review this before
@@ -71,3 +71,36 @@ for the next tuning pass (task 0.22 continues).
   real phone. The release Android manifest has no INTERNET permission (debug/profile
   keep it for hot reload, as Flutter generates them).
 - Playtest gate after Phase 1: not run. It is the next step, before Phase 2.
+
+## 6. Phases 2–4 (added in the second pass)
+
+Built: several outlets ticking in lockstep, owner travel and presence, managers (grades,
+profiles, sub-skills, potential, prep duties, working the till, absence cover, requests,
+coaching, learning, neglect, skimming and audit, stock/upkeep/people mastery), the outlet
+market (takeovers at ×0.4) and building from scratch (site, size, fit-out), transfers,
+promotion to manager, renovation, listing/selling/closing, crisis and the failing-outlet
+situation, badges and chain perks, formats 1–3 (neighbourhood, high street, office
+district with takeaway and delivery), Stage 4 (central kitchen, bulk contract) and
+Stage 5 (second brand, franchising, ending — doc 13). Phase 4: Chinese, Mexican, Indian
+and Mixed cuisines with three cuisine-specific situations each.
+
+Simplifications and gaps:
+
+| Where | Doc says | Built |
+|---|---|---|
+| Formats 4–8 (doc 11 §C) | Build only after format 3 is playtested | **Not built — doc 11 §E's own rule.** The market offers formats 1–3 |
+| Manager day off | Not specified | Managers work every day the outlet opens (`dayOff = 7`) and do not gain fatigue |
+| Manager traits (doc 02 §15.14) | Six traits | Not generated |
+| Building from scratch (§15.9) | Choose each machine new / second-hand / leased; hire the team during the fit-out | Standard new kitchen for the cuisine; an opening crew is recruited automatically (the player can fire, hire and transfer) |
+| Lease terms (§15.9) | 1 / 3 / 5-year terms with break fees | Medium terms only; closing costs 4 weeks' rent |
+| Manager incident decisions (§15.4) | Success chances shifted by skill | Manager picks by stance (frugal / balanced / quality) within the spending limit; no chance shift |
+| Phone penalty (§15.4) | −0.10 on chance effects | Not applied |
+| Over-portioning under neglect (§15.5) | Extra units per recipe line | Not applied (slower work and less cleaning are) |
+| Deputies, deals, supplier-relationship mastery (§15.16) | Mastery extras | Price negotiation, slower wear, crew development and retention are built; deputies and weekly deals are not |
+| Loan interest | Per outlet | Booked against the first restaurant |
+| Regional manager, brand reputation number | Stage 4 | Not built; the average rating is shown instead |
+| Manager hiring rule (§15.10) | "Same conditions the competent bot uses" | Three cooks, two servers, one of everything else |
+
+Balance of manager-run outlets is measured in balance-log entry 16 and fails doc 06's
+manager targets: an unvisited outlet loses money even with a Veteran. Tuning it is the
+next balance task.

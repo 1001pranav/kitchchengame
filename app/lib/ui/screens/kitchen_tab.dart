@@ -27,7 +27,7 @@ class _Menu extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final dishes = sim.content.dishesFor(sim.state.themeId);
     final order = ['starter', 'main', 'side', 'dessert', 'drink'];
     dishes.sort(
@@ -100,7 +100,7 @@ class _DishRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final m = sim.state.loc.menu[dish.id]!;
+    final m = sim.state.viewLoc.menu[dish.id]!;
     final cost = dish.recipe.fold(0.0,
         (a, r) => a + r.qty * sim.unitPrice('sup_standard', r.ingredientId));
     final fc = cost / m.price;
@@ -248,7 +248,7 @@ class _Equipment extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.loc;
+    final l = sim.state.viewLoc;
     final canAct = sim.state.phase != 'service';
     final eq = List<Equipment>.of(l.equipment)
       ..sort((a, b) => a.condition.compareTo(b.condition));
