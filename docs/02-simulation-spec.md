@@ -74,8 +74,8 @@ Day phase state machine: `prep → service → close → prep (next day)`.
 
 | Class | BASE_FOOTFALL (groups/day) | Weekly rent | Segment mix office/family/student/tourist |
 |---|---|---|---|
-| poor | 30 | 1,800 | 20/40/35/5 |
-| weak | 40 | 2,000 | 25/40/25/10 |
+| poor | 36 | 1,800 | 20/40/35/5 |
+| weak | 48 | 2,000 | 25/40/25/10 |
 | average | 58 | 2,800 | 30/35/20/15 |
 | good | 65 | 3,800 | 35/30/15/20 |
 | prime | 85 | 5,200 | 35/25/10/30 |
@@ -270,8 +270,12 @@ worked; working on their own day off (§7.7) is overtime, paid ×1.5.
 
 ### 7.2 Fatigue (at close)
 
-Worked today: `+12`; `+6` more if the day was a rush (waiting tasks for their role
-exceeded 5 at any tick); day off: `−30`. Clamp 0–100.
+Worked today: `+FATIGUE_WORK (12)`; `+FATIGUE_RUSH (6)` more if the day was a rush
+(waiting tasks for their role exceeded 5 at any tick); day off (or absent): `−FATIGUE_REST (30)`.
+Every night's sleep also recovers `FATIGUE_OVERNIGHT (8)`, so an ordinary worked day nets
+`+4`, a rush day `+10` and a day off `−38`. Clamp 0–100. (Without the overnight term a
+six-day week netted +42 and every staff member sat at 100 within two weeks — balance-log
+entry 13.)
 
 ### 7.3 Happiness index (stored as `morale`, 0–100)
 
@@ -503,7 +507,7 @@ supplier minimum are combined, and if the total is still below minimum nothing i
 
 ### 10.1 Wear and breakdown (at close)
 `condition −= wearPerDay × (1.5 if groups today > 1.2 × forecast else 1)`.
-`pBreak = BREAK_BASE (0.002) + max(0, 60 − condition) / 400`. On breakdown: `broken = true`
+`pBreak = BREAK_BASE (0.002) + max(0, 60 − condition) / BREAK_COND_DIVISOR (1500)` (was /400; balance-log entry 14). On breakdown: `broken = true`
 from tomorrow's prep and incident `inc_breakdown_<type>` is raised. During service a
 breakdown can also happen via service incidents (same probability ÷ 3, rolled once at
 `StartService` to pick a tick).

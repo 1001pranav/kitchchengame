@@ -2,6 +2,126 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 17 — managers lead the floor; a careful chain survives
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Manager on the floor (doc 02 §15.15) | holds the till only → also stands where most jobs wait; staff there work × `1 − 0.25 × MANAGER_ZONE_SHARE (1.0) × managerSkill/100` (the owner's boost is × 0.75) | The owner on the floor is worth ~2.4k a week at a Good outlet (competent bot resting every day: +0.1k vs +2.5k; walk-outs 17.3% vs 9.6%). Without a substitute every manager-run outlet lost money |
+| Skilled managers' supply and training | standard supplier only → stock ≥ 60 buys fresh food from Farm Direct and meat from the butcher; people ≥ 60 sends the weakest cook on a course within the spending limit | Same choices the competent owner makes |
+| Missed loan payments (doc 02 §14.5) | counter +1 per loan missed, reset by any one on-time payment → counts **weeks** with a missed payment | Bug: two loans missed in one week counted as two "in a row" |
+| Chinese popularity (doc 04 §2.2) | fried rice 1.3 → 1.1, chow mein 1.0 → 0.8, kung pao 1.2 → 1.3 | Chinese Good: +0.5k → +0.8k a week; more runs reach Stage 2 (11 → 14 of 20). Shifting toward sweet-and-sour pork made it worse (2-slot fryer jams) |
+
+Manager-run Good outlet, owner never visits but markets monthly, weeks 5–12 (10 seeds):
+Trainee −4.4k, Junior −3.6k, Capable −2.3k, Senior −0.6k, Veteran −0.2k a week. Grades are
+ordered as doc 06 wants; the low grades are harsher than the prototype because the spec's
+error rules (rota mistakes on ~24% of days, ±35% orders) bite harder per tick. Still
+**FAIL** for doc 06's "Veteran ≤ 1 losing week in 8".
+
+Soak test (`tool/soak.dart`, 16 seeds × 52 weeks, all cuisines/tiers/difficulties, invariant
+checks every tick, save/reload every 11 days): **no crashes, no invariant violations, no
+save drift**. A careful expanding owner (expands only with 150k cash and a Capable+
+manager, gives every outlet a manager, markets monthly, visits in rotation) survives the
+year in **every** chain run, with 3 outlets and 3k–285k cash. Chinese + Best tier is the
+hardest single-restaurant start (60% survival): its dishes are cheap and Best carries a
+140k loan; the cuisine description now says to price up.
+
+## Entry 16 — first measurements of an outlet run by a manager (per-tick sim)
+
+Good-tier second outlet bought from the market, owner stays at the first restaurant and
+never visits or markets; cashier let go (the manager works the till, doc 02 §15.15);
+competent owner approves affordable requests. 10 seeds, weeks 2–12:
+
+| Manager skill | Avg weekly operating profit | Losing weeks |
+|---|---|---|
+| 27 (Trainee) | −4.8k | 97% |
+| 42 (Junior) | −4.3k | 92% |
+| 57 (Capable) | −3.3k | 83% |
+| 72 (Senior) | −2.3k | 77% |
+| 86 (Veteran) | −3.1k | 76% (noisy) |
+
+Rule changes made while measuring (doc 02 §15.10 / §15.12 updated in doc 12):
+managers ask to hire up to three cooks and two servers (the competent bot's rule, as
+§15.10 says), and call in any off-duty cook when a cook is absent. Without these a
+single absence on a cook's day off left one cook for the night (60 walk-outs).
+
+**FAIL against doc 06's manager targets** (Veteran ≤ 1 losing week in 8). Same shape as
+the prototype (better grades lose less) but ~1–1.5k a week worse. Main causes seen: an
+unvisited outlet has no owner at the busiest area (the 25% speed boost), occasional
+single-cook nights still wreck the rating, and managers buy from the standard supplier
+only. To tune next: owner-visits-weekly runs, manager supplier choice, cover rules.
+
+## Entry 15 — the other cuisines, first measurement
+
+New constants: `MIXED_DEMAND_MULT 1.10`, `MIXED_COOK_MULT 1.10` (doc 01 §4.2), `MENU_MAX 12`,
+`MENU_MAX_MIXED 16` (doc 01 §6.4). Good tier, competent bot, 20 seeds × 26 weeks:
+
+| Cuisine | Survival | Median week to stage 2 | Walk-outs | Avg weekly operating profit |
+|---|---|---|---|---|
+| Italian | 100% | 12 | 9.7% | +2.6k |
+| Chinese | 90% | 11 (11/20) | 7.8% | +0.5k |
+| Mexican | 100% | 11 | 8.2% | +3.4k |
+| Indian | 100% | 16 | 10.3% | +2.8k |
+| Mixed | 100% | 12 | 9.9% | +2.6k |
+
+Chinese is the hard cuisine: the same number of parties spend about 15% less (cheap noodles
+and rice, 2-coin tea) while wages and rent are the same, and it powers one more machine.
+Left as content character for now; if playtests find it unfair, raise its popularity
+weights on the dearer mains rather than touching shared constants.
+
+## Entry 14 — Bad and Worst tiers made survivable
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Breakdown chance (doc 02 §10.1) | `BREAK_BASE + max(0, 60 − condition)/400` → `/BREAK_COND_DIVISOR (1500)` | At /400 a Bad-tier kitchen (9 units at ~40) broke ~3 times a week and proper repairs ate 2–5k a week. Doc 06 §4 asks for 1 breakdown per 3–5 weeks at condition ≈55; /400 gave ~1 a week for a 10-unit outlet, /1500 gives ~1 per 2.7 weeks |
+| `BASE_FOOTFALL` weak | 40 → 48 | Bad tier, competent, 20 seeds: 10% → 78% survival (40 seeds) |
+| `BASE_FOOTFALL` poor | 30 → 36 | Worst tier, competent: 0% → 40% survival (40 seeds) |
+| Competent bot (doc 06 §6.1) | hires to the Good roster, raises anyone unhappy → keeps its own tier's roster plus at least three cooks; raises only the badly underpaid and very unhappy; services worn machines on Mondays | A two-cook kitchen loses the night whenever one has a day off (80+ walk-outs); the old bot also inflated Bad-tier wages by ~50% |
+
+| Tier / bot | Survival | Median week to stage 2 | Walk-outs | Band |
+|---|---|---|---|---|
+| Good / competent (30) | 100% | 12 | 9.7% | PASS |
+| Bad / competent (40) | 78% | 12 (only 4/40 reach it) | 10.9% | PASS survival (70–85%); stage 2 rarely reached in 26 weeks (band 14–20) |
+| Worst / competent (40) | 40% | never | 7.2% | PASS at the edge (40–60%) |
+| Good / chores (30) | 0% | — | 19.6% | FAIL (60–80%): never replaces leavers and never repairs; see entry 13 |
+
+## Entry 13 — first measurements with the real per-tick sim_core
+
+Measured with `packages/sim_core/tool/balance.dart` (Normal, 26 weeks). Bots: *passive*
+does nothing; *chores* stands at the door, orders the usual from City Foodservice and
+takes every card's default; *competent* also moves to the busiest area, buys fresh food
+from Farm Direct and meat from the butcher, services and properly repairs equipment,
+hires into gaps, trains the weakest cook, pays fair wages to unhappy staff, answers
+cards sensibly and markets at stage 2.
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Overnight fatigue recovery (doc 02 §7.2) | none → `FATIGUE_OVERNIGHT = 8` (new constants `FATIGUE_WORK 12`, `FATIGUE_RUSH 6`, `FATIGUE_REST 30`) | Without it every staff member sat at fatigue 100 by week 2: task times ×1.4, constant burnout. Good tier, competent: survival 10% → 100%, walk-outs 17.9% → 9.0% |
+| Door wait in the wait score | not counted in the limit → counted | Bug fix: door waits were charged against the other states' patience |
+
+| Tier / bot | Survival | Median week to stage 2 | Walk-outs | Avg weekly operating profit | Band |
+|---|---|---|---|---|---|
+| Good / competent (30 seeds) | 100% | 12 (28/30) | 9.4% | +2.5k | PASS (≥92%, 8–12, 3–10%) |
+| Good / chores | 0% | — | 23.1% | −3.4k | **FAIL** (60–80%) |
+| Good / passive | 0% | — | 91.8% | −9.3k | PASS (0–10%) |
+| Excellent / competent (20) | 100% | 4 | 9.3% | +7.6k | PASS survival; stage 2 one week early (5–7) |
+| Best / competent | 95% | 6 | 8.1% | +3.7k | PASS (≥95%, 6–9) |
+| Bad / competent | 5% | never | 10.0% | −3.0k | **FAIL** (70–85%) |
+| Worst / competent | 0% | never | 6.8% | −5.5k | **FAIL** (40–60%) |
+
+Food cost 31–35% and wages ~28% of sales at Good tier are inside doc 06 §2.
+
+Open, for the next tuning pass:
+- **Bad and Worst are not survivable even with competent play.** Doc 06 §3 estimated
+  Bad at +1.1k a week; measured −3.0k. Likely causes to check first: the takeover
+  awareness (×0.7) on top of a low rating, a stars equilibrium near 3.2 for weak cooks
+  and cheap ingredients (so the rating never climbs), and the competent bot not
+  restructuring (prices, menu, staff) the way a player rescuing a bad restaurant would.
+- **Chores** dies because it never replaces staff who leave; the per-tick service shows
+  how fast an unstaffed role empties the room. Decide whether the band or the bot
+  definition (doc 06 §6.1) should change.
+- Good-tier profit (+2.5k) is below the +3.5k the prototype measured; incidents and
+  quality spending are the main difference.
+
 ## Entry 12 — owner runs the shift; kitchen and door-patience proposal adopted
 
 Decided by the design owner after playing both versions of `prototype/service_feel`

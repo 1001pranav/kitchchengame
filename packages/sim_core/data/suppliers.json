@@ -1,0 +1,97 @@
+[
+ {
+  "id": "sup_budget",
+  "name": "Budget Wholesale",
+  "categories": [
+   "dry",
+   "produce",
+   "dairy",
+   "meat_fish",
+   "frozen"
+  ],
+  "priceMult": 0.85,
+  "quality": 50,
+  "reliability": 0.8,
+  "minOrder": 300,
+  "leadDays": 1,
+  "creditDays": 0
+ },
+ {
+  "id": "sup_standard",
+  "name": "City Foodservice",
+  "categories": [
+   "dry",
+   "produce",
+   "dairy",
+   "meat_fish",
+   "frozen"
+  ],
+  "priceMult": 1.0,
+  "quality": 65,
+  "reliability": 0.93,
+  "minOrder": 200,
+  "leadDays": 1,
+  "creditDays": 7
+ },
+ {
+  "id": "sup_premium",
+  "name": "Premium Provisions",
+  "categories": [
+   "dry",
+   "produce",
+   "dairy",
+   "meat_fish",
+   "frozen"
+  ],
+  "priceMult": 1.25,
+  "quality": 85,
+  "reliability": 0.97,
+  "minOrder": 150,
+  "leadDays": 1,
+  "creditDays": 14
+ },
+ {
+  "id": "sup_farm",
+  "name": "Farm Direct",
+  "categories": [
+   "produce",
+   "dairy"
+  ],
+  "priceMult": 0.95,
+  "quality": 85,
+  "reliability": 0.85,
+  "minOrder": 100,
+  "leadDays": 1,
+  "creditDays": 0
+ },
+ {
+  "id": "sup_butcher",
+  "name": "Butcher & Fishmonger",
+  "categories": [
+   "meat_fish"
+  ],
+  "priceMult": 1.1,
+  "quality": 90,
+  "reliability": 0.95,
+  "minOrder": 100,
+  "leadDays": 1,
+  "creditDays": 7
+ },
+ {
+  "id": "sup_cash_carry",
+  "name": "Cash & Carry",
+  "categories": [
+   "dry",
+   "produce",
+   "dairy",
+   "meat_fish",
+   "frozen"
+  ],
+  "priceMult": 1.15,
+  "quality": 60,
+  "reliability": 1.0,
+  "minOrder": 0,
+  "leadDays": 0,
+  "creditDays": 0
+ }
+]

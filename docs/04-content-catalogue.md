@@ -86,9 +86,9 @@ Recipe notation: `ingredient×qty` (drop the `ing_` prefix here only; JSON uses 
 | dish_cn_spring_rolls | Spring rolls | starter | fryer | 3 | 25 | wrappers×2, mixed_veg×1, oil×1 |
 | dish_cn_dumplings | Steamed dumplings | starter | stove | 4 | 40 | wrappers×2, pork×1, garlic_ginger×1 |
 | dish_cn_hot_sour_soup | Hot and sour soup | starter | stove | 4 | 35 | tofu×1, mushroom×1, eggs×1, soy×1 |
-| dish_cn_fried_rice | Chicken fried rice | main | wok | 4 | 35 | rice×2, chicken×1, eggs×1, soy×1 (popularity 1.3) |
-| dish_cn_chow_mein | Vegetable chow mein | main | wok | 4 | 35 | noodles×2, mixed_veg×2, soy×1 |
-| dish_cn_kung_pao | Kung pao chicken | main | wok | 5 | 50 | chicken×2, chilli×1, pepper×1, soy×1 (popularity 1.2) |
+| dish_cn_fried_rice | Chicken fried rice | main | wok | 4 | 35 | rice×2, chicken×1, eggs×1, soy×1 (popularity 1.1) |
+| dish_cn_chow_mein | Vegetable chow mein | main | wok | 4 | 35 | noodles×2, mixed_veg×2, soy×1 (popularity 0.8) |
+| dish_cn_kung_pao | Kung pao chicken | main | wok | 5 | 50 | chicken×2, chilli×1, pepper×1, soy×1 (popularity 1.3) |
 | dish_cn_sweet_sour_pork | Sweet and sour pork | main | fryer | 6 | 50 | pork×2, pepper×1, sugar×1, oil×1 |
 | dish_cn_mapo_tofu | Mapo tofu | main | wok | 5 | 55 | tofu×2, pork×1, chilli×1, spice×1 (popularity 0.8) |
 | dish_cn_steamed_rice | Steamed rice | side | stove | 2 | 10 | rice×2 |
