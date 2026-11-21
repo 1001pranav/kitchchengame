@@ -395,7 +395,7 @@
   "station": "wok",
   "prepTicks": 4,
   "skillReq": 35,
-  "popularity": 1.3,
+  "popularity": 1.1,
   "recipe": [
    {
     "ingredientId": "ing_rice",
@@ -423,7 +423,7 @@
   "station": "wok",
   "prepTicks": 4,
   "skillReq": 35,
-  "popularity": 1.0,
+  "popularity": 0.8,
   "recipe": [
    {
     "ingredientId": "ing_noodles",
@@ -447,7 +447,7 @@
   "station": "wok",
   "prepTicks": 5,
   "skillReq": 50,
-  "popularity": 1.2,
+  "popularity": 1.3,
   "recipe": [
    {
     "ingredientId": "ing_chicken",

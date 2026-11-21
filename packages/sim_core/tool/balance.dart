@@ -23,7 +23,7 @@ void main(List<String> args) {
         content: content, seed: seed, difficulty: 'normal', themeId: theme);
     final idx = content.tiers.indexWhere((t) => t.id == tier);
     sim.apply(BuyRestaurant(idx));
-    final bot = Bot(policy);
+    final bot = Bot(policy)..absentOwner = args.contains('--absent');
     int? s2;
     while (sim.state.dayIndex < weeks * 7 && sim.state.phase != 'gameOver') {
       bot.day(sim);

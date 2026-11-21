@@ -204,6 +204,33 @@ extension _Service on Sim {
     return out;
   }
 
+  /// The owner's boost in full; a manager's scaled by their skill.
+  double _zoneBoost(double full) {
+    if (_ownerPresent) return full;
+    final m = loc.manager;
+    if (m == null || !m.workingToday) return 1;
+    return 1 - (1 - full) * b.d('MANAGER_ZONE_SHARE') * m.managerSkill / 100;
+  }
+
+  /// The manager moves to wherever most jobs are waiting.
+  void _managerStands() {
+    final m = loc.manager;
+    if (m == null || !m.workingToday) {
+      ss.ownerArea = null;
+      return;
+    }
+    final counts = {'door': 0, 'tables': 0, 'pass': 0};
+    for (final k in ss.tasks) {
+      if (k.started) continue;
+      for (final a in counts.keys) {
+        if (areaTasks[a]!.contains(k.type)) counts[a] = counts[a]! + 1;
+      }
+      if (k.type == 'cook') counts['pass'] = counts['pass']! + 1;
+    }
+    final best = counts.entries.reduce((a, c) => c.value > a.value ? c : a);
+    ss.ownerArea = best.value == 0 ? 'door' : best.key;
+  }
+
   /// A central kitchen does the prep: cooking is faster at every outlet (doc 11 §C.1).
   double get _ckMult =>
       state.centralKitchen ? b.d('CENTRAL_KITCHEN_PREP_MULT') : 1.0;
@@ -342,7 +369,7 @@ extension _Service on Sim {
     if (area != null &&
         (areaTasks[area]?.contains(type) ?? false) &&
         who != null) {
-      d *= b.d('ZONE_BOOST');
+      d *= _zoneBoost(b.d('ZONE_BOOST'));
     }
     if (type == 'cook') {
       final prep =
@@ -350,7 +377,8 @@ extension _Service on Sim {
       d *= 1 - b.d('PREP_BONUS') * math.min(2, prep);
       if (themeOfLoc.isMixed) d *= b.d('MIXED_COOK_MULT');
       if (!_hasWorking('eq_hood')) d *= b.d('HOOD_BROKEN_COOK_MULT');
-      if (area == 'pass' && who != null) d *= b.d('PASS_COOK_BOOST');
+      if (area == 'pass' && who != null)
+        d *= _zoneBoost(b.d('PASS_COOK_BOOST'));
     }
     if (type == 'bill') {
       if (!_hasWorking('eq_pos')) d *= 2;
@@ -431,6 +459,9 @@ extension _Service on Sim {
         _raiseIncident('inc_fryer_dies_service', subjectId: e.id, forced: true);
       }
     }
+
+    // A manager leads the floor where the owner is not (doc 02 §15.15, balance-log 17).
+    if (!_ownerPresent && t % 15 == 0) _managerStands();
 
     // 4. Generate tasks.
     _generateTasks();

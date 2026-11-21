@@ -6,6 +6,7 @@ import 'package:sim_core/sim_core.dart';
 ///  competent: chores + repairs, servicing, hiring for gaps, sensible cards, marketing at stage 2.
 class Bot {
   final String policy;
+  bool absentOwner = false;
   Bot(this.policy);
 
   void prep(Sim sim) {
@@ -15,7 +16,7 @@ class Bot {
       return;
     }
     _answerCards(sim);
-    final loc = st.loc;
+    final loc = st.viewLoc;
     // Order stock. Competent: fresh produce and dairy from Farm Direct, meat from the
     // butcher, the rest from City Foodservice. Chores: everything from City Foodservice.
     final plan = policy == 'competent'
@@ -122,6 +123,7 @@ class Bot {
       }
     }
     sim.apply(const OwnerStand('door'));
+    if (absentOwner) sim.apply(const OwnerRest(true));
   }
 
   void _answerCards(Sim sim) {

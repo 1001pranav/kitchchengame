@@ -2,6 +2,29 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 17 — managers lead the floor; a careful chain survives
+
+| Change | Old → new | Evidence |
+|---|---|---|
+| Manager on the floor (doc 02 §15.15) | holds the till only → also stands where most jobs wait; staff there work × `1 − 0.25 × MANAGER_ZONE_SHARE (1.0) × managerSkill/100` (the owner's boost is × 0.75) | The owner on the floor is worth ~2.4k a week at a Good outlet (competent bot resting every day: +0.1k vs +2.5k; walk-outs 17.3% vs 9.6%). Without a substitute every manager-run outlet lost money |
+| Skilled managers' supply and training | standard supplier only → stock ≥ 60 buys fresh food from Farm Direct and meat from the butcher; people ≥ 60 sends the weakest cook on a course within the spending limit | Same choices the competent owner makes |
+| Missed loan payments (doc 02 §14.5) | counter +1 per loan missed, reset by any one on-time payment → counts **weeks** with a missed payment | Bug: two loans missed in one week counted as two "in a row" |
+| Chinese popularity (doc 04 §2.2) | fried rice 1.3 → 1.1, chow mein 1.0 → 0.8, kung pao 1.2 → 1.3 | Chinese Good: +0.5k → +0.8k a week; more runs reach Stage 2 (11 → 14 of 20). Shifting toward sweet-and-sour pork made it worse (2-slot fryer jams) |
+
+Manager-run Good outlet, owner never visits but markets monthly, weeks 5–12 (10 seeds):
+Trainee −4.4k, Junior −3.6k, Capable −2.3k, Senior −0.6k, Veteran −0.2k a week. Grades are
+ordered as doc 06 wants; the low grades are harsher than the prototype because the spec's
+error rules (rota mistakes on ~24% of days, ±35% orders) bite harder per tick. Still
+**FAIL** for doc 06's "Veteran ≤ 1 losing week in 8".
+
+Soak test (`tool/soak.dart`, 16 seeds × 52 weeks, all cuisines/tiers/difficulties, invariant
+checks every tick, save/reload every 11 days): **no crashes, no invariant violations, no
+save drift**. A careful expanding owner (expands only with 150k cash and a Capable+
+manager, gives every outlet a manager, markets monthly, visits in rotation) survives the
+year in **every** chain run, with 3 outlets and 3k–285k cash. Chinese + Best tier is the
+hardest single-restaurant start (60% survival): its dishes are cheap and Best carries a
+140k loan; the cuisine description now says to price up.
+
 ## Entry 16 — first measurements of an outlet run by a manager (per-tick sim)
 
 Good-tier second outlet bought from the market, owner stays at the first restaurant and

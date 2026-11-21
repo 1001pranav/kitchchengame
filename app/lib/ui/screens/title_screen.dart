@@ -630,7 +630,7 @@ const cuisines = <String, (String, IconData, String)>{
   'chinese': (
     'Chinese',
     Icons.ramen_dining,
-    'Wok cooking: fast dishes at lower prices, so you need more customers.'
+    'Wok cooking: quick, cheap dishes. You need more customers, or slightly higher prices, to pay the same bills.'
   ),
   'mexican': (
     'Mexican',

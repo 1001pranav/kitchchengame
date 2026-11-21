@@ -63,6 +63,9 @@ extension _Finance on Sim {
       state.cash -= l.rentWeekly;
     }
     // 3. Loan instalments (interest is booked against the first restaurant).
+    // "Three missed in a row" counts weeks with any missed payment (doc 02 §14.5).
+    var missedThisWeek = false;
+    var anyDue = false;
     for (final loan in List<Loan>.of(state.loans)) {
       if (loan.startDay > state.dayIndex - 1) {
         continue; // first instalment next Sunday
@@ -70,12 +73,12 @@ extension _Finance on Sim {
       final pay = loan.instalment;
       final interest = loan.interestDue;
       if (pay <= 0) continue;
+      anyDue = true;
       if (state.cash >= pay) {
         state.cash -= pay;
         hq.today.interest += interest;
         loan.outstanding -= pay - interest;
         loan.missedInRow = 0;
-        state.missedInRow = 0;
         state.creditScore = math.min(100, state.creditScore + 1);
         if (loan.outstanding <= 0) {
           state.loans.remove(loan);
@@ -88,7 +91,7 @@ extension _Finance on Sim {
         final private = loan.lender == 'private';
         loan.outstanding += (pay * (private ? 0.10 : 0.05)).round();
         loan.missedInRow++;
-        state.missedInRow++;
+        missedThisWeek = true;
         state.lastMissDay = state.dayIndex;
         state.creditScore =
             math.max(0, state.creditScore - (private ? 25 : 15));
@@ -98,9 +101,15 @@ extension _Finance on Sim {
                 'missedPayment',
                 'Missed a loan payment of ${money(pay)}: penalty added, bank trust down',
                 pay));
-        _timeline('Missed a loan payment (${state.missedInRow} in a row)');
+        _timeline(
+            'Missed a loan payment (${state.missedInRow + 1} weeks running)');
         emit('loanMissed', {'loanId': loan.id});
       }
+    }
+    if (missedThisWeek) {
+      state.missedInRow++;
+    } else if (anyDue) {
+      state.missedInRow = 0;
     }
     // 4. Weekly records: each outlet, then the company.
     final company = WeekRecord(week: state.weekIndex);

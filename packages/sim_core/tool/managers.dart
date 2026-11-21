@@ -45,10 +45,17 @@ void main(List<String> args) {
       sim.apply(SelectLocation(sim.state.locations.first.id));
       while (
           sim.state.dayIndex < weeks * 7 + 1 && sim.state.phase != 'gameOver') {
+        if (args.contains('--market') && sim.state.phase == 'prep') {
+          sim.apply(SelectLocation(l2.id));
+          if (sim.state.dayIndex % 28 == 2)
+            sim.apply(const StartCampaign('localAd'));
+          if (sim.state.dayIndex % 56 == 9) sim.apply(const ReworkMenu());
+          sim.apply(SelectLocation(sim.state.locations.first.id));
+        }
         bot.day(sim);
         sim.apply(SelectLocation(sim.state.locations.first.id));
       }
-      for (final w in l2.weeks.skip(1)) {
+      for (final w in l2.weeks.skip(args.contains("--from5") ? 4 : 1)) {
         total += w.operatingProfit;
         n++;
         if (w.operatingProfit < 0) lossWeeks++;

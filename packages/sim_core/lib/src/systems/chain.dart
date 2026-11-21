@@ -235,10 +235,18 @@ extension _Chain on Sim {
     if (p.autoOrder) {
       final u = _rng.range(-1, 1);
       final mult = 1 + u * (100 - m.stockSkill) / 200;
-      for (final sup in ['sup_standard']) {
+      // A good stock manager buys fresh food and meat from the specialists.
+      final plan = m.stockSkill >= 60
+          ? ['sup_farm', 'sup_butcher', 'sup_standard']
+          : ['sup_standard'];
+      final ordered = <String>{};
+      for (final sup in plan) {
         final lines =
             _suggestedOrder(sup).map((k, v) => MapEntry(k, (v * mult).round()));
-        lines.removeWhere((k, v) => v <= 0);
+        lines.removeWhere((k, v) => v <= 0 || ordered.contains(k));
+        if (lines.isNotEmpty &&
+            _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder)
+          ordered.addAll(lines.keys);
         if (lines.isNotEmpty &&
             _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder) {
           _placeOrder(sup, lines);
@@ -259,6 +267,20 @@ extension _Chain on Sim {
       });
       if (short.isNotEmpty && state.cash > 2000) {
         _placeOrder('sup_cash_carry', short);
+      }
+    }
+    // People: a good manager develops the weakest cook when the course fits the limit.
+    if (m.people >= 60 && state.weekday == 1) {
+      final cooks = l.staff
+          .where((s) =>
+              s.isCook && s.skill < 70 && s.trainingUntil < state.dayIndex)
+          .toList()
+        ..sort((a, c) => a.skill.compareTo(c.skill));
+      if (cooks.isNotEmpty &&
+          b.d('TRAIN_COST_PER_SKILL') * cooks.first.skill <= p.spendingLimit &&
+          state.cash > 5000) {
+        _train(cooks.first.id);
+        _managerNote('${m.name} sent ${cooks.first.name} on a course', -200);
       }
     }
     // Upkeep: servicing, repairs within the spending limit, early warnings.
