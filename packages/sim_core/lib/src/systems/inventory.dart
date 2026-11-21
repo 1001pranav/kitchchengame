@@ -64,8 +64,9 @@ extension _Inventory on Sim {
     // A skilled manager negotiates (doc 02 §15.16); a bulk contract cuts every price.
     final m = loc.manager;
     if (m != null) mult *= 1 - 0.08 * _mastery(m.stockSkill);
-    if (state.bulkContractUntil > state.dayIndex)
+    if (state.bulkContractUntil > state.dayIndex) {
       mult *= 1 - b.d('BULK_CONTRACT_DISCOUNT');
+    }
     if (state.perks.contains('perk_bulk3')) mult *= 0.97;
     return ((ing.baseCost * creep * _effectivePriceIndex(ingredientId) * mult) *
                 100)

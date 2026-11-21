@@ -2,6 +2,31 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 16 — first measurements of an outlet run by a manager (per-tick sim)
+
+Good-tier second outlet bought from the market, owner stays at the first restaurant and
+never visits or markets; cashier let go (the manager works the till, doc 02 §15.15);
+competent owner approves affordable requests. 10 seeds, weeks 2–12:
+
+| Manager skill | Avg weekly operating profit | Losing weeks |
+|---|---|---|
+| 27 (Trainee) | −4.8k | 97% |
+| 42 (Junior) | −4.3k | 92% |
+| 57 (Capable) | −3.3k | 83% |
+| 72 (Senior) | −2.3k | 77% |
+| 86 (Veteran) | −3.1k | 76% (noisy) |
+
+Rule changes made while measuring (doc 02 §15.10 / §15.12 updated in doc 12):
+managers ask to hire up to three cooks and two servers (the competent bot's rule, as
+§15.10 says), and call in any off-duty cook when a cook is absent. Without these a
+single absence on a cook's day off left one cook for the night (60 walk-outs).
+
+**FAIL against doc 06's manager targets** (Veteran ≤ 1 losing week in 8). Same shape as
+the prototype (better grades lose less) but ~1–1.5k a week worse. Main causes seen: an
+unvisited outlet has no owner at the busiest area (the 25% speed boost), occasional
+single-cook nights still wreck the rating, and managers buy from the standard supplier
+only. To tune next: owner-visits-weekly runs, manager supplier choice, cover rules.
+
 ## Entry 15 — the other cuisines, first measurement
 
 New constants: `MIXED_DEMAND_MULT 1.10`, `MIXED_COOK_MULT 1.10` (doc 01 §4.2), `MENU_MAX 12`,

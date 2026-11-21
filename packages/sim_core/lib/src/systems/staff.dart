@@ -278,7 +278,7 @@ extension _Staff on Sim {
     // Day off: the weekday with the fewest people off, Mon–Thu first.
     final offCount = List<int>.filled(7, 0);
     for (final s in loc.staff) {
-      offCount[s.dayOff]++;
+      if (s.dayOff < 7) offCount[s.dayOff]++;
     }
     var best = 0;
     for (var d = 0; d < 7; d++) {

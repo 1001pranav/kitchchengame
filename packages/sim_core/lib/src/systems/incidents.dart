@@ -370,7 +370,9 @@ extension _Incidents on Sim {
     for (final sc in List<Scheduled>.of(state.scheduled)) {
       if (sc.day > state.dayIndex ||
           sc.incidentId.startsWith('@') ||
-          sc.locationId != loc.id) continue;
+          sc.locationId != loc.id) {
+        continue;
+      }
       state.scheduled.remove(sc);
       if (sc.incidentId == 'inc_resignation') {
         final s = loc.staffById(sc.subjectId);
@@ -392,8 +394,9 @@ extension _Incidents on Sim {
     // Forced-by-condition incidents.
     for (final def in content.incidents.values) {
       if (!def.forced || def.timing != 'prep' || def.trigger.isEmpty) continue;
-      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex)
+      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex) {
         continue;
+      }
       if (_cond(def.trigger)) _raiseIncident(def.id, forced: true);
     }
     // Random inspection chance (about once per 8 weeks).
@@ -412,12 +415,14 @@ extension _Incidents on Sim {
     final idle = loc.service?.ownerIdleTicks ?? 999;
     for (final def in content.incidents.values) {
       if (def.timing != timing || def.forced || def.weight <= 0) continue;
-      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex)
+      if ((state.cooldowns['${loc.id}:${def.id}'] ?? -1) >= state.dayIndex) {
         continue;
+      }
       if (def.tags.contains('observation') && idle < 10) continue;
       if (state.openIncidents
-          .any((i) => i.incidentId == def.id && i.locationId == loc.id))
+          .any((i) => i.incidentId == def.id && i.locationId == loc.id)) {
         continue;
+      }
       if (!_cond(def.trigger)) continue;
       var w = def.weight;
       if (def.id == 'inc_staff_conflict' && lf('feud')) w *= 3;

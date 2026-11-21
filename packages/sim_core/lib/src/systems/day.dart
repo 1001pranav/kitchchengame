@@ -394,8 +394,9 @@ extension _Day on Sim {
             x.today.ownerTasks == 0)) {
       _completeObjective('obj_3_hands_off');
     }
-    if (state.stage >= 4 && _companyRating() >= 4.5)
+    if (state.stage >= 4 && _companyRating() >= 4.5) {
       _completeObjective('obj_4_brand_45');
+    }
     if (state.stage >= 5) {
       final second =
           state.openLocations.where((x) => x.themeId != state.themeId).length;

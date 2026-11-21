@@ -108,6 +108,19 @@ class Bot {
         }
       }
     }
+    // Answer the managers' requests like a sensible owner.
+    if (policy == 'competent') {
+      for (final r in List<Request>.of(st.requests)) {
+        final ok = st.cash > r.cost + 8000;
+        sim.apply(AnswerRequest(
+            r.id,
+            ok
+                ? 'approve'
+                : (r.cheaperCost != null && st.cash > r.cheaperCost! + 4000
+                    ? 'cheaper'
+                    : 'deny')));
+      }
+    }
     sim.apply(const OwnerStand('door'));
   }
 

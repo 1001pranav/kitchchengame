@@ -73,8 +73,9 @@ extension _Demand on Sim {
       f['Type of outlet'] =
           fm['footfallMult']! * (day % 7 >= 5 ? fm['weekendMult']! : 1);
     }
-    if (content.themes[l.themeId]?.isMixed ?? false)
+    if (content.themes[l.themeId]?.isMixed ?? false) {
       f['Wide menu'] = b.d('MIXED_DEMAND_MULT');
+    }
     return f;
   }
 

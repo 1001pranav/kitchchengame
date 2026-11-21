@@ -89,8 +89,9 @@ extension _Chain on Sim {
         _refreshOutletMarket();
         state.marketRefreshDay = state.dayIndex + 28;
       }
-      if (state.managerApplicants.isEmpty || state.dayIndex % 14 == 0)
+      if (state.managerApplicants.isEmpty || state.dayIndex % 14 == 0) {
         _generateManagerApplicants();
+      }
     }
     // Offers for listed outlets (doc 02 §14.7).
     for (final l in state.openLocations) {
@@ -202,7 +203,7 @@ extension _Chain on Sim {
       if (_rng.chance(m.people / 100)) {
         final cover = l.staff
             .where((x) =>
-                x.role == s.role &&
+                (x.role == s.role || (x.isCook && s.isCook)) &&
                 !x.workingToday &&
                 !x.absentToday &&
                 x.absentUntil <= state.dayIndex &&
@@ -241,11 +242,13 @@ extension _Chain on Sim {
         if (lines.isNotEmpty &&
             _orderTotal(sup, lines) >= content.suppliers[sup]!.minOrder) {
           _placeOrder(sup, lines);
-          if (mult > 1.15)
+          if (mult > 1.15) {
             _managerNote('${m.name} over-ordered stock',
                 ((mult - 1) * _orderTotal(sup, lines)).round());
-          if (mult < 0.85)
+          }
+          if (mult < 0.85) {
             _managerNote('${m.name} under-ordered: dishes may sell out', 200);
+          }
         }
       }
       // Same-day top-up if something runs out today.
@@ -254,8 +257,9 @@ extension _Chain on Sim {
         final need = perDay.ceil() - l.stockOf(ing);
         if (need > 0 && m.stockSkill >= 50) short[ing] = need;
       });
-      if (short.isNotEmpty && state.cash > 2000)
+      if (short.isNotEmpty && state.cash > 2000) {
         _placeOrder('sup_cash_carry', short);
+      }
     }
     // Upkeep: servicing, repairs within the spending limit, early warnings.
     for (final e in List<Equipment>.of(l.equipment)) {
@@ -273,10 +277,11 @@ extension _Chain on Sim {
                   subjectId: e.id,
                   createdDay: state.dayIndex),
               []);
-          if (mode == 'cheap')
+          if (mode == 'cheap') {
             _managerNote(
                 '${m.name} chose a cheap repair on the ${t.name.toLowerCase()}',
                 (t.price * 0.05).round());
+          }
         } else {
           _request('repair',
               cost: (t.price * 0.25).round(),
@@ -314,9 +319,10 @@ extension _Chain on Sim {
           .where((s) =>
               s.role == role || (role == 'lineCook' && s.role == 'headChef'))
           .length;
-      if (have == 0 ||
-          (role == 'lineCook' && have < 2) ||
-          (role == 'server' && have < 2)) {
+      // Same rule as the competent owner: three cooks (so a day off never leaves one
+      // alone), two servers, one of everything else (doc 02 §15.10, doc 06 §6.1).
+      final need = switch (role) { 'lineCook' => 3, 'server' => 2, _ => 1 };
+      if (have < need) {
         final wage = _expectedWage(role, 50) * 7;
         if (p.mayHire) {
           final a = state.applicants.where((x) => x.role == role).firstOrNull;
@@ -372,7 +378,9 @@ extension _Chain on Sim {
         r.locationId == loc.id &&
         r.kind == kind &&
         r.subjectId == subjectId &&
-        r.subjectKey == subjectKey)) return;
+        r.subjectKey == subjectKey)) {
+      return;
+    }
     if (!_rng.chance((0.4 + skill / 100).clamp(0, 1))) {
       _managerNote(
           '${loc.manager?.name ?? 'The manager'} did not raise: ${text.split('.').first.toLowerCase()}',
@@ -411,8 +419,9 @@ extension _Chain on Sim {
   String _ignoredChoice(IncidentInstance inst) {
     final def = content.incidents[inst.incidentId]!;
     final l = state.locationById(inst.locationId);
-    if (l == null || l.manager == null || state.ownerLocationId == l.id)
+    if (l == null || l.manager == null || state.ownerLocationId == l.id) {
       return def.defaultOption;
+    }
     return at(l, () {
       final opts =
           def.options.where((o) => _optionBlocked(o, inst) == null).toList();
@@ -434,14 +443,16 @@ extension _Chain on Sim {
   int _optionCashForManager(IncidentInstance inst, IncidentOption o) {
     var sum = 0;
     for (final e in o.effects) {
-      if (e['type'] == 'cash' && e['amount'] != null && e['chance'] == null)
+      if (e['type'] == 'cash' && e['amount'] != null && e['chance'] == null) {
         sum += _amount(e['amount'], inst);
+      }
       if (e['type'] == 'repair' || e['type'] == 'replace') {
         final eq = loc.equipmentById(inst.subjectId);
-        if (eq != null)
+        if (eq != null) {
           sum -= (content.equipment[eq.type]!.price *
                   (e['type'] == 'replace' ? 1.0 : 0.25))
               .round();
+        }
       }
     }
     return sum;
@@ -475,8 +486,9 @@ extension _Chain on Sim {
           s.moodMods.add(MoodMod('Job security', -10, state.dayIndex + 28));
         }
       }
-      if (l.lossWeeks >= 8 && state.locations.length > 1)
+      if (l.lossWeeks >= 8 && state.locations.length > 1) {
         _raiseIncident('inc_location_failing', forced: true);
+      }
     }
     // Manager's profit bonus.
     final m = l.manager;
@@ -573,30 +585,36 @@ extension _Chain on Sim {
       state.viewLocationId = state.travelTo;
       state.travelTo = -1;
       final dest = state.locationById(state.ownerLocationId);
-      if (dest?.service != null)
+      if (dest?.service != null) {
         dest!.service!.ownerArea = state.owner.startArea ?? 'door';
+      }
       emit('ownerArrived', {'locationId': state.ownerLocationId});
     }
   }
 
   CommandResult _ownerTravel(int toId) {
     final to = state.locationById(toId);
-    if (to == null || to.closedForGood)
+    if (to == null || to.closedForGood) {
       return CommandResult.fail(SimError.unknownId);
-    if (toId == state.ownerLocationId && !state.travelling)
+    }
+    if (toId == state.ownerLocationId && !state.travelling) {
       return const CommandResult(true);
+    }
     if (state.phase == 'prep') {
       state.ownerLocationId = toId;
       state.viewLocationId = toId;
       return const CommandResult(true);
     }
-    if (state.phase != 'service')
+    if (state.phase != 'service') {
       return CommandResult.fail(SimError.wrongPhase);
-    if (state.travelling)
+    }
+    if (state.travelling) {
       return CommandResult.fail(
           SimError.limitReached, 'You are already on the road.');
-    if (state.owner.restingToday)
+    }
+    if (state.owner.restingToday) {
       return CommandResult.fail(SimError.locked, 'You are resting today.');
+    }
     final from = state.locationById(state.ownerLocationId);
     if (from?.service != null) {
       at(from!, () {
@@ -678,9 +696,10 @@ extension _Chain on Sim {
   CommandResult _hireManager(int id) {
     final a = state.managerApplicants.where((x) => x.id == id).firstOrNull;
     if (a == null) return CommandResult.fail(SimError.unknownId);
-    if (loc.manager != null)
+    if (loc.manager != null) {
       return CommandResult.fail(
           SimError.limitReached, '${loc.name} already has a manager.');
+    }
     final r = _companyRating();
     if (a.grade == 'Senior' && r < 3.5 || a.grade == 'Veteran' && r < 4.0) {
       return CommandResult.fail(SimError.refused,
@@ -702,13 +721,15 @@ extension _Chain on Sim {
       return CommandResult.fail(SimError.invalidValue,
           'Only a server, cashier or head chef with skill 60+ can become a manager.');
     }
-    if (loc.manager != null)
+    if (loc.manager != null) {
       return CommandResult.fail(SimError.limitReached,
           'This outlet already has a manager. Transfer them first.');
+    }
     final mean = 0.6 * s.skill + 10;
     final m = _makeManager(mean, {}, profile: 'allRounder');
-    if (state.perks.contains('perk_neighbourhood'))
+    if (state.perks.contains('perk_neighbourhood')) {
       m.people = math.min(95, m.people + 5);
+    }
     s.role = 'manager';
     s.people = m.people;
     s.upkeep = m.upkeep;
@@ -729,13 +750,15 @@ extension _Chain on Sim {
   CommandResult _transfer(int staffId, int toId) {
     final to = state.locationById(toId);
     final s = loc.staffById(staffId);
-    if (to == null || to.closedForGood)
+    if (to == null || to.closedForGood) {
       return CommandResult.fail(SimError.unknownId);
+    }
     if (s == null) return CommandResult.fail(SimError.unknownId);
     if (to.id == loc.id) return CommandResult.fail(SimError.invalidValue);
-    if (s.isManager && to.manager != null)
+    if (s.isManager && to.manager != null) {
       return CommandResult.fail(
           SimError.limitReached, '${to.name} already has a manager.');
+    }
     loc.staff.remove(s);
     to.staff.add(s);
     s.absentUntil = math.max(
@@ -769,8 +792,9 @@ extension _Chain on Sim {
         case 'repair':
           final e = l.equipmentById(r.subjectId);
           if (e == null || !e.broken) return const CommandResult(true);
-          if (state.cash < cost)
+          if (state.cash < cost) {
             return CommandResult.fail(SimError.notEnoughCash);
+          }
           _applyEffect(
               {'type': 'repair', 'mode': cheaper ? 'cheap' : 'proper'},
               IncidentInstance(
@@ -792,9 +816,10 @@ extension _Chain on Sim {
                   (role == 'lineCook' && a.role == 'headChef'))
               .toList()
             ..sort((a, c) => c.skill.compareTo(a.skill));
-          if (cands.isEmpty)
+          if (cands.isEmpty) {
             return CommandResult.fail(SimError.unknownId,
                 'No ${roleName(role).toLowerCase()} applied this week. New applicants come on Sunday.');
+          }
           return _hire(cands.first.id);
         case 'raise':
           final s = l.staffById(r.subjectId);
@@ -811,9 +836,10 @@ extension _Chain on Sim {
   }
 
   CommandResult _audit() {
-    if (state.ownerLocationId != loc.id)
+    if (state.ownerLocationId != loc.id) {
       return CommandResult.fail(
           SimError.locked, 'You must be at ${loc.name} to audit it.');
+    }
     final cost = b.i('AUDIT_COST');
     if (state.cash < cost) return CommandResult.fail(SimError.notEnoughCash);
     spend(cost, 'other');
@@ -929,11 +955,13 @@ extension _Chain on Sim {
   }
 
   CommandResult _buyOutlet(int index, String? themeId) {
-    if (state.stage < 3)
+    if (state.stage < 3) {
       return CommandResult.fail(
           SimError.locked, 'Opening more outlets unlocks at Stage 3.');
-    if (index < 0 || index >= state.outletMarket.length)
+    }
+    if (index < 0 || index >= state.outletMarket.length) {
       return CommandResult.fail(SimError.unknownId);
+    }
     if (themeId != null && themeId != state.themeId && state.stage < 5) {
       return CommandResult.fail(SimError.locked,
           'A second brand (another cuisine) unlocks at Stage 5.');
@@ -959,11 +987,13 @@ extension _Chain on Sim {
   }
 
   CommandResult _inspectOutlet(int index) {
-    if (index < 0 || index >= state.outletMarket.length)
+    if (index < 0 || index >= state.outletMarket.length) {
       return CommandResult.fail(SimError.unknownId);
+    }
     final o = state.outletMarket[index];
-    if (o.inspected)
+    if (o.inspected) {
       return CommandResult.fail(SimError.limitReached, 'Already inspected.');
+    }
     final cost = b.i('DUE_DILIGENCE_COST');
     if (state.cash < cost) return CommandResult.fail(SimError.notEnoughCash);
     state.cash -= cost;
@@ -1014,9 +1044,10 @@ extension _Chain on Sim {
 
   CommandResult _buildOutlet(
       int siteId, String size, String fitOut, String? themeId) {
-    if (state.stage < 3)
+    if (state.stage < 3) {
       return CommandResult.fail(
           SimError.locked, 'Opening more outlets unlocks at Stage 3.');
+    }
     final site = state.sites.where((s) => s.id == siteId).firstOrNull;
     if (site == null) return CommandResult.fail(SimError.unknownId);
     final th = themeId ?? state.themeId;
@@ -1138,15 +1169,18 @@ extension _Chain on Sim {
   }
 
   CommandResult _sellCheck() {
-    if (state.openLocations.length < 2)
+    if (state.openLocations.length < 2) {
       return CommandResult.fail(
           SimError.locked, 'You cannot sell your only restaurant.');
-    if (loc.leaseLockUntil > state.dayIndex)
+    }
+    if (loc.leaseLockUntil > state.dayIndex) {
       return CommandResult.fail(
           SimError.locked, 'The 2-year lease lock-in forbids selling.');
-    if (loc.closedUntil > state.dayIndex)
+    }
+    if (loc.closedUntil > state.dayIndex) {
       return CommandResult.fail(
           SimError.locked, 'Not while it is closed by an inspector.');
+    }
     return const CommandResult(true);
   }
 
@@ -1177,10 +1211,12 @@ extension _Chain on Sim {
     state.incidents.removeWhere((i) => i.locationId == l.id && !i.resolved);
     at(l, () => _story(why));
     _timeline('${l.name}: $why');
-    if (state.ownerLocationId == l.id)
+    if (state.ownerLocationId == l.id) {
       state.ownerLocationId = state.openLocations.first.id;
-    if (state.viewLocationId == l.id)
+    }
+    if (state.viewLocationId == l.id) {
       state.viewLocationId = state.ownerLocationId;
+    }
   }
 
   CommandResult _quickSale() {
@@ -1192,9 +1228,10 @@ extension _Chain on Sim {
   }
 
   CommandResult _closeOutlet() {
-    if (state.openLocations.length < 2)
+    if (state.openLocations.length < 2) {
       return CommandResult.fail(
           SimError.locked, 'You cannot close your only restaurant.');
+    }
     final l = loc;
     final resale = l.equipment.fold<int>(0, (a, e) => a + _equipmentResale(e));
     final severance =
@@ -1208,17 +1245,20 @@ extension _Chain on Sim {
 
   CommandResult _renovate(int tables) {
     final l = loc;
-    if (tables <= 0 || tables % 2 != 0)
+    if (tables <= 0 || tables % 2 != 0) {
       return CommandResult.fail(SimError.invalidValue, 'Add tables in pairs.');
+    }
     final max =
         (l.originalTables == 0 ? l.tableSeats.length : l.originalTables) * 1.5;
-    if (l.tableSeats.length + tables > max)
+    if (l.tableSeats.length + tables > max) {
       return CommandResult.fail(SimError.limitReached,
           'The room fits at most ${max.floor()} tables.');
+    }
     final cost = tables * b.i('RENOVATION_COST_PER_TABLE');
-    if (state.cash < cost)
+    if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'Renovation costs ${money(cost)}.');
+    }
     spend(cost, 'upkeep');
     for (var i = 0; i < tables; i++) {
       l.tableSeats.add(i.isEven ? 4 : 2);
@@ -1236,15 +1276,18 @@ extension _Chain on Sim {
   // ---------------------------------------------------------- stage 4–5 systems
 
   CommandResult _buildCentralKitchen() {
-    if (state.stage < 4)
+    if (state.stage < 4) {
       return CommandResult.fail(
           SimError.locked, 'A central kitchen unlocks at Stage 4 (Chain).');
-    if (state.centralKitchen)
+    }
+    if (state.centralKitchen) {
       return CommandResult.fail(SimError.limitReached, 'You already have one.');
+    }
     final cost = b.i('CENTRAL_KITCHEN_COST');
-    if (state.cash < cost)
+    if (state.cash < cost) {
       return CommandResult.fail(
           SimError.notEnoughCash, 'A central kitchen costs ${money(cost)}.');
+    }
     state.cash -= cost;
     state.centralKitchen = true;
     _timeline('Built a central kitchen');
@@ -1252,12 +1295,14 @@ extension _Chain on Sim {
   }
 
   CommandResult _signBulk() {
-    if (state.stage < 4)
+    if (state.stage < 4) {
       return CommandResult.fail(
           SimError.locked, 'Bulk contracts unlock at Stage 4 (Chain).');
-    if (state.bulkContractUntil > state.dayIndex)
+    }
+    if (state.bulkContractUntil > state.dayIndex) {
       return CommandResult.fail(
           SimError.limitReached, 'A contract is already running.');
+    }
     final fee = b.i('BULK_CONTRACT_FEE');
     if (state.cash < fee) return CommandResult.fail(SimError.notEnoughCash);
     state.cash -= fee;
@@ -1268,9 +1313,10 @@ extension _Chain on Sim {
   }
 
   CommandResult _startFranchise() {
-    if (state.stage < 5)
+    if (state.stage < 5) {
       return CommandResult.fail(
           SimError.locked, 'Franchising unlocks at Stage 5 (Group).');
+    }
     if (!state.openLocations.any((l) => l.badge == 'gold')) {
       return CommandResult.fail(SimError.locked,
           'Buyers want proof the recipe works without you: earn a gold badge first.');

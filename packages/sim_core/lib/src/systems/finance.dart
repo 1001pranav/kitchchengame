@@ -64,8 +64,9 @@ extension _Finance on Sim {
     }
     // 3. Loan instalments (interest is booked against the first restaurant).
     for (final loan in List<Loan>.of(state.loans)) {
-      if (loan.startDay > state.dayIndex - 1)
+      if (loan.startDay > state.dayIndex - 1) {
         continue; // first instalment next Sunday
+      }
       final pay = loan.instalment;
       final interest = loan.interestDue;
       if (pay <= 0) continue;
@@ -153,10 +154,12 @@ extension _Finance on Sim {
               'Your investor took their ${(state.investorShare * 100).round()}% share: ${money(share)}',
               share));
     }
-    if (state.owner.restDaysThisWeek >= 2 && company.netProfit > 0)
+    if (state.owner.restDaysThisWeek >= 2 && company.netProfit > 0) {
       _completeObjective('obj_2_week_off');
-    if (company.revenue > 0 && company.wasteCost < 0.03 * company.revenue)
+    }
+    if (company.revenue > 0 && company.wasteCost < 0.03 * company.revenue) {
       _completeObjective('obj_1_no_waste');
+    }
     at(hq, _generateApplicants);
     _weeklyChain();
     _checkStage();

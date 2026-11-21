@@ -42,8 +42,9 @@ extension _Handlers on Sim {
     }
     if (c is SelectLocation) {
       final l = state.locationById(c.locationId);
-      if (l == null || l.closedForGood)
+      if (l == null || l.closedForGood) {
         return CommandResult.fail(SimError.unknownId);
+      }
       state.viewLocationId = l.id;
       return const CommandResult(true);
     }
@@ -101,9 +102,10 @@ extension _Handlers on Sim {
           return CommandResult.fail(SimError.invalidValue);
         }
         if (state.phase == 'service') {
-          if (!_ownerPresent)
+          if (!_ownerPresent) {
             return CommandResult.fail(
                 SimError.locked, 'You are not at this restaurant.');
+          }
           ss.ownerArea = area;
         } else if (state.phase == 'prep') {
           state.owner.startArea = area;
@@ -307,21 +309,25 @@ extension _Handlers on Sim {
           :final autoOrder
         ):
         final p = loc.policies;
-        if (spendingLimit != null)
+        if (spendingLimit != null) {
           p.spendingLimit = spendingLimit.clamp(0, 20000);
-        if (maintenanceThreshold != null)
+        }
+        if (maintenanceThreshold != null) {
           p.maintenanceThreshold = maintenanceThreshold.clamp(20, 90);
+        }
         if (stance != null &&
-            ['frugal', 'balanced', 'quality'].contains(stance))
+            ['frugal', 'balanced', 'quality'].contains(stance)) {
           p.stance = stance;
+        }
         if (mayHire != null) p.mayHire = mayHire;
         if (mayGiveRaises != null) p.mayGiveRaises = mayGiveRaises;
         if (autoOrder != null) p.autoOrder = autoOrder;
         return const CommandResult(true);
       case SetManagerBonus(:final pct):
         final m = loc.manager;
-        if (m == null)
+        if (m == null) {
           return CommandResult.fail(SimError.unknownId, 'No manager here.');
+        }
         m.bonusPct = pct.clamp(0, 10);
         return const CommandResult(true);
       case AnswerRequest(:final requestId, :final answer):
@@ -342,8 +348,9 @@ extension _Handlers on Sim {
         }
         return const CommandResult(true);
       case AcceptSaleOffer(:final index):
-        if (index < 0 || index >= loc.saleOffers.length)
+        if (index < 0 || index >= loc.saleOffers.length) {
           return CommandResult.fail(SimError.unknownId);
+        }
         final chk = _sellCheck();
         if (!chk.ok) return chk;
         _completeSale(loc.saleOffers[index].amount);

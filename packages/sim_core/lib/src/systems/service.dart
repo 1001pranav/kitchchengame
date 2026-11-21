@@ -454,8 +454,9 @@ extension _Service on Sim {
       if (inc.locationId != l.id) continue;
       if (inc.countdown > 0) {
         inc.countdown--;
-        if (inc.countdown == 0)
+        if (inc.countdown == 0) {
           _resolveIncident(inc, _ignoredChoice(inc), ignored: true);
+        }
       }
     }
 
