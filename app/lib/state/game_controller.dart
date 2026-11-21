@@ -85,10 +85,17 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     return true;
   }
 
-  Future<void> saveTo(String slot) async {
+  /// Returns false if the save could not be written (storage full or unavailable).
+  Future<bool> saveTo(String slot) async {
     final s = sim;
-    if (s == null) return;
-    await saves.write(slot, s.toSave());
+    if (s == null) return false;
+    try {
+      await saves.write(slot, s.toSave());
+      return true;
+    } catch (_) {
+      toast = 'The game could not be saved. Check that the phone has free storage.';
+      return false;
+    }
   }
 
   Future<void> autosave() async {
@@ -105,7 +112,11 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> saveSettings() async {
-    await saves.write('settings', settings.toJson());
+    try {
+      await saves.write('settings', settings.toJson());
+    } catch (_) {
+      // Settings still apply for this session.
+    }
     notifyListeners();
   }
 

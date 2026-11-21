@@ -375,7 +375,7 @@ class _OrderSheetState extends State<_OrderSheet> {
                 Text(
                     total < s.minOrder
                         ? 'Minimum ${fmtMoney(s.minOrder)}'
-                        : 'Minimum met ✓',
+                        : 'Minimum met',
                     style: TextStyle(
                         color: total < s.minOrder ? Palette.bad : Palette.ok,
                         fontWeight: FontWeight.w700)),
@@ -503,7 +503,7 @@ class _ParLevels extends StatelessWidget {
             Text('Automatic re-ordering unlocks at Stage 2.',
                 style: TextStyle(fontWeight: FontWeight.w700)),
             SizedBox(height: 6),
-            Text('Four profitable weeks in a row and a 3.5★ rating.',
+            Text('Four profitable weeks in a row and a 3.5-star rating.',
                 style: TextStyle(color: Palette.muted)),
           ]),
         ),

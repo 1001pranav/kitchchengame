@@ -40,7 +40,7 @@ extension _Explain on Sim {
         final factors = <Factor>[];
         if (t != null && t.starsN > 0) {
           factors.add(Factor('Yesterday\'s average review', t.avgStars,
-              '${t.avgStars.toStringAsFixed(2)} ★'));
+              '${t.avgStars.toStringAsFixed(2)} stars'));
           factors.add(
               Factor('Reviews counted', t.starsN, t.starsN.toStringAsFixed(0)));
           factors.add(Factor(
@@ -48,8 +48,8 @@ extension _Explain on Sim {
         }
         factors.add(const Factor(
             'Rating moves toward reviews', 0, 'falls 2× faster than it rises'));
-        return Explanation(
-            'Rating', '${l.reputation.toStringAsFixed(2)} ★', 'add', factors,
+        return Explanation('Rating', '${l.reputation.toStringAsFixed(2)} stars',
+            'add', factors,
             howToImprove:
                 'Good food, short waits, fair prices and a clean room earn better reviews.');
       case 'satisfaction':
@@ -58,7 +58,7 @@ extension _Explain on Sim {
             : (loc.days.isEmpty ? loc.today : loc.days.last);
         final q = t.foodTickets == 0 ? 0.0 : t.foodQualitySum / t.foodTickets;
         return Explanation('What customers thought',
-            '${t.avgStars.toStringAsFixed(1)} ★', 'add', [
+            '${t.avgStars.toStringAsFixed(1)} stars', 'add', [
           Factor('Food quality (40%)', q, q.toStringAsFixed(0)),
           Factor('Waiting (30%)', 0, '${t.walkouts} walk-outs'),
           Factor('Value for money (15%)', _priceIndexOf(l),

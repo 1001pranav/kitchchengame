@@ -540,7 +540,7 @@ class _DaysOff extends StatelessWidget {
                                       height: 34,
                                       child: Center(
                                         child: Text(
-                                          '${weekdays[d].substring(0, 2)}${s.preferredKnown && s.preferredDayOff == d ? '♥' : ''}',
+                                          '${weekdays[d].substring(0, 2)}${s.preferredKnown && s.preferredDayOff == d ? '*' : ''}',
                                           style: TextStyle(
                                               fontSize: 12,
                                               fontWeight: FontWeight.w700,

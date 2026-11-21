@@ -594,12 +594,12 @@ extension _Finance on Sim {
       loc.buzz = math.min(1, loc.buzz + 0.3);
       c?.outcome = 'Big hit';
       c?.reason =
-          'The food blogger loved it (${stars.toStringAsFixed(1)}★): rating +0.3.';
+          'The food blogger loved it (${stars.toStringAsFixed(1)} stars): rating +0.3.';
     } else {
       loc.reputation = math.max(0, loc.reputation - 0.2);
       c?.outcome = 'Flopped';
       c?.reason =
-          'The food blogger was not impressed (${stars.toStringAsFixed(1)}★): rating −0.2.';
+          'The food blogger was not impressed (${stars.toStringAsFixed(1)} stars): rating −0.2.';
     }
     if (c != null) state.pendingNotices.add(c.reason);
   }

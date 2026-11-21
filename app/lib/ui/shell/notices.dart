@@ -266,13 +266,13 @@ class _Statement extends StatelessWidget {
         borderColor: Colors.transparent,
         child: Text(
           w.netProfit > 0
-              ? 'A profitable week (${c.state!.profitableWeeksInRow} in a row). ${c.state!.stage == 1 ? 'Four in a row with a 3.5★ rating reaches Stage 2.' : ''}'
+              ? 'A profitable week (${c.state!.profitableWeeksInRow} in a row). ${c.state!.stage == 1 ? 'Four in a row with a 3.5-star rating reaches Stage 2.' : ''}'
               : 'A losing week. The weekly report on the Money tab shows where the money went.',
         ),
       ),
       const SizedBox(height: 8),
       Text(
-          '${w.groupsServed} parties served · ${w.walkouts} walked out · ${w.avgStars.toStringAsFixed(1)}★ average',
+          '${w.groupsServed} parties served · ${w.walkouts} walked out · ${w.avgStars.toStringAsFixed(1)} stars on average',
           style: const TextStyle(color: Palette.muted)),
     ]);
   }

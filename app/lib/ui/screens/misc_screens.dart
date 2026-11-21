@@ -246,11 +246,14 @@ void showPauseMenu(BuildContext context) {
                       padding: const EdgeInsets.symmetric(horizontal: 3),
                       child: OutlinedButton(
                         onPressed: () async {
-                          await c.saveTo(SaveSlots.all[i]);
+                          final ok = await c.saveTo(SaveSlots.all[i]);
                           if (context.mounted) {
                             showToast(
-                                context, 'Saved to ${SaveSlots.names[i]}.',
-                                bad: false);
+                                context,
+                                ok
+                                    ? 'Saved to ${SaveSlots.names[i]}.'
+                                    : (c.takeToast() ?? 'Could not save.'),
+                                bad: !ok);
                           }
                         },
                         child: Text('Save ${SaveSlots.names[i]}'),

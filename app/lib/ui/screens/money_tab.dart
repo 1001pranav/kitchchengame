@@ -495,7 +495,7 @@ class _Marketing extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w800)),
             SizedBox(height: 6),
             Text(
-                'First make the restaurant stable: four profitable weeks in a row and a 3.5★ rating.',
+                'First make the restaurant stable: four profitable weeks in a row and a 3.5-star rating.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Palette.muted)),
           ]),

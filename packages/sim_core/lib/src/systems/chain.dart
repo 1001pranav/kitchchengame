@@ -726,7 +726,7 @@ extension _Chain on Sim {
     final r = _companyRating();
     if (a.grade == 'Senior' && r < 3.5 || a.grade == 'Veteran' && r < 4.0) {
       return CommandResult.fail(SimError.refused,
-          '${a.name} only joins companies rated ${a.grade == 'Veteran' ? '4.0' : '3.5'}★ or better.');
+          '${a.name} only joins companies rated ${a.grade == 'Veteran' ? '4.0' : '3.5'} stars or better.');
     }
     state.managerApplicants.remove(a);
     a.hiredDay = state.dayIndex;

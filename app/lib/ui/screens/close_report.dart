@@ -142,7 +142,7 @@ class _DayPage extends StatelessWidget {
                   term: 'walk_out'),
               const SizedBox(width: 8),
               stat('Reviews',
-                  t.starsN == 0 ? '–' : '${t.avgStars.toStringAsFixed(1)}★',
+                  t.starsN == 0 ? '–' : t.avgStars.toStringAsFixed(1),
                   icon: Icons.star,
                   color: Palette.gold,
                   onTap: () => showWhy(context, sim.explain('satisfaction'))),
@@ -245,7 +245,7 @@ class _WhyPage extends StatelessWidget {
     if (t.walkouts == 0 && t.groupsServed > 0) good.add('Nobody walked out');
     if (t.avgStars >= 3.8) {
       good.add(
-          'Customers loved it (${t.avgStars.toStringAsFixed(1)}★ average)');
+          'Customers loved it (${t.avgStars.toStringAsFixed(1)} stars on average)');
     }
     if (t.wasteCost == 0) good.add('No food thrown away');
     if (t.profit > 0) good.add('A profitable day');

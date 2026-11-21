@@ -381,7 +381,7 @@ class OutletCard extends StatelessWidget {
             Expanded(
                 child: _kv(
                     'Rating',
-                    Text('${l.reputation.toStringAsFixed(1)}★',
+                    Text('${l.reputation.toStringAsFixed(1)} / 5',
                         style: const TextStyle(fontWeight: FontWeight.w800)))),
             Expanded(
                 child: _kv(
@@ -963,7 +963,7 @@ class _MarketCard extends StatelessWidget {
             Pill(tier.name, color: tierColors[o.tierId]!),
           ]),
           Text(
-              '${formatLabels[l.format]} · ${c.content.locationClasses[l.classId]!.name} location · rent ${fmtMoney(l.rentWeekly)}/wk · ${l.staff.length} staff · ${l.reputation.toStringAsFixed(1)}★',
+              '${formatLabels[l.format]} · ${c.content.locationClasses[l.classId]!.name} location · rent ${fmtMoney(l.rentWeekly)}/wk · ${l.staff.length} staff · ${l.reputation.toStringAsFixed(1)} stars',
               style: const TextStyle(color: Palette.muted, fontSize: 12.5)),
           Text(formatBlurbs[l.format]!, style: const TextStyle(fontSize: 12.5)),
           const SizedBox(height: 6),
