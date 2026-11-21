@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.50.1"
+
+jobs:
+  checks:
+    name: Format, analyze, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      # Same checks as a local run: format, analyze, sim tests, widget tests.
+      - name: Run tool/ci.sh
+        run: bash tool/ci.sh
+
+  apk:
+    name: Android APK
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Build release APK
+        working-directory: app
+        run: |
+          flutter pub get
+          flutter build apk --release
+
+      # Signed with the debug key (see app/android/app/build.gradle.kts):
+      # installable on a phone, not uploadable to the Play Store.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kitchen-chain-apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
