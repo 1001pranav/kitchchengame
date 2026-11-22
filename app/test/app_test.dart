@@ -61,6 +61,10 @@ void main() {
       expect(find.text('Kitchen Chain'), findsOneWidget);
       c.newGame(seed: 3, difficulty: 'normal');
       await t.pump(const Duration(milliseconds: 300));
+      // The story intro comes first; Skip goes to the market.
+      expect(find.text('Skip'), findsOneWidget);
+      await t.tap(find.text('Skip'));
+      await t.pump(const Duration(milliseconds: 300));
       expect(find.text('Restaurants for sale'), findsOneWidget);
     });
 

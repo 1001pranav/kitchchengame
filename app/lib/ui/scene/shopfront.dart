@@ -7,26 +7,29 @@ import 'scene_art.dart';
 /// Time of day for a shopfront picture.
 enum DayTime { morning, day, evening, night }
 
-/// A restaurant seen from the street, drawn in code. [quality] runs from 0
-/// (Worst: boarded window, torn awning) to 4 (Excellent: gold sign, string
-/// lights). With [animate], clouds drift, people stroll past and stars twinkle.
+/// A restaurant seen from the street, drawn in code as a moody illustration.
+/// [quality] runs from 0 (Worst: flickering sign, boarded window) to 4
+/// (Excellent: gilt lettering, string lights). With [animate], passers-by
+/// walk past, lights breathe and, if [rain], rain falls on a wet street.
 class Shopfront extends StatefulWidget {
   final String name;
-  final Color accent;
+  final Color accent; // kept for callers; the palette is set by quality
   final int quality;
   final DayTime time;
   final bool open;
   final bool animate;
+  final bool rain;
   final double height;
   final int seed;
   const Shopfront(
       {super.key,
       required this.name,
-      required this.accent,
+      this.accent = const Color(0xFFC9A55B),
       this.quality = 2,
-      this.time = DayTime.day,
+      this.time = DayTime.evening,
       this.open = true,
       this.animate = false,
+      this.rain = false,
       this.height = 160,
       this.seed = 1});
 
@@ -37,7 +40,7 @@ class Shopfront extends StatefulWidget {
 class _ShopfrontState extends State<Shopfront>
     with SingleTickerProviderStateMixin {
   late final AnimationController _a =
-      AnimationController(vsync: this, duration: const Duration(seconds: 24));
+      AnimationController(vsync: this, duration: const Duration(seconds: 30));
 
   @override
   void initState() {
@@ -62,8 +65,7 @@ class _ShopfrontState extends State<Shopfront>
           child: AnimatedBuilder(
             animation: _a,
             builder: (_, __) => CustomPaint(
-              painter: _ShopPainter(widget, still ? 0.3 : _a.value, !still),
-            ),
+                painter: _ShopPainter(widget, still ? 0.37 : _a.value, !still)),
           ),
         ),
       ),
@@ -83,17 +85,17 @@ class _ShopPainter extends CustomPainter {
   void paint(Canvas c, Size size) {
     final W = size.width, H = size.height;
     final r = math.Random(w.seed);
-    final ground = H * 0.84;
-    final night = w.time == DayTime.night;
-    final evening = w.time == DayTime.evening;
-    final lit = night || evening;
+    final ground = H * 0.8;
+    final q = w.quality.clamp(0, 4);
+    final dark = w.time == DayTime.night || w.time == DayTime.evening;
+    final lit = w.open || w.time == DayTime.night;
 
     // Sky.
     final sky = switch (w.time) {
-      DayTime.morning => [const Color(0xFFFFD6A5), const Color(0xFFBDE0FE)],
-      DayTime.day => [const Color(0xFF8ECAE6), const Color(0xFFD9F0FF)],
-      DayTime.evening => [const Color(0xFF6D597A), const Color(0xFFF4A261)],
-      DayTime.night => [const Color(0xFF0B132B), const Color(0xFF1C2541)],
+      DayTime.morning => [const Color(0xFF2B3A4E), const Color(0xFF8C7A6E)],
+      DayTime.day => [const Color(0xFF59646E), const Color(0xFF9AA0A2)],
+      DayTime.evening => [const Color(0xFF1B1A2B), const Color(0xFF5A3A3A)],
+      DayTime.night => [const Color(0xFF07080D), const Color(0xFF151824)],
     };
     c.drawRect(
         Rect.fromLTWH(0, 0, W, ground),
@@ -103,307 +105,335 @@ class _ShopPainter extends CustomPainter {
                   end: Alignment.bottomCenter,
                   colors: sky)
               .createShader(Rect.fromLTWH(0, 0, W, ground)));
-    if (night) {
-      for (var i = 0; i < 26; i++) {
-        final o = Offset(r.nextDouble() * W, r.nextDouble() * ground * 0.6);
-        final tw = 0.5 + 0.5 * math.sin(t * math.pi * 2 * 6 + i);
-        c.drawCircle(o, 0.6 + tw * 0.9,
-            _p(Color.fromRGBO(255, 255, 255, 0.4 + 0.5 * tw)));
-      }
-      c.drawCircle(
-          Offset(W * 0.84, H * 0.16), H * 0.07, _p(const Color(0xFFFFF3C4)));
-      c.drawCircle(Offset(W * 0.84 + H * 0.03, H * 0.15), H * 0.06, _p(sky[0]));
-    } else {
-      // Sun.
-      final sunY = w.time == DayTime.morning
-          ? H * 0.32
-          : (evening ? H * 0.42 : H * 0.14);
-      c.drawCircle(Offset(W * 0.82, sunY), H * 0.07,
-          _p(evening ? const Color(0xFFFFB703) : const Color(0xFFFFE066)));
-      // Clouds.
-      for (var i = 0; i < 3; i++) {
-        final x = ((r.nextDouble() + t * (0.5 + i * 0.25)) % 1.2) * W - W * 0.1;
-        final y = H * (0.08 + 0.12 * i);
-        final cl = _p(Colors.white.withValues(alpha: evening ? 0.35 : 0.85));
-        c.drawCircle(Offset(x, y), H * 0.045, cl);
-        c.drawCircle(Offset(x + H * 0.05, y - H * 0.02), H * 0.055, cl);
-        c.drawCircle(Offset(x + H * 0.1, y), H * 0.04, cl);
+    if (w.time == DayTime.night) {
+      for (var i = 0; i < 18; i++) {
+        final o = Offset(r.nextDouble() * W, r.nextDouble() * ground * 0.35);
+        c.drawCircle(o, 0.6,
+            _p(Color.fromRGBO(255, 255, 255, 0.25 + r.nextDouble() * 0.3)));
       }
     }
 
-    // Neighbouring buildings.
-    final nb = night ? const Color(0xFF2B2D42) : const Color(0xFFCDB4A0);
-    final nb2 = night ? const Color(0xFF22223B) : const Color(0xFFB79C88);
-    c.drawRect(Rect.fromLTWH(0, ground - H * 0.62, W * 0.16, H * 0.62), _p(nb));
-    c.drawRect(
-        Rect.fromLTWH(W * 0.84, ground - H * 0.7, W * 0.16, H * 0.7), _p(nb2));
-    for (var i = 0; i < 3; i++) {
-      final win = _p(lit && r.nextBool()
-          ? const Color(0xFFFFE8A3)
-          : const Color(0x55FFFFFF));
-      c.drawRect(
-          Rect.fromLTWH(
-              W * 0.04, ground - H * (0.55 - i * 0.16), W * 0.07, H * 0.08),
-          win);
-      c.drawRect(
-          Rect.fromLTWH(
-              W * 0.89, ground - H * (0.62 - i * 0.18), W * 0.07, H * 0.09),
-          win);
+    // Neighbouring buildings: dark masses with a few lit windows.
+    final nb = Color.lerp(sky[0], Colors.black, 0.45)!;
+    c.drawRect(Rect.fromLTWH(0, ground - H * 0.72, W * 0.17, H * 0.72), _p(nb));
+    c.drawRect(Rect.fromLTWH(W * 0.83, ground - H * 0.78, W * 0.17, H * 0.78),
+        _p(Color.lerp(nb, Colors.black, 0.2)!));
+    for (var i = 0; i < 6; i++) {
+      final left = i < 3;
+      final x = left ? W * 0.04 : W * 0.87;
+      final y = ground - H * (0.62 - (i % 3) * 0.18);
+      final on = dark && r.nextDouble() < 0.5;
+      c.drawRect(Rect.fromLTWH(x, y, W * 0.08, H * 0.09),
+          _p(on ? const Color(0xFF8A6A3A) : const Color(0xFF1A1C22)));
     }
 
-    // The restaurant.
-    final q = w.quality.clamp(0, 4);
-    final face = Rect.fromLTWH(W * 0.18, ground - H * 0.66, W * 0.64, H * 0.66);
+    // The building.
+    final face = Rect.fromLTWH(W * 0.17, ground - H * 0.7, W * 0.66, H * 0.7);
     final wall = [
-      const Color(0xFF9E9E9E),
-      const Color(0xFFD8C8A8),
-      const Color(0xFFF1E3C8),
-      const Color(0xFFD98E5F),
-      const Color(0xFF2D6A4F),
+      const Color(0xFF3A3632), // worst: grimy render
+      const Color(0xFF4A3A30), // bad: faded brick
+      const Color(0xFF4E2E24), // good: brick
+      const Color(0xFF26231F), // best: charcoal
+      const Color(0xFF14181A), // excellent: black lacquer
     ][q];
-    c.drawRect(face, _p(night ? Color.lerp(wall, Colors.black, 0.45)! : wall));
-    if (q >= 2) {
-      // Brick hints.
-      final b = _p(Colors.black.withValues(alpha: 0.06));
-      for (var y = face.top + 6; y < face.bottom; y += 9) {
-        for (var x = face.left + ((y ~/ 9).isEven ? 4 : 12);
-            x < face.right - 10;
-            x += 22) {
-          c.drawRect(Rect.fromLTWH(x, y, 14, 4), b);
+    c.drawRect(face, _p(wall));
+    if (q == 1 || q == 2) {
+      final b = _p(Colors.black.withValues(alpha: 0.14));
+      for (var y = face.top + 5; y < face.bottom; y += 7) {
+        for (var x = face.left + ((y ~/ 7).isEven ? 3 : 10);
+            x < face.right - 8;
+            x += 15) {
+          c.drawRect(Rect.fromLTWH(x, y, 11, 3), b);
         }
       }
     }
-    // Cornice.
-    c.drawRect(Rect.fromLTWH(face.left - 4, face.top - 6, face.width + 8, 8),
-        _p(q == 4 ? const Color(0xFFD4A017) : const Color(0xFF6D4C41)));
+    // Cornice and pilasters.
+    final trimC = q >= 3 ? const Color(0xFF8A7246) : const Color(0xFF2A2420);
+    c.drawRect(Rect.fromLTWH(face.left - 4, face.top - 5, face.width + 8, 6),
+        _p(trimC));
+    c.drawRect(Rect.fromLTWH(face.left, face.top, 4, face.height),
+        _p(Colors.black.withValues(alpha: 0.25)));
+    c.drawRect(Rect.fromLTWH(face.right - 4, face.top, 4, face.height),
+        _p(Colors.black.withValues(alpha: 0.25)));
 
-    // Sign.
-    final signR = Rect.fromLTWH(face.left + face.width * 0.12,
-        face.top + H * 0.04, face.width * 0.76, H * 0.13);
-    c.drawRRect(RRect.fromRectAndRadius(signR, const Radius.circular(4)),
-        _p(q == 0 ? const Color(0xFF5D5D5D) : w.accent));
-    if (q == 4) {
-      c.drawRRect(
-          RRect.fromRectAndRadius(signR, const Radius.circular(4)),
-          Paint()
-            ..color = const Color(0xFFFFD166)
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
-    }
+    // Sign: serif letters, lit when open or at night.
+    final flicker = q == 0 && moving
+        ? (math.sin(t * math.pi * 2 * 40) > 0.6 ? 0.35 : 1.0)
+        : 1.0;
+    final signColor = q == 0
+        ? const Color(0xFF9A8F80)
+        : (q == 4 ? const Color(0xFFE6C77A) : const Color(0xFFD9B25F));
+    final signR = Rect.fromLTWH(face.left + face.width * 0.08,
+        face.top + H * 0.05, face.width * 0.84, H * 0.13);
+    c.drawRect(signR, _p(const Color(0xFF0E0D0C)));
+    c.drawRect(
+        signR.deflate(2),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = signColor.withValues(alpha: 0.45));
     final fs =
-        math.min(signR.height * 0.62, signR.width / (w.name.length * 0.62 + 1));
-    final tp = labelPainter(
-        w.name,
-        fs,
-        q == 0
-            ? const Color(0xFFBDBDBD)
-            : (lit ? const Color(0xFFFFF3C4) : Colors.white),
-        shadow: false);
+        math.min(signR.height * 0.6, signR.width / (w.name.length * 0.55 + 1));
+    final glowOn = lit && q > 0;
+    final tp = labelPainter(w.name, fs,
+        signColor.withValues(alpha: (glowOn ? 1.0 : 0.55) * flicker),
+        serif: true, shadow: false, spacing: 0.6);
     c.save();
     if (q == 0) {
-      // A crooked old sign.
       c.translate(signR.center.dx, signR.center.dy);
-      c.rotate(-0.05);
+      c.rotate(-0.04);
       c.translate(-signR.center.dx, -signR.center.dy);
+    }
+    if (glowOn) {
+      c.drawRect(
+          signR.inflate(6), _p(signColor.withValues(alpha: 0.07 * flicker)));
     }
     tp.paint(c, signR.center - Offset(tp.width / 2, tp.height / 2));
     c.restore();
-    if (lit && q > 0) {
-      c.drawRRect(
-          RRect.fromRectAndRadius(signR.inflate(5), const Radius.circular(8)),
-          _p(w.accent.withValues(alpha: 0.18)));
+
+    // Awning: one deep colour, no stripes.
+    final awColor = [
+      const Color(0xFF3A3A3A),
+      const Color(0xFF4A2A26),
+      const Color(0xFF1F3B2D),
+      const Color(0xFF1E2A3A),
+      const Color(0xFF0E0E10),
+    ][q];
+    final rowTop = face.top + H * 0.32;
+    if (q > 0) {
+      final aw = Path()
+        ..moveTo(face.left - 3, rowTop - H * 0.08)
+        ..lineTo(face.right + 3, rowTop - H * 0.08)
+        ..lineTo(face.right + 8, rowTop - H * 0.005)
+        ..lineTo(face.left - 8, rowTop - H * 0.005)
+        ..close();
+      c.drawPath(aw, _p(awColor));
+      c.drawRect(
+          Rect.fromLTWH(
+              face.left - 8, rowTop - H * 0.01, face.width + 16, H * 0.012),
+          _p(q == 4
+              ? const Color(0xFFB8964A)
+              : Color.lerp(awColor, Colors.black, 0.3)!));
     }
 
     // Windows and door.
-    final rowTop = face.top + H * 0.3;
     final rowH = face.bottom - rowTop - H * 0.02;
-    final doorW = face.width * 0.18;
+    final doorW = face.width * 0.16;
     final door = Rect.fromLTWH(
-        face.center.dx - doorW / 2, rowTop, doorW, rowH + H * 0.02);
+        face.center.dx - doorW / 2, rowTop + 2, doorW, rowH + H * 0.02 - 2);
     final winL = Rect.fromLTWH(face.left + face.width * 0.06, rowTop + 4,
-        door.left - face.left - face.width * 0.1, rowH * 0.7);
+        door.left - face.left - face.width * 0.1, rowH * 0.74);
     final winR = Rect.fromLTWH(door.right + face.width * 0.04, rowTop + 4,
-        face.right - door.right - face.width * 0.1, rowH * 0.7);
-    final glass = w.open && (lit || w.time == DayTime.day)
-        ? const Color(0xFFFFE8A3)
-        : (night ? const Color(0xFF3A3F58) : const Color(0xFF9FC5E8));
+        face.right - door.right - face.width * 0.1, rowH * 0.74);
+    final warm = w.open
+        ? const Color(0xFFE0A85A)
+        : (w.time == DayTime.night
+            ? const Color(0xFF1C1A18)
+            : const Color(0xFF3A4048));
     for (final win in [winL, winR]) {
-      c.drawRect(win.inflate(3), _p(const Color(0xFF5D4037)));
-      c.drawRect(win, _p(glass));
+      c.drawRect(win.inflate(2.5), _p(const Color(0xFF0E0D0C)));
+      c.drawRect(
+          win,
+          Paint()
+            ..shader = LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [warm, Color.lerp(warm, Colors.black, 0.35)!])
+                .createShader(win));
       if (w.open) {
-        // Diners inside.
+        // Diners in silhouette, a pendant lamp each.
         for (var i = 0; i < 3; i++) {
           final x = win.left + win.width * (0.2 + 0.3 * i);
-          final bob = moving ? math.sin(t * math.pi * 40 + i * 2) * 0.8 : 0;
-          final col = [
-            const Color(0xFFE07A5F),
-            const Color(0xFF81B29A),
-            const Color(0xFF4F86C6)
-          ][(i + w.seed) % 3];
-          c.drawCircle(
-              Offset(x, win.bottom - win.height * 0.42 + bob),
-              win.height * 0.13,
-              _p(const Color(0xFFE8B98F).withValues(alpha: 0.9)));
+          final bob = moving ? math.sin(t * math.pi * 60 + i * 2) * 0.6 : 0;
+          final sil = _p(const Color(0xCC2A1A10));
+          c.drawCircle(Offset(x, win.bottom - win.height * 0.46 + bob),
+              win.height * 0.11, sil);
           c.drawRRect(
               RRect.fromRectAndRadius(
                   Rect.fromCenter(
-                      center: Offset(x, win.bottom - win.height * 0.12),
-                      width: win.height * 0.36,
-                      height: win.height * 0.32),
-                  const Radius.circular(4)),
-              _p(col.withValues(alpha: 0.9)));
+                      center: Offset(x, win.bottom - win.height * 0.16),
+                      width: win.height * 0.34,
+                      height: win.height * 0.3),
+                  Radius.circular(win.height * 0.1)),
+              sil);
+          c.drawCircle(
+              Offset(x + win.width * 0.12, win.top + win.height * 0.14),
+              win.height * 0.05,
+              _p(const Color(0xFFFFE2A8)));
         }
         c.drawRect(
-            Rect.fromLTWH(win.left, win.bottom - win.height * 0.1, win.width,
-                win.height * 0.1),
-            _p(const Color(0xFF8C5A3C)));
+            Rect.fromLTWH(win.left, win.bottom - win.height * 0.08, win.width,
+                win.height * 0.08),
+            _p(const Color(0xFF3A2414)));
       }
-      // Mullion and reflection.
       c.drawLine(
           Offset(win.center.dx, win.top),
           Offset(win.center.dx, win.bottom),
           Paint()
-            ..color = const Color(0xFF5D4037)
-            ..strokeWidth = 2);
-      c.drawLine(
-          Offset(win.left + 6, win.bottom - 6),
-          Offset(win.left + win.width * 0.35, win.top + 6),
-          Paint()
-            ..color = Colors.white.withValues(alpha: 0.35)
-            ..strokeWidth = 3);
+            ..color = const Color(0xFF0E0D0C)
+            ..strokeWidth = 1.6);
     }
     if (q == 0) {
-      // Boarded-up window.
-      final plank = _p(const Color(0xFF8D6E63));
+      final plank = _p(const Color(0xFF4A3A2C));
       c.save();
       c.translate(winR.center.dx, winR.center.dy);
-      c.rotate(0.25);
+      c.rotate(0.22);
       c.drawRect(
           Rect.fromCenter(
-              center: Offset.zero, width: winR.width * 1.15, height: 7),
+              center: Offset.zero, width: winR.width * 1.15, height: 6),
           plank);
-      c.rotate(-0.5);
+      c.rotate(-0.44);
       c.drawRect(
           Rect.fromCenter(
-              center: Offset.zero, width: winR.width * 1.15, height: 7),
+              center: Offset.zero, width: winR.width * 1.15, height: 6),
           plank);
       c.restore();
     }
-    c.drawRect(door.inflate(3), _p(const Color(0xFF4E342E)));
-    c.drawRect(door,
-        _p(w.open && lit ? const Color(0xFFFFD98A) : const Color(0xFF795548)));
+    c.drawRect(door.inflate(2.5), _p(const Color(0xFF0E0D0C)));
+    c.drawRect(
+        door, _p(w.open ? const Color(0xFF5A3A20) : const Color(0xFF241A14)));
     c.drawRect(
         Rect.fromLTWH(
-            door.left + 4, door.top + 4, door.width - 8, door.height * 0.45),
-        _p(glass.withValues(alpha: 0.85)));
-    c.drawCircle(Offset(door.right - 5, door.center.dy + 4), 1.8,
-        _p(const Color(0xFFFFD166)));
+            door.left + 3, door.top + 3, door.width - 6, door.height * 0.5),
+        _p(w.open ? const Color(0xFFC88A48) : const Color(0xFF2E3238)));
+    c.drawLine(
+        Offset(door.right - 4, door.center.dy),
+        Offset(door.right - 4, door.center.dy + 7),
+        Paint()
+          ..color = const Color(0xFFC9A55B)
+          ..strokeWidth = 1.4);
     drawOpenSign(
-        c, Offset(door.center.dx, door.top + door.height * 0.33), w.open);
+        c, Offset(door.center.dx, door.top + door.height * 0.32), w.open);
 
-    // Awning.
-    final aw = Rect.fromLTWH(
-        face.left - 2, rowTop - H * 0.09, face.width + 4, H * 0.08);
-    final stripes = (aw.width / 14).floor();
-    final awA = q == 0 ? const Color(0xFF8D8D8D) : w.accent;
-    final awB = q == 0 ? const Color(0xFFBDBDBD) : Colors.white;
-    for (var i = 0; i < stripes; i++) {
-      final sx = aw.left + i * aw.width / stripes;
-      final sr = Rect.fromLTWH(sx, aw.top, aw.width / stripes, aw.height);
-      c.drawRect(sr, _p(i.isEven ? awA : awB));
-      if (!(q == 0 && i % 4 == 3)) {
-        c.drawArc(
-            Rect.fromLTWH(
-                sr.left, sr.bottom - sr.width / 2, sr.width, sr.width),
-            0,
-            math.pi,
-            true,
-            _p(i.isEven ? awA : awB));
-      }
+    // Light spilling onto the pavement.
+    if (w.open) {
+      c.drawRect(
+          Rect.fromLTWH(face.left, ground, face.width, H - ground),
+          Paint()
+            ..shader = LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [const Color(0x55E0A85A), const Color(0x00E0A85A)])
+                .createShader(
+                    Rect.fromLTWH(face.left, ground, face.width, H - ground)));
     }
-    c.drawRect(Rect.fromLTWH(aw.left, aw.top, aw.width, 2),
-        _p(Colors.black.withValues(alpha: 0.15)));
 
-    // String lights for the best places in the evening.
+    // String lights for the finest places.
     if (q >= 3 && lit) {
-      final y = aw.top - 6;
-      for (var i = 0; i < 12; i++) {
-        final x = face.left + face.width * (i + 0.5) / 12;
-        final sag = math.sin((i + 0.5) / 12 * math.pi) * 6;
-        final on = 0.6 + 0.4 * math.sin(t * math.pi * 30 + i);
-        c.drawCircle(
-            Offset(x, y + sag), 2.2, _p(Color.fromRGBO(255, 214, 102, on)));
+      final y = face.top + H * 0.2;
+      for (var i = 0; i < 14; i++) {
+        final x = face.left + face.width * (i + 0.5) / 14;
+        final sag = math.sin((i + 0.5) / 14 * math.pi) * 5;
+        final on = 0.7 + 0.3 * math.sin(t * math.pi * 24 + i);
+        c.drawCircle(Offset(x, y + sag + H * 0.1), 1.6,
+            _p(Color.fromRGBO(255, 214, 140, on)));
       }
     }
 
-    // Pavement and street.
+    // Pavement, wet when it rains.
+    final pave = w.time == DayTime.night
+        ? const Color(0xFF15171B)
+        : const Color(0xFF2A2C30);
     c.drawRect(Rect.fromLTWH(0, ground, W, H - ground),
-        _p(night ? const Color(0xFF4A4E69) : const Color(0xFFC9C3B6)));
-    c.drawRect(Rect.fromLTWH(0, ground, W, 3),
-        _p(Colors.black.withValues(alpha: 0.12)));
-    for (var x = 0.0; x < W; x += 26) {
-      c.drawLine(Offset(x, ground + 3), Offset(x, H),
-          Paint()..color = Colors.black.withValues(alpha: 0.06));
-    }
-    // Plants and a bench for the nicer places.
-    if (q >= 2) {
-      drawPlant(c, Offset(door.left - 14, ground - 4), s: 1.2);
-      drawPlant(c, Offset(door.right + 14, ground - 4), s: 1.2);
-    }
-    if (q == 0) {
-      // Rubbish bag and a scribble.
-      c.drawOval(Rect.fromLTWH(face.right - 30, ground - 14, 20, 15),
-          _p(const Color(0xFF263238)));
-      final g = Paint()
-        ..color = const Color(0xFFE63946)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2;
-      final path = Path()..moveTo(face.left + 10, face.bottom - 24);
-      for (var i = 1; i < 6; i++) {
-        path.lineTo(
-            face.left + 10 + i * 6, face.bottom - 24 + (i.isEven ? -8 : 0));
+        _p(pave.withValues(alpha: w.open ? 0.85 : 1)));
+    c.drawRect(Rect.fromLTWH(0, ground, W, 2),
+        _p(Colors.black.withValues(alpha: 0.4)));
+    if (w.rain && w.open) {
+      // Reflections of the windows and the sign.
+      for (final win in [winL, winR]) {
+        c.drawRect(
+            Rect.fromLTWH(win.left, ground + 3, win.width, (H - ground) * 0.7),
+            _p(const Color(0x22E0A85A)));
       }
-      c.drawPath(path, g);
+    }
+    if (q >= 2) {
+      drawPlantSide(c, Offset(door.left - 12, ground), H / 150);
+      drawPlantSide(c, Offset(door.right + 12, ground), H / 150);
     }
     // Lamp post.
-    final lx = W * 0.9;
-    c.drawRect(Rect.fromLTWH(lx - 1.5, ground - H * 0.5, 3, H * 0.5),
-        _p(const Color(0xFF37474F)));
-    c.drawRRect(
-        RRect.fromRectAndRadius(Rect.fromLTWH(lx - 6, ground - H * 0.55, 12, 9),
-            const Radius.circular(3)),
-        _p(const Color(0xFF37474F)));
-    if (lit) {
+    final lx = W * 0.91;
+    c.drawRect(Rect.fromLTWH(lx - 1.5, ground - H * 0.56, 3, H * 0.56),
+        _p(const Color(0xFF0C0C0E)));
+    c.drawRect(Rect.fromLTWH(lx - 5, ground - H * 0.6, 10, 6),
+        _p(const Color(0xFF0C0C0E)));
+    if (dark || w.time == DayTime.morning) {
+      final lamp = Offset(lx, ground - H * 0.55);
       c.drawCircle(
-          Offset(lx, ground - H * 0.5),
-          H * 0.2,
+          lamp,
+          H * 0.28,
           Paint()
-            ..shader = RadialGradient(colors: [
-              const Color(0x88FFE8A3),
-              const Color(0x00FFE8A3),
-            ]).createShader(Rect.fromCircle(
-                center: Offset(lx, ground - H * 0.5), radius: H * 0.2)));
-      c.drawCircle(
-          Offset(lx, ground - H * 0.505), 3, _p(const Color(0xFFFFF3C4)));
+            ..shader = RadialGradient(
+                    colors: [const Color(0x55FFD9A0), const Color(0x00FFD9A0)])
+                .createShader(Rect.fromCircle(center: lamp, radius: H * 0.28)));
+      c.drawCircle(lamp, 2.4, _p(const Color(0xFFFFE8C0)));
     }
 
-    // People strolling past.
-    if (!night || w.open) {
-      final count = w.open ? 3 : 1;
-      for (var i = 0; i < count; i++) {
-        final dir = i.isEven ? 1.0 : -1.0;
-        final speed = 0.55 + i * 0.2;
-        var k = (t * speed * 3 + i * 0.37) % 1;
-        if (dir < 0) k = 1 - k;
-        final x = -20 + k * (W + 40);
-        final look = Look.customer(w.seed * 13 + i);
-        drawPerson(c, Offset(x, H - 4 - i * 3.0), look,
-            s: H / 140, walk: moving ? t * math.pi * 2 * 90 * speed : -1);
+    // Passers-by in silhouette.
+    final count = w.open ? 3 : 1;
+    for (var i = 0; i < count; i++) {
+      final dir = i.isEven ? 1.0 : -1.0;
+      final speed = 0.5 + i * 0.22;
+      var k = (t * speed * 4 + i * 0.37) % 1;
+      if (dir < 0) k = 1 - k;
+      final x = -20 + k * (W + 40);
+      final y = H - 3 - i * 2.0;
+      final s = H / 150;
+      final step = moving ? math.sin(t * math.pi * 2 * 160 * speed) : 0.0;
+      final sil = _p(const Color(0xFF07070A));
+      c.drawCircle(Offset(x, y - 32 * s), 4.2 * s, sil);
+      c.drawRRect(
+          RRect.fromRectAndRadius(
+              Rect.fromLTWH(x - 5 * s, y - 27 * s, 10 * s, 15 * s),
+              Radius.circular(3 * s)),
+          sil);
+      c.drawLine(
+          Offset(x - 2 * s, y - 13 * s),
+          Offset(x - 2 * s + step * 3 * s, y),
+          Paint()
+            ..color = const Color(0xFF07070A)
+            ..strokeWidth = 3 * s
+            ..strokeCap = StrokeCap.round);
+      c.drawLine(
+          Offset(x + 2 * s, y - 13 * s),
+          Offset(x + 2 * s - step * 3 * s, y),
+          Paint()
+            ..color = const Color(0xFF07070A)
+            ..strokeWidth = 3 * s
+            ..strokeCap = StrokeCap.round);
+      if (w.rain && i == 0) {
+        // An umbrella.
+        c.drawArc(
+            Rect.fromCenter(
+                center: Offset(x, y - 38 * s), width: 26 * s, height: 16 * s),
+            math.pi,
+            math.pi,
+            true,
+            _p(const Color(0xFF1A1A20)));
       }
     }
-    if (night) {
-      c.drawRect(Offset.zero & size, _p(const Color(0x22000033)));
+
+    // Rain.
+    if (w.rain) {
+      final rain = Paint()
+        ..color = const Color(0x33B8C4D0)
+        ..strokeWidth = 1;
+      final rr = math.Random(9);
+      for (var i = 0; i < 70; i++) {
+        final x0 = rr.nextDouble() * (W + 40);
+        final sp = 0.6 + rr.nextDouble() * 0.6;
+        final y0 = ((rr.nextDouble() + t * 40 * sp) % 1) * (H + 20) - 10;
+        c.drawLine(Offset(x0 - y0 * 0.15, y0),
+            Offset(x0 - y0 * 0.15 - 2.5, y0 + 9), rain);
+      }
     }
+    // Vignette.
+    c.drawRect(
+        Offset.zero & size,
+        Paint()
+          ..shader = RadialGradient(
+              radius: 0.95,
+              colors: [const Color(0x00000000), const Color(0x88000000)],
+              stops: const [0.55, 1]).createShader(Offset.zero & size));
   }
 
   @override
@@ -412,6 +442,23 @@ class _ShopPainter extends CustomPainter {
       old.w.name != w.name ||
       old.w.time != w.time ||
       old.w.open != w.open;
+}
+
+/// A clipped bay tree in a planter, seen from the street.
+void drawPlantSide(Canvas c, Offset base, double s) {
+  final pot = Rect.fromCenter(
+      center: base.translate(0, -5 * s), width: 11 * s, height: 10 * s);
+  c.drawRect(pot, Paint()..color = const Color(0xFF151413));
+  c.drawLine(
+      base.translate(0, -10 * s),
+      base.translate(0, -18 * s),
+      Paint()
+        ..color = const Color(0xFF2A1E16)
+        ..strokeWidth = 1.4 * s);
+  c.drawCircle(base.translate(0, -24 * s), 8 * s,
+      Paint()..color = const Color(0xFF1E3326));
+  c.drawCircle(base.translate(-2 * s, -26 * s), 4 * s,
+      Paint()..color = const Color(0xFF2A4532));
 }
 
 /// Quality of a shopfront from a tier id (Worst 0 … Excellent 4).
@@ -425,5 +472,5 @@ int tierQuality(String tierId) => switch (tierId) {
 
 /// A cuisine's accent colour from its "#RRGGBB" string.
 Color accentOf(String? hex) => hex == null || hex.length != 7
-    ? const Color(0xFF2F7D4F)
+    ? const Color(0xFFC9A55B)
     : Color(int.parse('FF${hex.substring(1)}', radix: 16));

@@ -69,7 +69,15 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     sim = Sim.newGame(
         content: content, seed: seed, difficulty: difficulty, themeId: themeId);
     speed = Speed.paused;
+    introPending = true;
     _changed();
+  }
+
+  /// The short story before the market, shown once per new game.
+  bool introPending = false;
+  void finishIntro() {
+    introPending = false;
+    notifyListeners();
   }
 
   Future<bool> load(String slot) async {

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
@@ -44,98 +46,116 @@ class _TitleScreenState extends State<TitleScreen> {
               constraints: BoxConstraints(minHeight: box.maxHeight),
               child: IntrinsicHeight(
                 child: Centered(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(children: [
-                      const Spacer(flex: 2),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(22),
-                        child: const Shopfront(
-                            name: 'Kitchen Chain',
-                            accent: Palette.accent,
-                            quality: 3,
-                            animate: true,
-                            height: 210,
-                            seed: 3),
-                      ),
-                      const SizedBox(height: 18),
-                      Text('Kitchen Chain',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displaySmall
-                              ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -1)),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'You bought a running restaurant — staff, debts and problems included.\nKeep it alive. Then make it great.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Palette.muted, fontSize: 15, height: 1.4),
-                      ),
-                      const Spacer(flex: 3),
-                      if (autoLine != null) ...[
-                        FilledButton.icon(
+                  child: Column(children: [
+                    // A rainy night on the street: the place is waiting.
+                    ShaderMask(
+                      shaderCallback: (r) => const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white,
+                          Colors.white,
+                          Colors.transparent
+                        ],
+                        stops: [0, 0.72, 1],
+                      ).createShader(r),
+                      blendMode: BlendMode.dstIn,
+                      child: Shopfront(
+                          name: 'Vicolo Basilico',
+                          quality: 3,
+                          time: DayTime.night,
+                          rain: true,
+                          animate: true,
+                          height: math.min(420, box.maxHeight * 0.52),
+                          seed: 3),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(children: [
+                        const Text('A RESTAURANT MANAGEMENT GAME',
+                            style: TextStyle(
+                                color: Palette.accent,
+                                fontSize: 11,
+                                letterSpacing: 2.6,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 10),
+                        Text('Kitchen Chain',
+                            style: Theme.of(context)
+                                .textTheme
+                                .displaySmall
+                                ?.copyWith(fontSize: 44, letterSpacing: 0.5)),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Every restaurant for sale is for sale for a reason.\nBuy one. Keep it alive. Build a name the city knows.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: Palette.muted, fontSize: 15, height: 1.5),
+                        ),
+                        const SizedBox(height: 28),
+                        if (autoLine != null) ...[
+                          FilledButton.icon(
+                            style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(56)),
+                            onPressed: () async {
+                              final ok = await c.load('autosave');
+                              if (!ok && context.mounted) {
+                                showToast(
+                                    context, 'That save could not be loaded.');
+                              }
+                            },
+                            icon: const Icon(Icons.play_arrow_rounded),
+                            label: Text('Continue  ·  $autoLine'),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+                        FilledButton.tonalIcon(
                           style: FilledButton.styleFrom(
                               minimumSize: const Size.fromHeight(56)),
-                          onPressed: () async {
-                            final ok = await c.load('autosave');
-                            if (!ok && context.mounted) {
-                              showToast(
-                                  context, 'That save could not be loaded.');
-                            }
-                          },
-                          icon: const Icon(Icons.play_arrow_rounded),
-                          label: Text('Continue  ·  $autoLine'),
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                      FilledButton.tonalIcon(
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size.fromHeight(56)),
-                        onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const NewGameScreen())),
-                        icon: const Icon(Icons.add_business),
-                        label: const Text('New game'),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => showLoadSheet(context),
-                            icon: const Icon(Icons.folder_open),
-                            label: const Text('Load'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => const HandbookScreen())),
-                            icon: const Icon(Icons.menu_book),
-                            label: const Text('Handbook'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        IconButton.outlined(
-                          tooltip: 'Settings',
                           onPressed: () => Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (_) => const SettingsScreen())),
-                          icon: const Icon(Icons.settings),
+                                  builder: (_) => const NewGameScreen())),
+                          icon: const Icon(Icons.add_business),
+                          label: const Text('New game'),
                         ),
+                        const SizedBox(height: 10),
+                        Row(children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => showLoadSheet(context),
+                              icon: const Icon(Icons.folder_open),
+                              label: const Text('Load'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const HandbookScreen())),
+                              icon: const Icon(Icons.menu_book),
+                              label: const Text('Handbook'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          IconButton.outlined(
+                            tooltip: 'Settings',
+                            onPressed: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const SettingsScreen())),
+                            icon: const Icon(Icons.settings),
+                          ),
+                        ]),
+                        const SizedBox(height: 24),
+                        const Text('Offline · no ads · no accounts',
+                            style:
+                                TextStyle(color: Palette.muted, fontSize: 12)),
+                        const SizedBox(height: 12),
                       ]),
-                      const SizedBox(height: 24),
-                      const Text('Offline · no ads · no accounts',
-                          style: TextStyle(color: Palette.muted, fontSize: 12)),
-                      const SizedBox(height: 12),
-                    ]),
-                  ),
+                    ),
+                  ]),
                 ),
               ),
             ),
@@ -252,11 +272,11 @@ class _NewGameScreenState extends State<NewGameScreen> {
 // ------------------------------------------------------------------ market
 
 const tierColors = {
-  'excellent': Color(0xFF2F7D4F),
-  'best': Color(0xFF3A6EA8),
-  'good': Color(0xFF8A6A3B),
-  'bad': Color(0xFFC98A1B),
-  'worst': Color(0xFFC24A3A),
+  'excellent': Color(0xFF74C08F),
+  'best': Color(0xFF6F9FD6),
+  'good': Color(0xFFC9A55B),
+  'bad': Color(0xFFE2AE52),
+  'worst': Color(0xFFE3705C),
 };
 
 class MarketScreen extends StatelessWidget {
@@ -512,9 +532,10 @@ class OfferDetail extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: StaffAvatar(
                       seed: s.id,
+                      name: s.name,
                       role: s.role,
                       size: 40,
-                      mood: moodFromMorale(s.morale)),
+                      morale: s.morale),
                   title: Text(s.name,
                       style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(

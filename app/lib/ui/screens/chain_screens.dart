@@ -761,7 +761,7 @@ class ManagerCard extends StatelessWidget {
     return Panel(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          StaffAvatar(seed: m.id, role: 'manager', size: 44),
+          StaffAvatar(seed: m.id, name: m.name, role: 'manager', size: 44),
           const SizedBox(width: 10),
           Expanded(
             child:

@@ -23,3 +23,25 @@ flutter:
   uses-material-design: true
   assets:
     - assets/sfx/
+  # Bundled so the game looks the same offline on every phone (SIL OFL 1.1,
+  # licence texts in assets/fonts/).
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-400.ttf
+        - asset: assets/fonts/Inter-500.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-600.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-700.ttf
+          weight: 700
+        - asset: assets/fonts/Inter-800.ttf
+          weight: 800
+    - family: Playfair
+      fonts:
+        - asset: assets/fonts/PlayfairDisplay-600.ttf
+          weight: 600
+        - asset: assets/fonts/PlayfairDisplay-700.ttf
+          weight: 700
+        - asset: assets/fonts/PlayfairDisplay-800.ttf
+          weight: 800

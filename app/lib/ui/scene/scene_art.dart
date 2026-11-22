@@ -3,58 +3,66 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-/// Flat cartoon drawing primitives for the restaurant scene. Everything is drawn
-/// in code so the look stays consistent and needs no image assets.
+/// Drawing primitives for the restaurant scene: an overhead plan of a
+/// restaurant at night. Everything is drawn in code, in a restrained palette
+/// (walnut, slate, linen, steel, brass) so it reads as a grown-up sim rather
+/// than a cartoon.
 
 enum Mood { happy, neutral, annoyed, angry }
 
 enum Hat { none, chef, headChef, cap }
 
-/// How a character looks. Built once per person from a stable seed.
+/// How a person looks from above. Built once per person from a stable seed.
 class Look {
   final Color skin, hair, shirt;
+  final Color? arms; // sleeves, when different from the body
   final Color? apron;
   final Hat hat;
   final bool longHair;
   final bool tie;
-  final bool star; // the owner's badge
+  final bool star; // the owner
+  final Color? hands;
   const Look(
       {required this.skin,
       required this.hair,
       required this.shirt,
+      this.arms,
       this.apron,
       this.hat = Hat.none,
       this.longHair = false,
       this.tie = false,
-      this.star = false});
+      this.star = false,
+      this.hands});
 
   static const skins = [
-    Color(0xFFF6D3B3),
-    Color(0xFFE8B98F),
-    Color(0xFFC98E62),
-    Color(0xFF9C6644),
-    Color(0xFF6E4630),
+    Color(0xFFE9C7A6),
+    Color(0xFFD4A47C),
+    Color(0xFFB57F58),
+    Color(0xFF8A5A3C),
+    Color(0xFF5E3D29),
   ];
   static const hairs = [
-    Color(0xFF2B1D16),
-    Color(0xFF4A3021),
-    Color(0xFF8A5A33),
-    Color(0xFFD9A55B),
-    Color(0xFF1E1E24),
-    Color(0xFFB0473A),
-    Color(0xFF9C9C9C),
+    Color(0xFF1B1513),
+    Color(0xFF2E211A),
+    Color(0xFF4A3426),
+    Color(0xFF6E4A2E),
+    Color(0xFF9C7A4E),
+    Color(0xFF7A3B25),
+    Color(0xFF8E8A86),
   ];
-  static const shirts = [
-    Color(0xFF4F86C6),
-    Color(0xFFE07A5F),
-    Color(0xFF81B29A),
-    Color(0xFFF2CC8F),
-    Color(0xFF9B72CF),
-    Color(0xFF3D5A80),
-    Color(0xFFEE6C4D),
-    Color(0xFF5FA8D3),
-    Color(0xFFCB997E),
-    Color(0xFF6D9F71),
+  static const clothes = [
+    Color(0xFF2E3A59), // navy
+    Color(0xFF3A3A40), // charcoal
+    Color(0xFF6B2D3A), // burgundy
+    Color(0xFF556B3A), // olive
+    Color(0xFFA67C52), // camel
+    Color(0xFFCFC2A6), // stone
+    Color(0xFF4A6278), // slate blue
+    Color(0xFF2F4A3A), // forest
+    Color(0xFF4E3A5A), // plum
+    Color(0xFF8A4B2F), // rust
+    Color(0xFF1F1F24), // black
+    Color(0xFF7D7366), // taupe
   ];
 
   factory Look.customer(int seed, {bool critic = false}) {
@@ -63,9 +71,9 @@ class Look {
       skin: skins[r.nextInt(skins.length)],
       hair: hairs[r.nextInt(hairs.length)],
       shirt:
-          critic ? const Color(0xFF2E2A2A) : shirts[r.nextInt(shirts.length)],
-      longHair: r.nextBool(),
-      hat: critic ? Hat.cap : Hat.none,
+          critic ? const Color(0xFF151517) : clothes[r.nextInt(clothes.length)],
+      longHair: r.nextInt(3) == 0,
+      tie: critic,
     );
   }
 
@@ -73,68 +81,56 @@ class Look {
     final r = math.Random(seed * 104729 + 7);
     final skin = skins[r.nextInt(skins.length)];
     final hair = hairs[r.nextInt(hairs.length - 1)];
-    final long = r.nextBool();
+    final long = r.nextInt(3) == 0;
+    const whites = Color(0xFFE9E4DA);
     return switch (role) {
       'headChef' => Look(
-          skin: skin,
-          hair: hair,
-          shirt: Colors.white,
-          apron: const Color(0xFFE6E6E6),
-          hat: Hat.headChef,
-          longHair: long),
+          skin: skin, hair: hair, shirt: whites, hat: Hat.headChef, tie: true),
       'lineCook' || 'prepCook' => Look(
           skin: skin,
           hair: hair,
-          shirt: Colors.white,
-          apron: const Color(0xFF5C6B73),
-          hat: Hat.chef,
-          longHair: long),
+          shirt: whites,
+          apron: const Color(0xFF3A3F44),
+          hat: Hat.chef),
       'server' => Look(
           skin: skin,
           hair: hair,
-          shirt: Colors.white,
-          apron: const Color(0xFF2E2E33),
+          shirt: const Color(0xFF1C1C20),
+          arms: const Color(0xFFE6E1D7),
           longHair: long),
       'cashier' => Look(
           skin: skin,
           hair: hair,
-          shirt: const Color(0xFF3E8E5A),
-          apron: const Color(0xFF2F6B45),
+          shirt: const Color(0xFF2B2E35),
           longHair: long),
-      'manager' => Look(
-          skin: skin,
-          hair: hair,
-          shirt: const Color(0xFF34495E),
-          tie: true,
-          longHair: long),
+      'manager' =>
+        Look(skin: skin, hair: hair, shirt: const Color(0xFF26324A), tie: true),
       'dishwasher' => Look(
           skin: skin,
           hair: hair,
-          shirt: const Color(0xFF7FB3D5),
-          apron: const Color(0xFF2E6F95),
-          hat: Hat.cap,
-          longHair: long),
+          shirt: const Color(0xFF5E666C),
+          apron: const Color(0xFF2E4E60),
+          hands: const Color(0xFFE0B23A)),
       _ => Look(
           skin: skin,
           hair: hair,
-          shirt: const Color(0xFFB8B8B8),
-          apron: const Color(0xFF8E8E8E),
+          shirt: const Color(0xFF474C52),
+          hands: const Color(0xFFE0B23A),
           longHair: long),
     };
   }
 
   static const rider = Look(
-      skin: Color(0xFFC98E62),
-      hair: Color(0xFF2B1D16),
-      shirt: Color(0xFF1B998B),
-      hat: Hat.cap,
-      apron: Color(0xFF2EC4B6));
+      skin: Color(0xFFB57F58),
+      hair: Color(0xFF1B1513),
+      shirt: Color(0xFF1E5E5A),
+      hat: Hat.cap);
 
   static const owner = Look(
-      skin: Color(0xFFE8B98F),
-      hair: Color(0xFF3A2618),
-      shirt: Color(0xFF7A3FA0),
-      apron: Color(0xFF5B2C79),
+      skin: Color(0xFFD4A47C),
+      hair: Color(0xFF2E211A),
+      shirt: Color(0xFF22262D),
+      tie: true,
       star: true);
 }
 
@@ -145,7 +141,8 @@ Paint _fill(Color c) => _paint
   ..style = PaintingStyle.fill
   ..strokeWidth = 0
   ..shader = null
-  ..maskFilter = null;
+  ..maskFilter = null
+  ..blendMode = BlendMode.srcOver;
 
 Paint _stroke(Color c, double w) => _paint
   ..color = c
@@ -153,14 +150,16 @@ Paint _stroke(Color c, double w) => _paint
   ..strokeWidth = w
   ..strokeCap = StrokeCap.round
   ..shader = null
-  ..maskFilter = null;
+  ..maskFilter = null
+  ..blendMode = BlendMode.srcOver;
 
-/// A small person seen from the front and a little above (chibi style).
-/// [p] is where their feet touch the floor.
+/// A person seen from directly above: shoulders, arms and head (hair or a
+/// chef's toque), turned to face [facing] (radians; 0 = right, π/2 = down).
+/// [p] is the centre of their shoulders.
 void drawPerson(Canvas c, Offset p, Look look,
     {double s = 1,
     double bob = 0,
-    Mood mood = Mood.happy,
+    Mood mood = Mood.neutral,
     bool seated = false,
     bool carryPlate = false,
     bool carryDirty = false,
@@ -169,195 +168,141 @@ void drawPerson(Canvas c, Offset p, Look look,
     double walk = -1,
     bool mop = false,
     bool box = false,
+    double facing = math.pi / 2,
     Color? foodColor}) {
   c.save();
   c.translate(p.dx, p.dy);
   c.scale(s);
   if (alpha < 1) {
-    c.saveLayer(const Rect.fromLTWH(-20, -40, 40, 50),
+    c.saveLayer(const Rect.fromLTWH(-20, -20, 40, 40),
         Paint()..color = Color.fromRGBO(0, 0, 0, alpha));
   }
-  // Shadow.
+  // Soft shadow on the floor.
   c.drawOval(
-      const Rect.fromLTWH(-8, -2.5, 16, 5), _fill(const Color(0x2A000000)));
-  final y = -bob;
-  // Legs (hidden when seated).
-  // Walking: legs step in turn and arms swing against them.
+      const Rect.fromLTWH(-8.5, -4.2, 18, 12), _fill(const Color(0x40000000)));
+  if (mood == Mood.angry) {
+    c.drawCircle(
+        const Offset(0, 1), 10.5, _stroke(const Color(0x99E3705C), 1.4));
+  }
+  if (look.star) {
+    c.drawCircle(
+        const Offset(0, 1), 10.5, _stroke(const Color(0xCC3F8C9A), 1.6));
+  }
+  c.rotate(facing - math.pi / 2); // local +y is the way they face
   final stride = walk < 0 ? 0.0 : math.sin(walk);
-  if (!seated) {
-    final lift1 = math.max(0.0, stride) * 2.2,
-        lift2 = math.max(0.0, -stride) * 2.2;
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(-4.5 - stride * 0.8, y - 6 - lift1, 3.6, 6),
-            const Radius.circular(1.5)),
-        _fill(const Color(0xFF3A3A44)));
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(0.9 + stride * 0.8, y - 6 - lift2, 3.6, 6),
-            const Radius.circular(1.5)),
-        _fill(const Color(0xFF3A3A44)));
-    // Shoes.
-    c.drawOval(Rect.fromLTWH(-5 - stride * 0.8, y - 1.6 - lift1, 4.6, 2.4),
-        _fill(const Color(0xFF1F1A17)));
-    c.drawOval(Rect.fromLTWH(0.4 + stride * 0.8, y - 1.6 - lift2, 4.6, 2.4),
-        _fill(const Color(0xFF1F1A17)));
-  }
+  final sleeve = look.arms ?? look.shirt;
+  final hand = look.hands ?? look.skin;
+  // Delivery box on the back.
   if (box) {
-    // A delivery rider's insulated box on their back.
     c.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(-8, y - 27, 16, 13), const Radius.circular(2)),
-        _fill(const Color(0xFF2EC4B6)));
+            const Rect.fromLTWH(-7, -12, 14, 9), const Radius.circular(1.5)),
+        _fill(const Color(0xFF1E8A80)));
     c.drawRect(
-        Rect.fromLTWH(-8, y - 22, 16, 2), _fill(const Color(0xFF1B998B)));
+        const Rect.fromLTWH(-7, -8.5, 14, 1.4), _fill(const Color(0xFF14605A)));
   }
-  final bodyTop = y - (seated ? 13 : 17);
-  final body = RRect.fromRectAndCorners(Rect.fromLTWH(-7, bodyTop, 14, 12),
-      topLeft: const Radius.circular(6),
-      topRight: const Radius.circular(6),
-      bottomLeft: const Radius.circular(3),
-      bottomRight: const Radius.circular(3));
-  c.drawRRect(body, _fill(look.shirt));
+  // Arms: swing while walking, reach forward when seated or carrying.
+  final reach = seated || carryPlate || carryDirty || notepad || mop;
+  for (final side in [-1.0, 1.0]) {
+    final swing = reach ? 4.5 : stride * 2.6 * side;
+    final o = Offset(side * 6.8, 0.6 + swing);
+    c.drawOval(
+        Rect.fromCenter(center: o, width: 3.6, height: 6.4), _fill(sleeve));
+    c.drawCircle(
+        o.translate(0, reach ? 3.4 : 3.0 + swing * 0.1), 1.5, _fill(hand));
+  }
+  // Shoulders and body.
+  final body = Rect.fromCenter(center: Offset.zero, width: 14.5, height: 8.6);
+  c.drawRRect(RRect.fromRectAndRadius(body, const Radius.circular(4.3)),
+      _fill(look.shirt));
+  // Light from above catches the back of the shoulders.
+  c.drawRRect(
+      RRect.fromRectAndRadius(
+          Rect.fromLTWH(-6.4, -4.1, 12.8, 2.6), const Radius.circular(2)),
+      _fill(Colors.white.withValues(alpha: 0.07)));
   if (look.apron != null) {
     c.drawRRect(
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(-5, bodyTop + 4, 10, 8), const Radius.circular(2)),
+            const Rect.fromLTWH(-4.5, 1.2, 9, 3.2), const Radius.circular(1.4)),
         _fill(look.apron!));
   }
-  if (look.tie) {
-    final t = Path()
-      ..moveTo(0, bodyTop + 1)
-      ..lineTo(1.6, bodyTop + 4)
-      ..lineTo(0, bodyTop + 9)
-      ..lineTo(-1.6, bodyTop + 4)
-      ..close();
-    c.drawPath(t, _fill(const Color(0xFFC0392B)));
-  }
-  if (look.star) {
-    _drawStar(c, Offset(-3.6, bodyTop + 4.4), 2.4, const Color(0xFFFFD166));
-  }
-  // Arms.
-  final armY = bodyTop + 3;
-  if (carryPlate || carryDirty || notepad) {
-    c.drawLine(
-        Offset(5.5, armY + 1), Offset(9, armY - 2), _stroke(look.shirt, 3));
-    if (carryPlate || carryDirty) {
-      c.drawOval(
-          Rect.fromCenter(
-              center: Offset(11, armY - 3.5), width: 10, height: 4.5),
-          _fill(Colors.white));
-      c.drawOval(
-          Rect.fromCenter(
-              center: Offset(11, armY - 3.5), width: 10, height: 4.5),
-          _stroke(const Color(0x33000000), 0.6));
-      c.drawCircle(
-          Offset(11, armY - 4),
-          2,
-          _fill(carryDirty
-              ? const Color(0xFF9E8F7A)
-              : (foodColor ?? const Color(0xFFE07A5F))));
-    } else {
-      c.drawRect(Rect.fromLTWH(7.5, armY - 6, 5, 6.5), _fill(Colors.white));
-      c.drawLine(Offset(8.4, armY - 4.2), Offset(11.6, armY - 4.2),
-          _stroke(const Color(0xFF9AA5B1), 0.6));
-      c.drawLine(Offset(8.4, armY - 2.6), Offset(11.6, armY - 2.6),
-          _stroke(const Color(0xFF9AA5B1), 0.6));
+  if (look.hat == Hat.headChef || look.hat == Hat.chef) {
+    // Double-breasted buttons.
+    for (final y in [0.6, 2.6]) {
+      c.drawCircle(Offset(-1.6, y), 0.55, _fill(const Color(0xFF6E6A64)));
+      c.drawCircle(Offset(1.6, y), 0.55, _fill(const Color(0xFF6E6A64)));
     }
-  } else if (mop) {
-    // Cleaner pushing a mop.
-    c.drawLine(Offset(6.2, armY), Offset(9, armY + 5), _stroke(look.shirt, 3));
-    c.drawLine(Offset(12, armY - 6), Offset(8, armY + 14),
-        _stroke(const Color(0xFF8D6E63), 1.4));
-    final sweep = walk < 0 ? 0.0 : math.sin(walk * 0.5) * 2;
-    c.drawOval(
-        Rect.fromCenter(
-            center: Offset(7 + sweep, armY + 15), width: 9, height: 3.4),
-        _fill(const Color(0xFFB0BEC5)));
-  } else {
-    c.drawLine(Offset(6.2, armY), Offset(7.4 - stride * 1.6, armY + 6),
-        _stroke(look.shirt, 3));
   }
-  c.drawLine(Offset(-6.2, armY), Offset(-7.4 + stride * 1.6, armY + 6),
-      _stroke(look.shirt, 3));
-  // Hands.
-  c.drawCircle(Offset(-7.4 + stride * 1.6, armY + 6.6), 1.5, _fill(look.skin));
+  if (look.tie) {
+    c.drawRect(Rect.fromLTWH(-0.7, 1.4, 1.4, 3),
+        _fill(look.star ? const Color(0xFF3F8C9A) : const Color(0xFF7A2430)));
+  }
   // Head.
-  final hc = Offset(0, bodyTop - 6);
-  if (look.longHair) {
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromCenter(
-                center: hc.translate(0, 2.5), width: 14.5, height: 12),
-            const Radius.circular(5)),
-        _fill(look.hair));
-  }
-  c.drawCircle(hc, 6.8, _fill(look.skin));
-  // Hair cap.
-  c.drawArc(Rect.fromCircle(center: hc.translate(0, -0.6), radius: 7.1),
-      math.pi * 1.02, math.pi * 0.96, true, _fill(look.hair));
-  c.drawCircle(hc.translate(2.8, -3.6), 2.4, _fill(look.hair));
-  // Face.
-  final eyeY = hc.dy + 0.8;
-  final dark = const Color(0xFF2A2420);
-  if (mood == Mood.angry) {
-    c.drawLine(
-        Offset(-3.6, eyeY - 2.6), Offset(-1.2, eyeY - 1.6), _stroke(dark, 1));
-    c.drawLine(
-        Offset(3.6, eyeY - 2.6), Offset(1.2, eyeY - 1.6), _stroke(dark, 1));
-  }
-  c.drawCircle(Offset(-2.4, eyeY), 0.95, _fill(dark));
-  c.drawCircle(Offset(2.4, eyeY), 0.95, _fill(dark));
-  final mouth = Path();
-  switch (mood) {
-    case Mood.happy:
-      mouth
-        ..moveTo(-1.8, eyeY + 2.2)
-        ..quadraticBezierTo(0, eyeY + 4, 1.8, eyeY + 2.2);
-    case Mood.neutral:
-      mouth
-        ..moveTo(-1.4, eyeY + 2.8)
-        ..lineTo(1.4, eyeY + 2.8);
-    case Mood.annoyed:
-    case Mood.angry:
-      mouth
-        ..moveTo(-1.8, eyeY + 3.4)
-        ..quadraticBezierTo(0, eyeY + 1.8, 1.8, eyeY + 3.4);
-  }
-  c.drawPath(mouth, _stroke(dark, 0.9));
-  if (mood == Mood.angry || mood == Mood.happy) {
-    final cheek =
-        mood == Mood.angry ? const Color(0x88E74C3C) : const Color(0x44FF8A80);
-    c.drawCircle(Offset(-4.2, eyeY + 1.8), 1.3, _fill(cheek));
-    c.drawCircle(Offset(4.2, eyeY + 1.8), 1.3, _fill(cheek));
-  }
-  // Hats.
+  const head = Offset(0, -0.4);
   switch (look.hat) {
     case Hat.chef:
     case Hat.headChef:
-      final tall = look.hat == Hat.headChef ? 5.0 : 2.0;
-      c.drawRect(Rect.fromLTWH(-5, hc.dy - 8.5, 10, 3), _fill(Colors.white));
+      final r = look.hat == Hat.headChef ? 5.6 : 5.0;
+      c.drawCircle(head.translate(0, 1.0), 3.6, _fill(look.skin));
+      c.drawCircle(head, r, _fill(const Color(0xFFF2EFE9)));
+      c.drawCircle(head, r * 0.66, _stroke(const Color(0x22000000), 0.7));
+      if (look.hat == Hat.headChef) {
+        c.drawCircle(head, r * 0.36, _stroke(const Color(0x18000000), 0.7));
+      }
+    case Hat.cap:
+      c.drawCircle(head, 4.9, _fill(const Color(0xFF15191C)));
       c.drawRRect(
           RRect.fromRectAndRadius(
-              Rect.fromLTWH(-5.5, hc.dy - 12 - tall, 11, 5 + tall),
-              const Radius.circular(3)),
-          _fill(Colors.white));
-      for (final dx in [-4.0, 0.0, 4.0]) {
-        c.drawCircle(Offset(dx, hc.dy - 12.5 - tall), 3.4, _fill(Colors.white));
-      }
-      c.drawLine(Offset(-5, hc.dy - 8.6), Offset(5, hc.dy - 8.6),
-          _stroke(const Color(0x22000000), 0.6));
-    case Hat.cap:
-      c.drawArc(
-          Rect.fromCircle(center: hc.translate(0, -1.2), radius: 7.2),
-          math.pi,
-          math.pi,
-          true,
-          _fill(look.shirt == const Color(0xFF2E2A2A)
-              ? const Color(0xFFB03A2E)
-              : look.apron ?? look.shirt));
+              Rect.fromLTWH(-3.4, 2.4, 6.8, 2.2), const Radius.circular(1)),
+          _fill(const Color(0xFF2A3036)));
+      c.drawLine(const Offset(-3, -1), const Offset(3, -1),
+          _stroke(const Color(0x33FFFFFF), 0.8));
     case Hat.none:
-      break;
+      if (look.longHair) {
+        c.drawOval(
+            Rect.fromCenter(
+                center: head.translate(0, -1.8), width: 10.4, height: 8.2),
+            _fill(look.hair));
+      }
+      c.drawCircle(head.translate(0, 1.0), 4.3, _fill(look.skin));
+      c.drawCircle(head.translate(0, -0.7), 4.5, _fill(look.hair));
+      c.drawArc(
+          Rect.fromCircle(center: head.translate(0, -0.7), radius: 3.2),
+          math.pi * 1.1,
+          math.pi * 0.5,
+          false,
+          _stroke(Colors.white.withValues(alpha: 0.10), 1));
+  }
+  // What they carry, in front of them.
+  if (carryPlate || carryDirty) {
+    final o = const Offset(3.5, 8.5);
+    c.drawCircle(o.translate(0.6, 0.8), 4.2, _fill(const Color(0x33000000)));
+    c.drawCircle(o, 4.2, _fill(const Color(0xFFF4F1EA)));
+    c.drawCircle(o, 2.8, _fill(Colors.white));
+    if (carryDirty) {
+      c.drawCircle(
+          o.translate(-0.6, 0.6), 4.2, _stroke(const Color(0x55000000), 0.6));
+      c.drawCircle(o.translate(0.5, -0.3), 1.2, _fill(const Color(0xFF8A7A66)));
+    } else {
+      c.drawCircle(o, 2.1, _fill(foodColor ?? const Color(0xFFA63D2F)));
+    }
+  } else if (notepad) {
+    c.drawRect(const Rect.fromLTWH(1.5, 5.5, 4.5, 5.5),
+        _fill(const Color(0xFFF2EEE6)));
+    c.drawLine(const Offset(2.3, 7.2), const Offset(5.2, 7.2),
+        _stroke(const Color(0xFF8D8A85), 0.5));
+    c.drawLine(const Offset(2.3, 8.8), const Offset(5.2, 8.8),
+        _stroke(const Color(0xFF8D8A85), 0.5));
+  } else if (mop) {
+    final sweep = walk < 0 ? 0.0 : math.sin(walk * 0.5) * 2.5;
+    c.drawLine(const Offset(5, 4), Offset(4 + sweep, 15),
+        _stroke(const Color(0xFF8A7560), 1.2));
+    c.drawRRect(
+        RRect.fromRectAndRadius(
+            Rect.fromCenter(
+                center: Offset(4 + sweep, 16.5), width: 9, height: 3.2),
+            const Radius.circular(1.5)),
+        _fill(const Color(0xFF9AA4AA)));
   }
   if (alpha < 1) c.restore();
   c.restore();
@@ -382,92 +327,89 @@ void _drawStar(Canvas c, Offset o, double r, Color color) {
 void drawStar(Canvas c, Offset o, double r, Color color) =>
     _drawStar(c, o, r, color);
 
-/// A round café table seen from slightly above.
+/// A linen-covered table seen from above.
 void drawTable(Canvas c, Rect r, {bool dirty = false, bool selected = false}) {
-  final rr = RRect.fromRectAndRadius(r, Radius.circular(r.shortestSide * 0.35));
-  c.drawRRect(rr.shift(const Offset(0, 3)), _fill(const Color(0x26000000)));
-  c.drawRRect(rr, _fill(const Color(0xFFB07A4F)));
-  final top = RRect.fromRectAndRadius(
-      r.deflate(2), Radius.circular(r.shortestSide * 0.3));
-  c.drawRRect(top, _fill(const Color(0xFFFFFBF2)));
-  // Tablecloth check pattern hint.
-  c.drawRRect(
-      top.deflate(r.shortestSide * 0.16), _stroke(const Color(0x22C8462F), 1));
+  final rr = RRect.fromRectAndRadius(r, const Radius.circular(5));
+  c.drawRRect(rr.shift(const Offset(1.5, 3)), _fill(const Color(0x66000000)));
+  c.drawRRect(rr.inflate(1.2), _fill(const Color(0xFFD8D1C4))); // cloth drop
+  c.drawRRect(rr, _fill(const Color(0xFFEDE7DC)));
+  c.drawRRect(rr.deflate(2.2), _stroke(const Color(0x14000000), 0.8));
   if (selected) {
-    c.drawRRect(rr.inflate(4), _stroke(const Color(0xFF7A3FA0), 3));
+    c.drawRRect(rr.inflate(5), _stroke(const Color(0xFF3F8C9A), 2));
   }
   if (dirty) {
     final rnd = math.Random(r.left.toInt() * 31 + r.top.toInt());
     for (var i = 0; i < 3; i++) {
       final o = Offset(r.left + r.width * (0.25 + 0.25 * i),
           r.center.dy + (i.isEven ? -3 : 3));
-      c.drawOval(
-          Rect.fromCenter(center: o, width: 9, height: 6), _fill(Colors.white));
-      c.drawOval(Rect.fromCenter(center: o, width: 9, height: 6),
-          _stroke(const Color(0x33000000), 0.6));
-      c.drawCircle(o.translate(rnd.nextDouble() * 2 - 1, 0), 1.4,
-          _fill(const Color(0xFFA68A64)));
+      c.drawCircle(o, 4.2, _fill(const Color(0xFFF4F1EA)));
+      c.drawCircle(o, 4.2, _stroke(const Color(0x33000000), 0.6));
+      c.drawCircle(o.translate(rnd.nextDouble() * 2 - 1, 0.5), 1.6,
+          _fill(const Color(0xFF9C8B74)));
     }
+    // A crumpled napkin and a wine stain.
     c.drawCircle(
-        Offset(r.right - 6, r.top + 5), 1.2, _fill(const Color(0xFF8D7B68)));
+        Offset(r.right - 6, r.top + 5), 2.4, _fill(const Color(0xFFCFC7B9)));
+    c.drawCircle(
+        Offset(r.left + 7, r.bottom - 5), 2.2, _fill(const Color(0x557A2430)));
   }
 }
 
+/// An upholstered chair; [top] means it sits above the table (back to the wall side).
 void drawChair(Canvas c, Offset o, {bool top = true}) {
-  final r = Rect.fromCenter(center: o, width: 12, height: 9);
+  final r = Rect.fromCenter(center: o, width: 12, height: 10);
   c.drawRRect(
       RRect.fromRectAndRadius(
-          r.shift(const Offset(0, 1.5)), const Radius.circular(3)),
-      _fill(const Color(0x22000000)));
+          r.shift(const Offset(1, 2)), const Radius.circular(3)),
+      _fill(const Color(0x55000000)));
   c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
-      _fill(const Color(0xFF8C5A3C)));
+      _fill(const Color(0xFF3B2A22)));
+  c.drawRRect(RRect.fromRectAndRadius(r.deflate(2), const Radius.circular(2)),
+      _fill(const Color(0xFF4A352A)));
   final back = top
-      ? Rect.fromLTWH(r.left, r.top - 2, r.width, 3)
-      : Rect.fromLTWH(r.left, r.bottom - 1, r.width, 3);
-  c.drawRRect(RRect.fromRectAndRadius(back, const Radius.circular(1.5)),
-      _fill(const Color(0xFF6B4226)));
+      ? Rect.fromLTWH(r.left - 0.5, r.top - 2.4, r.width + 1, 3.2)
+      : Rect.fromLTWH(r.left - 0.5, r.bottom - 0.8, r.width + 1, 3.2);
+  c.drawRRect(RRect.fromRectAndRadius(back, const Radius.circular(1.6)),
+      _fill(const Color(0xFF261A14)));
 }
 
-/// A plate of food; [left] 0..1 shrinks the food while people eat.
+/// A plate of food from above; [left] 0..1 shrinks the food while people eat.
 void drawPlate(Canvas c, Offset o, Color food, {double left = 1}) {
-  c.drawOval(
-      Rect.fromCenter(center: o, width: 11, height: 7), _fill(Colors.white));
-  c.drawOval(Rect.fromCenter(center: o, width: 11, height: 7),
-      _stroke(const Color(0x30000000), 0.6));
+  c.drawCircle(o.translate(0.6, 1), 5, _fill(const Color(0x33000000)));
+  c.drawCircle(o, 5, _fill(const Color(0xFFF4F1EA)));
+  c.drawCircle(o, 3.5, _fill(Colors.white));
   if (left > 0.05) {
-    c.drawOval(
-        Rect.fromCenter(
-            center: o.translate(0, -0.4),
-            width: 7 * left.clamp(0.3, 1),
-            height: 4.4 * left.clamp(0.3, 1)),
-        _fill(food));
+    final k = left.clamp(0.25, 1.0);
+    c.drawCircle(o, 2.6 * k, _fill(food));
     c.drawCircle(
-        o.translate(1.2, -1.2), 0.9 * left, _fill(const Color(0x99FFFFFF)));
+        o.translate(-0.7, -0.7), 0.8 * k, _fill(const Color(0x55FFFFFF)));
   }
 }
 
 const foodColors = [
-  Color(0xFFE07A5F),
-  Color(0xFFF2CC8F),
-  Color(0xFF81B29A),
-  Color(0xFFD62828),
-  Color(0xFFF4A259),
-  Color(0xFFBC6C25),
-  Color(0xFF9A031E),
+  Color(0xFFA63D2F), // tomato
+  Color(0xFFC8913A), // golden
+  Color(0xFF4F6B3A), // basil
+  Color(0xFF7A2430), // red wine sauce
+  Color(0xFFD19A2B), // saffron
+  Color(0xFF6B4630), // braise
+  Color(0xFFD9C7A0), // cream
 ];
 
-/// One cooking station on the back counter.
+/// One cooking station on the back counter, in stainless steel.
 void drawStation(Canvas c, Rect r, String type,
     {required int cap,
     required int used,
     required bool down,
     required double t}) {
-  final body = RRect.fromRectAndRadius(r, const Radius.circular(5));
-  c.drawRRect(body.shift(const Offset(0, 2)), _fill(const Color(0x40000000)));
+  final body = RRect.fromRectAndRadius(r, const Radius.circular(3));
+  c.drawRRect(body.shift(const Offset(1, 3)), _fill(const Color(0x66000000)));
   c.drawRRect(
-      body, _fill(down ? const Color(0xFF5E5552) : const Color(0xFF9AA3AB)));
-  c.drawRRect(body.deflate(2),
-      _fill(down ? const Color(0xFF4A4240) : const Color(0xFF7D868E)));
+      body, _fill(down ? const Color(0xFF3A3533) : const Color(0xFF59636A)));
+  c.drawRRect(body.deflate(1.6),
+      _fill(down ? const Color(0xFF2C2826) : const Color(0xFF7A858C)));
+  c.drawLine(Offset(r.left + 3, r.top + 2.4), Offset(r.right - 3, r.top + 2.4),
+      _stroke(Colors.white.withValues(alpha: 0.18), 0.8));
   final slots = math.max(1, cap);
   final cols = slots <= 2 ? slots : (slots <= 4 ? 2 : 3);
   final rows = (slots / cols).ceil();
@@ -483,46 +425,49 @@ void drawStation(Canvas c, Rect r, String type,
       case 'oven':
       case 'tandoor':
         final win = RRect.fromRectAndRadius(
-            cell.deflate(2.2), Radius.circular(type == 'tandoor' ? rad : 2));
-        c.drawRRect(win, _fill(const Color(0xFF2B2B2B)));
+            cell.deflate(2.2), Radius.circular(type == 'tandoor' ? rad : 1.5));
+        c.drawRRect(win, _fill(const Color(0xFF151515)));
         if (on) {
           final glow = 0.75 + 0.25 * math.sin(t * 6 + i);
           c.drawRRect(
               win.deflate(1.2),
               _fill(Color.lerp(
-                  const Color(0xFFB34700), const Color(0xFFFFA62B), glow)!));
+                  const Color(0xFF7A2E08), const Color(0xFFE0861F), glow)!));
         }
       case 'cold':
         c.drawRRect(
-            RRect.fromRectAndRadius(cell.deflate(2), const Radius.circular(2)),
-            _fill(const Color(0xFFE9D8B4)));
+            RRect.fromRectAndRadius(
+                cell.deflate(2), const Radius.circular(1.5)),
+            _fill(const Color(0xFFB08A5E)));
         if (on) {
-          c.drawCircle(o.translate(-rad * 0.4, 0), rad * 0.42,
-              _fill(const Color(0xFF6A994E)));
-          c.drawCircle(o.translate(rad * 0.45, rad * 0.2), rad * 0.32,
-              _fill(const Color(0xFFD62828)));
+          c.drawCircle(o.translate(-rad * 0.4, 0), rad * 0.4,
+              _fill(const Color(0xFF4F6B3A)));
+          c.drawCircle(o.translate(rad * 0.45, rad * 0.2), rad * 0.3,
+              _fill(const Color(0xFFA63D2F)));
         }
       case 'fryer':
         c.drawRRect(
-            RRect.fromRectAndRadius(cell.deflate(2), const Radius.circular(2)),
-            _fill(const Color(0xFF3B3B3B)));
+            RRect.fromRectAndRadius(
+                cell.deflate(2), const Radius.circular(1.5)),
+            _fill(const Color(0xFF222222)));
         c.drawRRect(
             RRect.fromRectAndRadius(
-                cell.deflate(3.2), const Radius.circular(2)),
-            _fill(on ? const Color(0xFFE9B949) : const Color(0xFFB8952F)));
+                cell.deflate(3.2), const Radius.circular(1.5)),
+            _fill(on ? const Color(0xFFC9962E) : const Color(0xFF8A6A22)));
         if (on) {
           for (var k = 0; k < 3; k++) {
             final ph = (t * 3 + k * 0.33 + i) % 1;
             c.drawCircle(
                 o.translate((k - 1) * rad * 0.55, rad * 0.4 - ph * rad * 0.8),
-                1 + ph,
-                _stroke(const Color(0xAAFFF3C4), 0.6));
+                0.8 + ph,
+                _stroke(const Color(0x88FFF0C0), 0.6));
           }
         }
       case 'grill':
         c.drawRRect(
-            RRect.fromRectAndRadius(cell.deflate(2), const Radius.circular(2)),
-            _fill(const Color(0xFF2E2E2E)));
+            RRect.fromRectAndRadius(
+                cell.deflate(2), const Radius.circular(1.5)),
+            _fill(const Color(0xFF1C1C1C)));
         if (on) {
           _flames(c, o.translate(0, rad * 0.3), rad * 0.9, t + i, gas: false);
         }
@@ -530,48 +475,26 @@ void drawStation(Canvas c, Rect r, String type,
           c.drawLine(
               Offset(cell.left + 3, o.dy + k * rad * 0.55),
               Offset(cell.right - 3, o.dy + k * rad * 0.55),
-              _stroke(const Color(0xFF8A8A8A), 1));
+              _stroke(const Color(0xFF5E5E5E), 1));
         }
       default: // stove, wok
-        c.drawCircle(o, rad, _fill(const Color(0xFF2F2F2F)));
-        c.drawCircle(o, rad * 0.7, _stroke(const Color(0xFF5A5A5A), 1));
+        c.drawCircle(o, rad, _fill(const Color(0xFF1E1E1E)));
+        c.drawCircle(o, rad * 0.7, _stroke(const Color(0xFF3E3E3E), 1));
         if (on) {
           _flames(c, o, rad, t + i * 0.7);
           if (type == 'wok') {
-            c.drawOval(
-                Rect.fromCenter(
-                    center: o.translate(0, -1),
-                    width: rad * 2.1,
-                    height: rad * 1.5),
-                _fill(const Color(0xFF3A3A3A)));
-            c.drawOval(
-                Rect.fromCenter(
-                    center: o.translate(0, -1.5),
-                    width: rad * 1.4,
-                    height: rad * 0.8),
-                _fill(const Color(0xFFE9A03B)));
+            c.drawCircle(o, rad * 0.95, _fill(const Color(0xFF2B2B2B)));
+            c.drawCircle(o.translate(0, -0.5), rad * 0.6,
+                _fill(const Color(0xFFB07A2A)));
           } else {
-            c.drawCircle(
-                o.translate(0, -1), rad * 0.82, _fill(const Color(0xFF8E9AA6)));
-            c.drawCircle(
-                o.translate(0, -1), rad * 0.6, _fill(const Color(0xFFCC6B49)));
+            c.drawCircle(o, rad * 0.82, _fill(const Color(0xFF8E989F)));
+            c.drawCircle(o, rad * 0.6, _fill(const Color(0xFF8A3A26)));
           }
         }
     }
   }
   if (down) {
-    // Warning sign.
-    final w = Path()
-      ..moveTo(r.center.dx, r.top - 9)
-      ..lineTo(r.center.dx + 8, r.top + 4)
-      ..lineTo(r.center.dx - 8, r.top + 4)
-      ..close();
-    c.drawPath(w, _fill(const Color(0xFFFFC145)));
-    c.drawPath(w, _stroke(const Color(0xFF2A2420), 1));
-    c.drawLine(Offset(r.center.dx, r.top - 4), Offset(r.center.dx, r.top),
-        _stroke(const Color(0xFF2A2420), 1.4));
-    c.drawCircle(
-        Offset(r.center.dx, r.top + 2), 0.8, _fill(const Color(0xFF2A2420)));
+    c.drawRRect(body.inflate(1.5), _stroke(const Color(0xCCE3705C), 1.4));
   }
 }
 
@@ -583,17 +506,17 @@ void _flames(Canvas c, Offset o, double rad, double t, {bool gas = true}) {
     final tip =
         o + Offset(math.cos(a), math.sin(a)) * rad * (0.82 + 0.4 * flick);
     final path = Path()
-      ..moveTo(p.dx - math.sin(a) * 2, p.dy + math.cos(a) * 2)
+      ..moveTo(p.dx - math.sin(a) * 1.8, p.dy + math.cos(a) * 1.8)
       ..quadraticBezierTo(
-          tip.dx, tip.dy, p.dx + math.sin(a) * 2, p.dy - math.cos(a) * 2)
+          tip.dx, tip.dy, p.dx + math.sin(a) * 1.8, p.dy - math.cos(a) * 1.8)
       ..close();
     c.drawPath(
         path,
         _fill(gas
             ? Color.lerp(
-                const Color(0xFF1E88E5), const Color(0xFF4FC3F7), flick)!
+                const Color(0xFF1565C0), const Color(0xFF4FC3F7), flick)!
             : Color.lerp(
-                const Color(0xFFE85D04), const Color(0xFFFFBA08), flick)!));
+                const Color(0xFFB34700), const Color(0xFFF2A33A), flick)!));
   }
 }
 
@@ -621,27 +544,33 @@ void drawIcon(
 
 final _textCache = <int, TextPainter>{};
 TextPainter labelPainter(String text, double size, Color color,
-    {FontWeight weight = FontWeight.w800, bool shadow = true}) {
-  final key = Object.hash(text, size, color.toARGB32(), weight, shadow);
+    {FontWeight weight = FontWeight.w700,
+    bool shadow = true,
+    bool serif = false,
+    double spacing = 0}) {
+  final key =
+      Object.hash(text, size, color.toARGB32(), weight, shadow, serif, spacing);
   return _textCache.putIfAbsent(key, () {
     if (_textCache.length > 400) _textCache.clear();
     return TextPainter(
       text: TextSpan(
           text: text,
           style: TextStyle(
+              fontFamily: serif ? 'Playfair' : 'Inter',
               fontSize: size,
               fontWeight: weight,
               color: color,
+              letterSpacing: spacing,
               height: 1,
               shadows: shadow
-                  ? const [Shadow(color: Color(0xCCFFFFFF), blurRadius: 3)]
+                  ? const [Shadow(color: Color(0xCC000000), blurRadius: 4)]
                   : null)),
       textDirection: TextDirection.ltr,
     )..layout();
   });
 }
 
-/// Speech bubble with an icon and a patience ring; returns its hit rect.
+/// A dark glass bubble with an icon and a patience ring; returns its hit rect.
 Rect drawBubble(Canvas c, Offset o, IconData icon,
     {double share = 0,
     bool ring = true,
@@ -650,38 +579,33 @@ Rect drawBubble(Canvas c, Offset o, IconData icon,
     double pulse = 0,
     double r = 12}) {
   final ringColor = share < 0.5
-      ? const Color(0xFF3E8E5A)
-      : (share < 0.8 ? const Color(0xFFC98A1B) : const Color(0xFFC24A3A));
-  final rr = r * (1 + 0.08 * pulse);
-  final alpha = faded ? 0.5 : 1.0;
+      ? const Color(0xFF74C08F)
+      : (share < 0.8 ? const Color(0xFFE2AE52) : const Color(0xFFE3705C));
+  final rr = r * (1 + 0.06 * pulse);
+  final alpha = faded ? 0.45 : 1.0;
   c.drawCircle(
-      o.translate(0, 1.5), rr, _fill(Color.fromRGBO(0, 0, 0, 0.16 * alpha)));
-  final tail = Path()
-    ..moveTo(o.dx - 4, o.dy + rr * 0.7)
-    ..lineTo(o.dx - 1, o.dy + rr + 5)
-    ..lineTo(o.dx + 3, o.dy + rr * 0.75)
-    ..close();
-  final bg = owner ? const Color(0xFF7A3FA0) : Colors.white;
-  c.drawPath(tail, _fill(bg.withValues(alpha: alpha)));
-  c.drawCircle(o, rr, _fill(bg.withValues(alpha: alpha)));
+      o.translate(0, 2), rr + 1, _fill(Color.fromRGBO(0, 0, 0, 0.45 * alpha)));
+  final bg = owner ? const Color(0xFF3F8C9A) : const Color(0xFF171411);
+  c.drawCircle(o, rr, _fill(bg.withValues(alpha: 0.94 * alpha)));
+  c.drawCircle(
+      o, rr, _stroke(const Color(0xFF5C4F3A).withValues(alpha: alpha), 0.8));
   if (ring) {
-    c.drawCircle(o, rr - 1.4,
-        _stroke(const Color(0x22000000).withValues(alpha: 0.13 * alpha), 2.6));
+    c.drawCircle(o, rr - 2.2,
+        _stroke(const Color(0xFF3A332C).withValues(alpha: alpha), 2.2));
     c.drawArc(
-        Rect.fromCircle(center: o, radius: rr - 1.4),
+        Rect.fromCircle(center: o, radius: rr - 2.2),
         -math.pi / 2,
         math.pi * 2 * (1 - share.clamp(0, 1)),
         false,
         _stroke(
-            (owner ? Colors.white : ringColor).withValues(alpha: alpha), 2.6));
+            (owner ? Colors.white : ringColor).withValues(alpha: alpha), 2.2));
   }
   drawIcon(
-      c,
-      icon,
-      o,
-      rr * 1.05,
-      (owner ? Colors.white : const Color(0xFF2A2420))
-          .withValues(alpha: alpha));
+      c, icon, o, rr * 0.95, const Color(0xFFF1E8D8).withValues(alpha: alpha));
+  if (share > 0.8 && !faded && pulse > 0) {
+    c.drawCircle(o, rr + 3 + pulse * 3,
+        _stroke(Color.fromRGBO(227, 112, 92, 0.5 * (1 - pulse)), 1.4));
+  }
   return Rect.fromCircle(center: o, radius: rr + 6);
 }
 
@@ -693,71 +617,91 @@ ui.Picture recordPicture(Size size, void Function(Canvas c) paint) {
   return rec.endRecording();
 }
 
+/// Dark walnut floorboards.
 void drawPlanks(Canvas c, Rect r) {
-  c.drawRect(r, _fill(const Color(0xFFE3C9A1)));
-  const h = 14.0;
+  c.drawRect(r, _fill(const Color(0xFF2A1F18)));
+  const h = 9.0;
   var row = 0;
+  final rnd = math.Random(4);
   for (var y = r.top; y < r.bottom; y += h, row++) {
     final band = Rect.fromLTRB(r.left, y, r.right, math.min(r.bottom, y + h));
-    if (row.isOdd) c.drawRect(band, _fill(const Color(0xFFDDC096)));
+    final tone = [
+      const Color(0xFF2E2219),
+      const Color(0xFF2A1F17),
+      const Color(0xFF31251B)
+    ][row % 3];
+    c.drawRect(band, _fill(tone));
     c.drawLine(Offset(r.left, y), Offset(r.right, y),
-        _stroke(const Color(0x22704C2B), 1));
-    final off = (row * 37) % 70;
-    for (var x = r.left + off; x < r.right; x += 70) {
+        _stroke(const Color(0x55120C08), 0.8));
+    final off = (row * 53) % 90;
+    for (var x = r.left + off; x < r.right; x += 90) {
       c.drawLine(Offset(x, y), Offset(x, math.min(r.bottom, y + h)),
-          _stroke(const Color(0x1A704C2B), 1));
+          _stroke(const Color(0x44120C08), 0.8));
+    }
+    // Grain.
+    for (var k = 0; k < 3; k++) {
+      final gx = r.left + rnd.nextDouble() * r.width;
+      c.drawLine(
+          Offset(gx, y + 2 + k * 2.2),
+          Offset(gx + 18 + rnd.nextDouble() * 20, y + 2 + k * 2.2),
+          _stroke(const Color(0x10FFFFFF), 0.5));
     }
   }
 }
 
+/// Slate kitchen tiles.
 void drawTiles(Canvas c, Rect r) {
-  c.drawRect(r, _fill(const Color(0xFFDCE3E6)));
-  const s = 16.0;
+  c.drawRect(r, _fill(const Color(0xFF1F2427)));
+  const s = 14.0;
   var i = 0;
   for (var y = r.top; y < r.bottom; y += s) {
     var j = i;
     for (var x = r.left; x < r.right; x += s) {
-      if (j.isOdd) {
+      if (j % 3 == 0) {
         c.drawRect(Rect.fromLTWH(x, y, s, s).intersect(r),
-            _fill(const Color(0xFFC9D3D8)));
+            _fill(const Color(0xFF232A2E)));
       }
       j++;
     }
+    c.drawLine(Offset(r.left, y), Offset(r.right, y),
+        _stroke(const Color(0x33000000), 0.6));
     i++;
+  }
+  for (var x = r.left; x < r.right; x += s) {
+    c.drawLine(Offset(x, r.top), Offset(x, r.bottom),
+        _stroke(const Color(0x33000000), 0.6));
   }
 }
 
+/// A potted plant from above.
 void drawPlant(Canvas c, Offset o, {double s = 1}) {
-  c.drawOval(
-      Rect.fromCenter(
-          center: o.translate(0, 6 * s), width: 18 * s, height: 6 * s),
-      _fill(const Color(0x22000000)));
-  c.drawRRect(
-      RRect.fromRectAndRadius(
-          Rect.fromCenter(
-              center: o.translate(0, 2 * s), width: 13 * s, height: 10 * s),
-          Radius.circular(3 * s)),
-      _fill(const Color(0xFFC0703F)));
-  for (final (dx, dy, rr, col) in [
-    (-5.0, -6.0, 6.0, const Color(0xFF4C956C)),
-    (5.0, -7.0, 6.0, const Color(0xFF2C6E49)),
-    (0.0, -11.0, 6.5, const Color(0xFF6A994E)),
-    (0.0, -4.0, 5.0, const Color(0xFF3E7C59)),
-  ]) {
-    c.drawCircle(o.translate(dx * s, dy * s), rr * s, _fill(col));
+  c.drawCircle(
+      o.translate(1.5 * s, 2.5 * s), 9 * s, _fill(const Color(0x55000000)));
+  c.drawCircle(o, 8 * s, _fill(const Color(0xFF26221F)));
+  c.drawCircle(o, 6.6 * s, _fill(const Color(0xFF1A1715)));
+  final rnd = math.Random((o.dx * 7 + o.dy).toInt());
+  for (var i = 0; i < 9; i++) {
+    final a = i * math.pi * 2 / 9 + rnd.nextDouble() * 0.4;
+    final leaf = o + Offset(math.cos(a), math.sin(a)) * 5.5 * s;
+    c.drawOval(
+        Rect.fromCenter(center: leaf, width: 7 * s, height: 4 * s),
+        _fill([
+          const Color(0xFF2F4A35),
+          const Color(0xFF3D5C40),
+          const Color(0xFF4F7350)
+        ][i % 3]));
   }
+  c.drawCircle(o, 3 * s, _fill(const Color(0xFF3D5C40)));
 }
 
 void drawCoin(Canvas c, Offset o, double r, double spin) {
   final w = r * 2 * (0.35 + 0.65 * spin.abs());
   c.drawOval(Rect.fromCenter(center: o, width: w, height: r * 2),
-      _fill(const Color(0xFFB7791F)));
+      _fill(const Color(0xFF8A6A2E)));
   c.drawOval(
       Rect.fromCenter(
-          center: o.translate(-0.4, -0.4), width: w * 0.8, height: r * 1.6),
-      _fill(const Color(0xFFF6C344)));
-  c.drawCircle(o.translate(-r * 0.25, -r * 0.35), r * 0.22,
-      _fill(const Color(0xCCFFFFFF)));
+          center: o.translate(-0.3, -0.3), width: w * 0.8, height: r * 1.6),
+      _fill(const Color(0xFFD9B25F)));
 }
 
 void drawHeart(Canvas c, Offset o, double s, Color color) {
@@ -779,151 +723,169 @@ void strokeRRect(Canvas c, RRect r, Color color, double w) =>
 void line(Canvas c, Offset a, Offset b, Color color, double w) =>
     c.drawLine(a, b, _stroke(color, w));
 
-/// The entrance door on the left wall; [open] 0..1 swings it inwards.
+/// The glass entrance door on the left wall; [open] 0..1 swings it inwards.
 void drawDoor(Canvas c, Rect frame, double open) {
-  c.drawRect(frame.inflate(2), _fill(const Color(0xFF4E342E)));
-  c.drawRect(frame, _fill(const Color(0xFF263238)));
-  // Daylight through the open door.
+  c.drawRect(frame.inflate(1.5), _fill(const Color(0xFF0B0908)));
   if (open > 0.02) {
-    c.drawRect(
-        frame.deflate(1), _fill(Color.fromRGBO(255, 236, 179, 0.85 * open)));
+    c.drawRect(frame, _fill(Color.fromRGBO(120, 140, 160, 0.35 * open)));
   }
-  final w = frame.width * 4.2;
+  final w = frame.width * 4.6;
   final leaf = Rect.fromLTWH(
       frame.right, frame.top, w * (1 - open * 0.85), frame.height);
-  c.drawRRect(RRect.fromRectAndRadius(leaf, const Radius.circular(1.5)),
-      _fill(const Color(0xFF8D5A3B)));
-  c.drawRect(leaf.deflate(2.2), _fill(const Color(0xFF9E6B4A)));
+  c.drawRect(leaf, _fill(const Color(0xFF2A3236)));
+  c.drawRect(leaf.deflate(1.4), _fill(const Color(0x664F6B78)));
   if (leaf.width > 6) {
-    c.drawCircle(Offset(leaf.right - 3, leaf.center.dy), 1.2,
-        _fill(const Color(0xFFFFD166)));
+    c.drawLine(
+        Offset(leaf.right - 3, leaf.center.dy - 4),
+        Offset(leaf.right - 3, leaf.center.dy + 4),
+        _stroke(const Color(0xFFC9A55B), 1.4));
   }
 }
 
-/// A tall double fridge with a shelf of jars beside it.
+/// A tall stainless double fridge.
 void drawFridge(Canvas c, Rect r) {
   c.drawRRect(
       RRect.fromRectAndRadius(
-          r.shift(const Offset(0, 2)), const Radius.circular(4)),
-      _fill(const Color(0x40000000)));
-  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(4)),
-      _fill(const Color(0xFFE6EEF2)));
-  c.drawLine(Offset(r.center.dx, r.top + 3), Offset(r.center.dx, r.bottom - 3),
-      _stroke(const Color(0xFFB0BEC5), 1));
-  for (final x in [r.center.dx - 3, r.center.dx + 3]) {
-    c.drawLine(Offset(x, r.center.dy - 5), Offset(x, r.center.dy + 5),
-        _stroke(const Color(0xFF78909C), 1.6));
+          r.shift(const Offset(1, 3)), const Radius.circular(2)),
+      _fill(const Color(0x66000000)));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2)),
+      _fill(const Color(0xFF8A959C)));
+  c.drawRRect(
+      RRect.fromRectAndRadius(r.deflate(1.4), const Radius.circular(1.5)),
+      _fill(const Color(0xFFA3AEB4)));
+  c.drawLine(Offset(r.center.dx, r.top + 2), Offset(r.center.dx, r.bottom - 2),
+      _stroke(const Color(0xFF5E686E), 0.8));
+  for (final x in [r.center.dx - 2.5, r.center.dx + 2.5]) {
+    c.drawLine(Offset(x, r.center.dy - 6), Offset(x, r.center.dy + 6),
+        _stroke(const Color(0xFF3E464B), 1.4));
   }
 }
 
+/// A wall shelf of jars, seen from above.
 void drawShelf(Canvas c, Rect r) {
-  c.drawRect(r, _fill(const Color(0xFF8D6E63)));
-  c.drawRect(Rect.fromLTWH(r.left, r.bottom - 2, r.width, 2),
-      _fill(const Color(0xFF6D4C41)));
+  c.drawRect(r.inflate(2), _fill(const Color(0xFF3A2A20)));
   const jars = [
-    Color(0xFFE76F51),
-    Color(0xFFF4A261),
-    Color(0xFF2A9D8F),
-    Color(0xFFE9C46A),
-    Color(0xFF8AB17D)
+    Color(0xFF8A3B25),
+    Color(0xFFB07A2A),
+    Color(0xFF3F6B5E),
+    Color(0xFFC9A55B),
+    Color(0xFF5E6B3A)
   ];
   var x = r.left + 3;
   var i = 0;
   while (x + 5 < r.right) {
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            Rect.fromLTWH(x, r.top - 7, 5, 7), const Radius.circular(1.5)),
-        _fill(jars[i % jars.length]));
-    c.drawRect(
-        Rect.fromLTWH(x, r.top - 8, 5, 1.6), _fill(const Color(0xFFBDBDBD)));
+    c.drawCircle(
+        Offset(x + 2.5, r.center.dy), 2.6, _fill(jars[i % jars.length]));
+    c.drawCircle(
+        Offset(x + 2.5, r.center.dy), 1.4, _fill(const Color(0x55FFFFFF)));
     x += 7;
     i++;
   }
 }
 
-/// Steel prep table with a chopping board and vegetables.
+/// Stainless prep table with a board and vegetables.
 void drawPrepTable(Canvas c, Rect r, double t, bool busy) {
   c.drawRRect(
       RRect.fromRectAndRadius(
-          r.shift(const Offset(0, 2)), const Radius.circular(3)),
-      _fill(const Color(0x33000000)));
-  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
-      _fill(const Color(0xFFB0BEC5)));
-  c.drawRRect(RRect.fromRectAndRadius(r.deflate(1.5), const Radius.circular(2)),
-      _fill(const Color(0xFFCFD8DC)));
+          r.shift(const Offset(1, 3)), const Radius.circular(2)),
+      _fill(const Color(0x66000000)));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2)),
+      _fill(const Color(0xFF7A858C)));
+  c.drawRRect(
+      RRect.fromRectAndRadius(r.deflate(1.4), const Radius.circular(1.5)),
+      _fill(const Color(0xFF939EA5)));
   final board = Rect.fromLTWH(
-      r.left + 6, r.top + 3, math.min(22, r.width * 0.4), r.height - 6);
-  c.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(2)),
-      _fill(const Color(0xFFD7A86E)));
+      r.left + 6, r.top + 2.5, math.min(22, r.width * 0.4), r.height - 5);
+  c.drawRRect(RRect.fromRectAndRadius(board, const Radius.circular(1.5)),
+      _fill(const Color(0xFF9C7448)));
   c.drawCircle(
-      board.center.translate(-3, 0), 2.6, _fill(const Color(0xFFD62828)));
+      board.center.translate(-3, 0), 2.4, _fill(const Color(0xFFA63D2F)));
   c.drawCircle(
-      board.center.translate(3, 1), 2.2, _fill(const Color(0xFF6A994E)));
+      board.center.translate(3, 0.5), 2.1, _fill(const Color(0xFF4F6B3A)));
   if (busy) {
-    // A knife chopping.
-    final k = math.sin(t * 18).abs() * 2.5;
+    final k = math.sin(t * 18).abs() * 2.2;
     c.drawLine(
         Offset(board.right - 4, board.top + 1 - k),
-        Offset(board.right - 1, board.bottom - 2 - k),
-        _stroke(const Color(0xFF90A4AE), 1.4));
+        Offset(board.right - 1, board.bottom - 1.5 - k),
+        _stroke(const Color(0xFFCED6DA), 1.2));
   }
   c.drawCircle(
-      Offset(r.right - 10, r.center.dy), 4, _fill(const Color(0xFFF2CC8F)));
-  c.drawCircle(Offset(r.right - 10, r.center.dy), 4,
-      _stroke(const Color(0x33000000), 0.6));
+      Offset(r.right - 10, r.center.dy), 3.6, _fill(const Color(0xFFD9C7A0)));
 }
 
-/// What sits on a free table: a little vase and, in the evening, a candle.
+/// A candle (and two set places) on a free table.
 void drawTableSetting(Canvas c, Rect r, double evening, double t) {
   final o = r.center;
-  c.drawRRect(
-      RRect.fromRectAndRadius(
-          Rect.fromCenter(center: o.translate(0, 1), width: 4, height: 5),
-          const Radius.circular(1.5)),
-      _fill(const Color(0xFF90CAF9)));
-  c.drawCircle(o.translate(0, -2.5), 2, _fill(const Color(0xFFE63946)));
-  c.drawCircle(o.translate(-1.8, -1.4), 1.2, _fill(const Color(0xFF52B788)));
-  if (evening > 0.05) {
-    final x = o.dx + r.width * 0.28;
-    c.drawRect(
-        Rect.fromLTWH(x - 1, o.dy - 2, 2, 4), _fill(const Color(0xFFFFF8E1)));
-    final f = 0.8 + 0.2 * math.sin(t * 11 + o.dx);
-    c.drawOval(
-        Rect.fromCenter(
-            center: Offset(x, o.dy - 3.6), width: 2 * f, height: 3.4 * f),
-        _fill(Color.fromRGBO(255, 183, 3, evening)));
-    c.drawCircle(Offset(x, o.dy - 3.4), 7,
-        _fill(Color.fromRGBO(255, 214, 140, 0.18 * evening)));
+  // Cutlery at both ends.
+  for (final sx in [-1.0, 1.0]) {
+    final p = o.translate(sx * r.width * 0.3, 0);
+    c.drawCircle(p, 3.4, _stroke(const Color(0x1A000000), 0.6));
+    c.drawLine(p.translate(-5, -2), p.translate(-5, 2),
+        _stroke(const Color(0x669AA0A5), 0.6));
+    c.drawLine(p.translate(5, -2), p.translate(5, 2),
+        _stroke(const Color(0x669AA0A5), 0.6));
   }
+  c.drawCircle(o, 1.8, _fill(const Color(0xFFF7F1E1)));
+  final f = 0.8 + 0.2 * math.sin(t * 11 + o.dx);
+  c.drawCircle(
+      o, 1.0 * f, _fill(Color.fromRGBO(255, 190, 90, 0.6 + 0.4 * evening)));
 }
 
 void drawRug(Canvas c, Rect r) {
-  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(4)),
-      _fill(const Color(0xFFB5523B)));
-  c.drawRRect(RRect.fromRectAndRadius(r.deflate(3), const Radius.circular(3)),
-      _stroke(const Color(0xFFF2CC8F), 1.2));
-  c.drawRRect(RRect.fromRectAndRadius(r.deflate(7), const Radius.circular(2)),
-      _stroke(const Color(0x66F2CC8F), 1));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2)),
+      _fill(const Color(0xFF3A1F1A)));
+  c.drawRRect(
+      RRect.fromRectAndRadius(r.deflate(2.5), const Radius.circular(1.5)),
+      _stroke(const Color(0xFF8A6A3A), 0.8));
 }
 
+/// A small brass plaque by the door.
 void drawOpenSign(Canvas c, Offset o, bool open) {
-  final r = Rect.fromCenter(center: o, width: 30, height: 12);
-  c.drawLine(o.translate(-8, -10), o.translate(-8, -6),
-      _stroke(const Color(0xFF6D4C41), 0.8));
-  c.drawLine(o.translate(8, -10), o.translate(8, -6),
-      _stroke(const Color(0xFF6D4C41), 0.8));
-  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(3)),
-      _fill(open ? const Color(0xFF2F7D4F) : const Color(0xFFC24A3A)));
-  final tp =
-      labelPainter(open ? 'OPEN' : 'CLOSED', 7, Colors.white, shadow: false);
+  final tp = labelPainter(open ? 'OPEN' : 'CLOSED', 7,
+      open ? const Color(0xFFC9A55B) : const Color(0xFFE3705C),
+      shadow: false, spacing: 1.6);
+  final r = Rect.fromCenter(center: o, width: tp.width + 14, height: 12);
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2)),
+      _fill(const Color(0xFF141110)));
+  c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(2)),
+      _stroke(const Color(0xFF5C4F3A), 0.8));
   tp.paint(c, o - Offset(tp.width / 2, tp.height / 2));
 }
 
 /// A ripple where the player tapped to send their character.
 void drawRipple(Canvas c, Offset o, double k) {
   final a = (1 - k).clamp(0.0, 1.0);
-  c.drawOval(Rect.fromCenter(center: o, width: 10 + 26 * k, height: 5 + 13 * k),
-      _stroke(Color.fromRGBO(122, 63, 160, a), 2));
-  c.drawOval(Rect.fromCenter(center: o, width: 6, height: 3),
-      _fill(Color.fromRGBO(122, 63, 160, a)));
+  c.drawCircle(o, 4 + 16 * k, _stroke(Color.fromRGBO(63, 140, 154, a), 1.6));
+  c.drawCircle(o, 2.2, _fill(Color.fromRGBO(63, 140, 154, a)));
+}
+
+/// Warm light from a pendant lamp or a heat lamp, used when baking the
+/// lighting layer.
+void drawLightPool(
+    Canvas c, Offset o, double radius, Color color, double strength) {
+  c.drawCircle(
+      o,
+      radius,
+      Paint()
+        ..blendMode = BlendMode.dstOut
+        ..shader = RadialGradient(colors: [
+          Color.fromRGBO(0, 0, 0, strength),
+          Color.fromRGBO(0, 0, 0, strength * 0.5),
+          const Color(0x00000000),
+        ], stops: const [
+          0,
+          0.45,
+          1
+        ]).createShader(Rect.fromCircle(center: o, radius: radius)));
+}
+
+/// Coloured glow added on top of the darkness (screen blend).
+void drawGlow(Canvas c, Offset o, double radius, Color color) {
+  c.drawCircle(
+      o,
+      radius,
+      Paint()
+        ..blendMode = BlendMode.screen
+        ..shader = RadialGradient(colors: [color, color.withValues(alpha: 0)])
+            .createShader(Rect.fromCircle(center: o, radius: radius)));
 }

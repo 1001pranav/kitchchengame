@@ -36,10 +36,6 @@ class StaffTab extends StatelessWidget {
   }
 }
 
-String faceFor(double m) => m >= 70
-    ? '😄'
-    : (m >= 50 ? '🙂' : (m >= 40 ? '😐' : (m >= 30 ? '😟' : '😠')));
-
 class _TeamList extends StatelessWidget {
   const _TeamList();
   @override
@@ -58,7 +54,7 @@ class _TeamList extends StatelessWidget {
           children: [
             Panel(
               child: Row(children: [
-                Text(faceFor(hap), style: const TextStyle(fontSize: 34)),
+                RingGauge(hap),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -136,13 +132,9 @@ class StaffRow extends StatelessWidget {
         Stack(clipBehavior: Clip.none, children: [
           StaffAvatar(
               seed: s.id,
+              name: s.name,
               role: s.isManager ? 'manager' : s.role,
-              mood: moodFromMorale(s.morale)),
-          Positioned(
-              right: -6,
-              bottom: -6,
-              child: Text(faceFor(s.morale),
-                  style: const TextStyle(fontSize: 18))),
+              morale: s.morale),
         ]),
         const SizedBox(width: 14),
         Expanded(
@@ -252,9 +244,10 @@ class _StaffDetail extends StatelessWidget {
             Row(children: [
               StaffAvatar(
                   seed: s.id,
+                  name: s.name,
                   role: s.isManager ? 'manager' : s.role,
                   size: 60,
-                  mood: moodFromMorale(s.morale)),
+                  morale: s.morale),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -266,7 +259,7 @@ class _StaffDetail extends StatelessWidget {
                           style: const TextStyle(color: Palette.muted)),
                     ]),
               ),
-              Text(faceFor(s.morale), style: const TextStyle(fontSize: 36)),
+              RingGauge(s.morale, size: 48),
             ]),
             if (s.traits.isNotEmpty) ...[
               const SizedBox(height: 10),

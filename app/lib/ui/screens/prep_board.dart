@@ -445,8 +445,8 @@ class _Tutorial extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Panel(
-        color: const Color(0xFFFFF4D6),
-        borderColor: const Color(0xFFF0D58A),
+        color: const Color(0xFF2B2416),
+        borderColor: const Color(0xFF5C4A23),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             const Icon(Icons.school, color: Palette.warn),

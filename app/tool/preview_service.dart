@@ -22,7 +22,8 @@ Future<void> main() async {
     return;
   }
   c.newGame(seed: 11, difficulty: 'easy', themeId: theme);
-  if (screen == 'market') {
+  if (screen != 'intro') c.finishIntro();
+  if (screen == 'market' || screen == 'intro') {
     runApp(KitchenChainApp(controller: c));
     return;
   }

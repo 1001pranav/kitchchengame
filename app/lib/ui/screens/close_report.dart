@@ -475,8 +475,8 @@ class _OrderNudge extends StatelessWidget {
     final sim = GameScope.of(context).sim!;
     final n = sim.runOutRisks().length;
     return Panel(
-      color: const Color(0xFFFFF4D6),
-      borderColor: const Color(0xFFF0D58A),
+      color: const Color(0xFF2B2416),
+      borderColor: const Color(0xFF5C4A23),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Icon(Icons.inventory_2, color: Palette.warn),

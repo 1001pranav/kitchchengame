@@ -176,6 +176,7 @@ class _Actor {
   final List<Offset> path = [];
   double bob = 0, phase = 0;
   bool moving = false;
+  double facing = math.pi / 2;
   bool busy = false;
   bool seated = false;
   bool carryPlate = false, carryDirty = false, notepad = false;
@@ -216,6 +217,17 @@ class _Actor {
     while (left > 0 && path.isNotEmpty) {
       final d = path.first - pos;
       final dist = d.distance;
+      if (dist > 0.5) {
+        // Turn smoothly toward where they are heading.
+        var diff = d.direction - facing;
+        while (diff > math.pi) {
+          diff -= 2 * math.pi;
+        }
+        while (diff < -math.pi) {
+          diff += 2 * math.pi;
+        }
+        facing += diff * math.min(1, dt * 12);
+      }
       if (dist <= left) {
         pos = path.removeAt(0);
         left -= dist;
@@ -276,6 +288,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
   Size? _layoutSize;
   int _layoutTables = -1;
   ui.Picture? _bg;
+  ui.Picture? _light;
   double _steamClock = 0;
   double _doorOpen = 0;
   double _shake = 0;
@@ -295,6 +308,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
     _ticker.dispose();
     _frame.dispose();
     _bg?.dispose();
+    _light?.dispose();
     super.dispose();
   }
 
@@ -435,8 +449,9 @@ class _RestaurantSceneState extends State<RestaurantScene>
         } else {
           final ch = l.chairs[g.tableId]
               ?[i % math.max(1, l.chairs[g.tableId]!.length)];
-          target =
-              ch == null ? l.dining.center : ch.$1.translate(0, ch.$2 ? 3 : 4);
+          target = ch == null
+              ? l.dining.center
+              : ch.$1.translate(0, ch.$2 ? 1.5 : -1.5);
           seated = true;
         }
         if (snap) {
@@ -506,14 +521,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
       }
       _particles.add(_Particle(
           1, at.translate(0, -8), at.translate(0, -40), 1.3,
-          text: '+${g.payment}', color: const Color(0xFF2F7D4F)));
-      if (g.stars >= 4.3) {
-        for (var i = 0; i < 3; i++) {
-          _particles.add(_Particle(5, at.translate(i * 8 - 8.0, -6),
-              at.translate(i * 10 - 10.0, -46), 1.1,
-              delay: i * 0.12, color: const Color(0xFFFF6B8B)));
-        }
-      }
+          text: '+${g.payment}', color: Palette.gold));
     } else if (g.state == 'walkedOut') {
       _shake = 4;
       for (final a in p.people) {
@@ -528,7 +536,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
       }
       _particles.add(_Particle(
           1, where.translate(0, -10), where.translate(0, -42), 1.4,
-          text: 'walked out!', color: Palette.bad));
+          text: 'Walked out', color: Palette.bad));
     } else if (g.state == 'eating') {
       for (var i = 0; i < p.people.length; i++) {
         p.people[i].food = foodColors[(g.id + i * 3) % foodColors.length];
@@ -659,20 +667,6 @@ class _RestaurantSceneState extends State<RestaurantScene>
     final washing = sim.state.viewLoc.staff
             .any((s) => s.workingToday && s.role == 'dishwasher') &&
         ss.dirtyDishes > 0.5;
-    // Diners now and then show how they feel.
-    for (final pt in _parties.values) {
-      if (pt.removed || pt.people.isEmpty || pt.state == 'rider') continue;
-      final a = pt.people[_rnd.nextInt(pt.people.length)];
-      if (!a.seated) continue;
-      if (pt.state == 'eating' && _rnd.nextDouble() < 0.025) {
-        _particles.add(_Particle(
-            8, a.pos.translate(0, -30), a.pos.translate(0, -46), 0.9,
-            color: const Color(0xFFFFC145)));
-      } else if (a.mood == Mood.angry && _rnd.nextDouble() < 0.05) {
-        _particles.add(_Particle(
-            9, a.pos.translate(6, -36), a.pos.translate(8, -44), 0.8));
-      }
-    }
     if (washing && _rnd.nextDouble() < 0.5) {
       final from =
           Offset(l.sink.left + 10 + _rnd.nextDouble() * 24, l.sink.top + 14);
@@ -738,6 +732,8 @@ class _RestaurantSceneState extends State<RestaurantScene>
         _layout = _Layout(size, ss.tables, stations);
         _bg?.dispose();
         _bg = recordPicture(size, (cv) => _paintBackground(cv, _layout!));
+        _light?.dispose();
+        _light = recordPicture(size, (cv) => _paintLight(cv, _layout!));
         _fresh = true;
       }
       final l = _layout!;
@@ -790,90 +786,156 @@ class _RestaurantSceneState extends State<RestaurantScene>
     return 'Table ${t.id}, ${t.seats} seats, $status';
   }
 
+  void _paintLight(Canvas c, _Layout l) {
+    final full = Offset.zero & l.size;
+    c.saveLayer(full, Paint());
+    c.drawRect(full, Paint()..color = const Color(0xC8080605));
+    for (final r in l.table.values) {
+      drawLightPool(c, r.center, r.width * 0.75 + 34, Colors.black, 0.95);
+    }
+    for (var x = l.pass.left + 16; x < l.pass.right - 8; x += 34) {
+      drawLightPool(c, Offset(x, l.pass.center.dy + 6), 34, Colors.black, 0.9);
+    }
+    for (final st in l.stationRect.values) {
+      drawLightPool(c, st.center.translate(0, 18), 48, Colors.black, 0.75);
+    }
+    drawLightPool(c, l.sink.center.translate(0, 16), 46, Colors.black, 0.7);
+    drawLightPool(c, l.till.center.translate(0, -6), 52, Colors.black, 0.85);
+    drawLightPool(c, Offset(40, l.lobby.center.dy), 60, Colors.black, 0.7);
+    c.restore();
+    // Warm and cool glows on top.
+    for (final r in l.table.values) {
+      drawGlow(c, r.center, r.width * 0.6 + 22, const Color(0x2EFFB45A));
+    }
+    for (var x = l.pass.left + 16; x < l.pass.right - 8; x += 34) {
+      drawGlow(c, Offset(x, l.pass.center.dy + 2), 24, const Color(0x40FF7A2A));
+    }
+    for (final st in l.stationRect.values) {
+      drawGlow(c, st.center.translate(0, 14), 40, const Color(0x1A9FC6FF));
+    }
+    drawGlow(c, l.till.center, 40, const Color(0x22FFC878));
+  }
+
   void _paintBackground(Canvas c, _Layout l) {
     final w = l.size.width;
     drawTiles(c, l.kitchen);
-    // Back wall.
+    // Back wall with a steel splash-back above the stations.
     c.drawRect(
-        Rect.fromLTWH(0, 0, w, 6), Paint()..color = const Color(0xFF8C979D));
+        Rect.fromLTWH(0, 0, w, 16), Paint()..color = const Color(0xFF0D0C0B));
+    c.drawRect(
+        Rect.fromLTWH(0, 15, w, 2), Paint()..color = const Color(0xFF4A545A));
     drawPlanks(c, l.dining);
     // Kitchen/dining wall with the pass opening.
     final wallY = l.kitchen.bottom - 4;
-    final wall = Paint()..color = const Color(0xFF7A6552);
+    final wall = Paint()..color = const Color(0xFF0D0C0B);
     c.drawRect(Rect.fromLTWH(0, wallY, l.pass.left - 4, 8), wall);
     c.drawRect(
         Rect.fromLTWH(l.pass.right + 4, wallY, w - l.pass.right - 4, 8), wall);
-    // Pass counter (steel).
-    fillRRect(c, RRect.fromRectAndRadius(l.pass, const Radius.circular(3)),
-        const Color(0xFFB9C2C9));
-    fillRRect(
-        c,
-        RRect.fromRectAndRadius(l.pass.deflate(2), const Radius.circular(2)),
-        const Color(0xFFDDE3E7));
-    // Sink.
-    fillRRect(
-        c,
-        RRect.fromRectAndRadius(
-            l.sink.shift(const Offset(0, 2)), const Radius.circular(5)),
-        const Color(0x40000000));
-    fillRRect(c, RRect.fromRectAndRadius(l.sink, const Radius.circular(5)),
-        const Color(0xFFA7B4BC));
+    final trim = Paint()..color = const Color(0xFF5C4F3A);
+    c.drawRect(Rect.fromLTWH(0, wallY + 8, l.pass.left - 4, 1), trim);
+    c.drawRect(
+        Rect.fromLTWH(l.pass.right + 4, wallY + 8, w - l.pass.right - 4, 1),
+        trim);
+    // Side walls.
+    c.drawRect(Rect.fromLTWH(0, l.dining.top, 3, l.dining.height), wall);
+    c.drawRect(Rect.fromLTWH(w - 3, l.dining.top, 3, l.dining.height), wall);
+    // Pass: a steel shelf under heat lamps.
     fillRRect(
         c,
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(l.sink.left + 6, l.sink.top + 6, 26, 22),
-            const Radius.circular(4)),
-        const Color(0xFF6F8C9B));
-    // Lobby: mat and the low wall with its gap.
-    c.drawRect(l.lobby, Paint()..color = const Color(0xFFC9B79C));
-    for (var x = 0.0; x < w; x += 10) {
+            l.pass.shift(const Offset(1, 3)), const Radius.circular(2)),
+        const Color(0x66000000));
+    fillRRect(c, RRect.fromRectAndRadius(l.pass, const Radius.circular(2)),
+        const Color(0xFF6E7A82));
+    fillRRect(
+        c,
+        RRect.fromRectAndRadius(
+            l.pass.deflate(1.6), const Radius.circular(1.5)),
+        const Color(0xFF9AA5AC));
+    for (var x = l.pass.left + 16; x < l.pass.right - 8; x += 34) {
+      fillRRect(
+          c,
+          RRect.fromRectAndRadius(
+              Rect.fromCenter(
+                  center: Offset(x, l.pass.top - 3), width: 18, height: 4),
+              const Radius.circular(1)),
+          const Color(0xFF2A2A2A));
+    }
+    // Sink: stainless double basin.
+    fillRRect(
+        c,
+        RRect.fromRectAndRadius(
+            l.sink.shift(const Offset(1, 3)), const Radius.circular(3)),
+        const Color(0x66000000));
+    fillRRect(c, RRect.fromRectAndRadius(l.sink, const Radius.circular(3)),
+        const Color(0xFF7A858C));
+    for (final dx in [5.0, 32.0]) {
+      fillRRect(
+          c,
+          RRect.fromRectAndRadius(
+              Rect.fromLTWH(l.sink.left + dx, l.sink.top + 5, 24, 22),
+              const Radius.circular(3)),
+          const Color(0xFF4A555C));
+    }
+    // Lobby: dark stone, a runner from the door, the host stand.
+    c.drawRect(l.lobby, Paint()..color = const Color(0xFF1A1817));
+    for (var x = 0.0; x < w; x += 22) {
       c.drawLine(
           Offset(x, l.lobby.top),
-          Offset(x + 6, l.lobby.bottom),
+          Offset(x, l.lobby.bottom),
           Paint()
-            ..color = const Color(0x14000000)
-            ..strokeWidth = 2);
+            ..color = const Color(0x22000000)
+            ..strokeWidth = 1);
     }
-    final low = Paint()..color = const Color(0xFF8C5A3C);
+    drawRug(c, Rect.fromLTWH(6, l.lobby.top + 12, 74, l.lobby.height - 24));
+    final low = Paint()..color = const Color(0xFF0D0C0B);
     c.drawRect(Rect.fromLTWH(0, l.lobby.top - 3, l.gap.left, 6), low);
     c.drawRect(
         Rect.fromLTWH(l.gap.right, l.lobby.top - 3, w - l.gap.right, 6), low);
+    c.drawRect(Rect.fromLTWH(0, l.lobby.top + 3, l.gap.left, 1), trim);
+    c.drawRect(
+        Rect.fromLTWH(l.gap.right, l.lobby.top + 3, w - l.gap.right, 1), trim);
     // Kitchen: fridge and a shelf of jars beside the stations.
     final last = l.stationRect.values.isEmpty
         ? 10.0
         : l.stationRect.values.map((r) => r.right).reduce(math.max);
     final room = l.sink.left - 8 - (last + 8);
     if (room >= 26) {
-      final f = Rect.fromLTWH(last + 8, 14, math.min(32.0, room), 40);
+      final f = Rect.fromLTWH(last + 8, 20, math.min(32.0, room), 36);
       drawFridge(c, f);
       if (room - f.width >= 26) {
-        drawShelf(c, Rect.fromLTWH(f.right + 6, 30, room - f.width - 6, 4));
+        drawShelf(c, Rect.fromLTWH(f.right + 8, 24, room - f.width - 10, 6));
       }
     }
-    // Till counter.
+    // Till: a walnut counter with a terminal.
     fillRRect(
         c,
         RRect.fromRectAndRadius(
-            l.till.shift(const Offset(0, 2)), const Radius.circular(4)),
-        const Color(0x40000000));
-    fillRRect(c, RRect.fromRectAndRadius(l.till, const Radius.circular(4)),
-        const Color(0xFF8C5A3C));
+            l.till.shift(const Offset(1, 3)), const Radius.circular(2)),
+        const Color(0x66000000));
+    fillRRect(c, RRect.fromRectAndRadius(l.till, const Radius.circular(2)),
+        const Color(0xFF3B2A20));
     fillRRect(
         c,
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(l.till.right - 22, l.till.top - 5, 16, 10),
-            const Radius.circular(2)),
-        const Color(0xFF3A3A44));
+            l.till.deflate(1.5), const Radius.circular(1.5)),
+        const Color(0xFF4A3528));
     fillRRect(
         c,
         RRect.fromRectAndRadius(
-            Rect.fromLTWH(l.till.right - 20, l.till.top - 3, 12, 4),
+            Rect.fromLTWH(l.till.right - 20, l.till.top + 3, 12, 9),
             const Radius.circular(1)),
-        const Color(0xFF7FD1AE));
+        const Color(0xFF151719));
+    fillRRect(
+        c,
+        RRect.fromRectAndRadius(
+            Rect.fromLTWH(l.till.right - 18.5, l.till.top + 4.5, 9, 4),
+            const Radius.circular(0.5)),
+        const Color(0xFF3F8C9A));
     // Plants.
     drawPlant(c, Offset(14, l.dining.top + 26), s: 0.9);
     drawPlant(c, Offset(w - 14, l.dining.top + 26), s: 0.9);
-    drawPlant(c, Offset(w - 12, l.lobby.top + 28), s: 0.8);
+    drawPlant(c, Offset(w - 14, l.lobby.top + 27), s: 0.8);
     // Chairs (empty ones stay visible under people).
     for (final e in l.chairs.entries) {
       for (final (o, top) in e.value) {
@@ -921,7 +983,7 @@ class _ScenePainter extends CustomPainter {
       final seatedPeople =
           p?.people.where((a) => a.seated && !a.leaving).toList() ?? const [];
       for (final a in seatedPeople) {
-        if (a.pos.dy < r.center.dy) _person(c, a);
+        if (a.pos.dy < r.center.dy) _person(c, a, r.center);
       }
       drawTable(c, r,
           dirty: tb.state == 'dirty',
@@ -943,7 +1005,7 @@ class _ScenePainter extends CustomPainter {
         }
       }
       for (final a in seatedPeople) {
-        if (a.pos.dy >= r.center.dy) _person(c, a);
+        if (a.pos.dy >= r.center.dy) _person(c, a, r.center);
       }
       if (g != null && !g.gone) {
         s._hits.add(_Hit(r.inflate(12), groupId: g.id));
@@ -962,69 +1024,59 @@ class _ScenePainter extends CustomPainter {
     // Owner label.
     final owner = s._staff['owner'];
     if (owner != null) {
-      final tp = labelPainter('You', 9, Colors.white);
+      final tp =
+          labelPainter('YOU', 7, Colors.white, shadow: false, spacing: 1.4);
       final r = Rect.fromCenter(
-          center: owner.pos.translate(0, -40 - owner.bob),
+          center: owner.pos.translate(0, -16),
           width: tp.width + 10,
-          height: 13);
-      fillRRect(c, RRect.fromRectAndRadius(r, const Radius.circular(7)),
+          height: 11);
+      fillRRect(c, RRect.fromRectAndRadius(r, const Radius.circular(2)),
           Palette.owner);
       tp.paint(c, r.center - Offset(tp.width / 2, tp.height / 2));
     }
-    drawDoor(c, Rect.fromLTWH(0, l.lobby.top + 8, 5, l.lobby.height - 16),
+    drawDoor(c, Rect.fromLTWH(0, l.lobby.top + 8, 4, l.lobby.height - 16),
         s._doorOpen);
+    _lighting(c, size);
     drawOpenSign(c, Offset(l.size.width * 0.5, l.lobby.bottom - 9), true);
     _queue(c);
     _bubbles(c, t);
     _particles(c);
-    _lighting(c, size);
     _banner(c, size);
   }
 
-  /// "Doors open!" at the start of service and "Last orders!" near the end.
+  /// A quiet plaque at the start of service and near the end.
   void _banner(Canvas c, Size size) {
     String? text;
+    String? sub;
     double k;
-    if (ss.tick < 10) {
-      text = 'Doors open!';
-      k = ss.tick / 10;
-    } else if (ss.tick >= 340 && ss.tick < 352) {
-      text = 'Last orders!';
-      k = (ss.tick - 340) / 12;
+    if (ss.tick < 12) {
+      text = 'Service';
+      sub = 'DOORS OPEN';
+      k = ss.tick / 12;
+    } else if (ss.tick >= 340 && ss.tick < 354) {
+      text = 'Last orders';
+      sub = 'THE KITCHEN CLOSES SOON';
+      k = (ss.tick - 340) / 14;
     } else {
       return;
     }
-    final appear = Curves.elasticOut.transform((k * 3).clamp(0.0, 1.0));
-    final fade = k > 0.8 ? (1 - k) / 0.2 : 1.0;
-    final tp = labelPainter(text, 18, Colors.white, shadow: false);
-    final center = Offset(size.width / 2, l.dining.top + 46);
-    c.save();
-    c.translate(center.dx, center.dy);
-    c.scale(0.4 + 0.6 * appear);
-    final r =
-        Rect.fromCenter(center: Offset.zero, width: tp.width + 40, height: 34);
-    final ribbon = Paint()
-      ..color =
-          (text == 'Doors open!' ? Palette.tomato : const Color(0xFF7A3FA0))
-              .withValues(alpha: fade);
-    final tail = Paint()
-      ..color = (text == 'Doors open!'
-              ? const Color(0xFF9B3524)
-              : const Color(0xFF55297A))
-          .withValues(alpha: fade);
-    for (final sx in [-1.0, 1.0]) {
-      final path = Path()
-        ..moveTo(sx * (r.width / 2 - 6), -10)
-        ..lineTo(sx * (r.width / 2 + 18), -10)
-        ..lineTo(sx * (r.width / 2 + 10), 4)
-        ..lineTo(sx * (r.width / 2 + 18), 18)
-        ..lineTo(sx * (r.width / 2 - 6), 18)
-        ..close();
-      c.drawPath(path, tail);
-    }
-    c.drawRRect(RRect.fromRectAndRadius(r, const Radius.circular(6)), ribbon);
-    if (fade > 0.3) tp.paint(c, Offset(-tp.width / 2, -tp.height / 2));
-    c.restore();
+    final fade = k < 0.15 ? k / 0.15 : (k > 0.8 ? (1 - k) / 0.2 : 1.0);
+    final tp = labelPainter(text, 20, Palette.ink.withValues(alpha: fade),
+        serif: true, shadow: false);
+    final sp = labelPainter(sub, 7.5, Palette.accent.withValues(alpha: fade),
+        shadow: false, spacing: 2);
+    final center = Offset(size.width / 2, l.dining.top + 52);
+    final r = Rect.fromCenter(
+        center: center, width: math.max(tp.width, sp.width) + 56, height: 52);
+    c.drawRect(r, Paint()..color = Color.fromRGBO(14, 12, 10, 0.88 * fade));
+    c.drawRect(
+        r.deflate(3),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = Palette.accent.withValues(alpha: 0.7 * fade));
+    tp.paint(c, Offset(center.dx - tp.width / 2, r.top + 10));
+    sp.paint(c, Offset(center.dx - sp.width / 2, r.bottom - 15));
   }
 
   void _prepTable(Canvas c, double t) {
@@ -1037,9 +1089,10 @@ class _ScenePainter extends CustomPainter {
     drawPrepTable(c, Rect.fromLTWH(last + 8, 64, room, 15), t, busy);
   }
 
-  void _person(Canvas c, _Actor a) {
+  void _person(Canvas c, _Actor a, [Offset? faceTo]) {
     drawPerson(c, a.pos, a.look,
-        s: a.id.startsWith('g') ? 0.92 : 1,
+        facing: faceTo != null ? (faceTo - a.pos).direction : a.facing,
+        s: a.id.startsWith('g') ? 1.08 : 1.15,
         bob: a.bob,
         mood: a.mood,
         seated: a.seated,
@@ -1072,14 +1125,13 @@ class _ScenePainter extends CustomPainter {
       drawStation(c, e.value, st,
           cap: sim.stationCapacity(st), used: used, down: down, t: t);
       // A little sign on the wall above each station.
-      final tp = labelPainter(_stationName[st] ?? st, 8, Colors.white,
-          weight: FontWeight.w700, shadow: false);
+      final tp = labelPainter((_stationName[st] ?? st).toUpperCase(), 6.5,
+          down ? Palette.bad : Palette.accent,
+          weight: FontWeight.w700, shadow: false, spacing: 1.4);
       final sign = Rect.fromCenter(
-          center: Offset(e.value.center.dx, 9),
+          center: Offset(e.value.center.dx, 8),
           width: tp.width + 10,
-          height: 12);
-      fillRRect(c, RRect.fromRectAndRadius(sign, const Radius.circular(3)),
-          down ? Palette.bad : const Color(0xFF4A5560));
+          height: 10);
       tp.paint(c, sign.center - Offset(tp.width / 2, tp.height / 2));
       if (queued > 0) {
         // Order tickets waiting for this station.
@@ -1208,7 +1260,7 @@ class _ScenePainter extends CustomPainter {
             ss.ownerQueue.contains(seatTask.id) || seatTask.assignee == 'owner';
         final taken = seatTask.started && !mine;
         final hit = drawBubble(
-            c, p.people.first.pos.translate(2, -40), AssetCatalog.task('seat'),
+            c, p.people.first.pos.translate(2, -20), AssetCatalog.task('seat'),
             share: share,
             owner: mine,
             faded: taken,
@@ -1245,9 +1297,9 @@ class _ScenePainter extends CustomPainter {
         case 3:
           final pos = Offset.lerp(p.from, p.to, k)!;
           final col = p.kind == 2
-              ? Color.fromRGBO(255, 255, 255, 0.55 * (1 - k))
+              ? Color.fromRGBO(255, 255, 255, 0.16 * (1 - k))
               : Color.fromRGBO(70, 70, 70, 0.55 * (1 - k));
-          fillCircle(c, pos, 3 + k * 6, col);
+          fillCircle(c, pos, 2 + k * 5, col);
         case 4:
           final pos = Offset.lerp(p.from, p.to, Curves.easeOut.transform(k))!;
           fillCircle(
@@ -1286,23 +1338,18 @@ class _ScenePainter extends CustomPainter {
     }
   }
 
+  /// The baked light layer: darkness with pools of warm light over the
+  /// tables, heat lamps on the pass and cool light in the kitchen. Lunch is
+  /// brighter than late evening.
   void _lighting(Canvas c, Size size) {
-    // Evening: the light turns warm after 18:00 (tick 240 of a 12:00 start).
-    final evening = ((ss.tick - 220) / 120).clamp(0.0, 1.0);
-    if (evening <= 0) return;
-    c.drawRect(Offset.zero & size,
-        Paint()..color = Color.fromRGBO(255, 140, 40, 0.07 * evening));
-    for (final r in l.table.values) {
-      c.drawCircle(
-          r.center,
-          r.width * 0.9,
-          Paint()
-            ..shader = RadialGradient(colors: [
-              Color.fromRGBO(255, 214, 140, 0.22 * evening),
-              const Color(0x00FFD68C),
-            ]).createShader(
-                Rect.fromCircle(center: r.center, radius: r.width * 0.9)));
-    }
+    final pic = s._light;
+    if (pic == null) return;
+    final night = ((ss.tick - 150) / 180).clamp(0.0, 1.0);
+    final k = 0.42 + 0.45 * night;
+    c.saveLayer(
+        Offset.zero & size, Paint()..color = Color.fromRGBO(0, 0, 0, k));
+    c.drawPicture(pic);
+    c.restore();
   }
 
   @override

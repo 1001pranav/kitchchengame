@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../scene/scene_art.dart';
 import 'common.dart';
 
 /// Money that rolls to its new value, with a little coin bounce when it rises.
@@ -71,7 +70,7 @@ class _PressableState extends State<Pressable> {
 class Confetti extends StatefulWidget {
   final Widget child;
   final int pieces;
-  const Confetti({super.key, required this.child, this.pieces = 70});
+  const Confetti({super.key, required this.child, this.pieces = 36});
   @override
   State<Confetti> createState() => _ConfettiState();
 }
@@ -87,17 +86,14 @@ class _Piece {
 class _ConfettiState extends State<Confetti>
     with SingleTickerProviderStateMixin {
   late final AnimationController _a = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 3200));
+      vsync: this, duration: const Duration(milliseconds: 5200));
   late final List<_Piece> _pieces;
 
   static const _colors = [
-    Color(0xFFE63946),
-    Color(0xFFF4A261),
-    Color(0xFFFFD166),
-    Color(0xFF06D6A0),
-    Color(0xFF118AB2),
-    Color(0xFF9B5DE5),
-    Color(0xFFF15BB5),
+    Color(0xFFE6C77A),
+    Color(0xFFC9A55B),
+    Color(0xFF8A7246),
+    Color(0xFFF1E8D8),
   ];
 
   @override
@@ -217,72 +213,65 @@ class _TrophyState extends State<Trophy> with SingleTickerProviderStateMixin {
 
 class _TrophyPainter extends CustomPainter {
   final double t;
-  final int stars;
+  final int stars; // the stage reached, shown as a Roman numeral
   _TrophyPainter(this.t, this.stars);
   @override
   void paint(Canvas c, Size size) {
-    final s = size.width / 100;
-    c.save();
-    c.scale(s);
-    // Rays.
-    final rays = Paint()..color = const Color(0x33FFD166);
-    for (var i = 0; i < 12; i++) {
-      final a = i * math.pi / 6 + t * math.pi * 2 / 6;
-      final path = Path()
-        ..moveTo(50, 44)
-        ..lineTo(50 + math.cos(a - 0.12) * 60, 44 + math.sin(a - 0.12) * 60)
-        ..lineTo(50 + math.cos(a + 0.12) * 60, 44 + math.sin(a + 0.12) * 60)
-        ..close();
-      c.drawPath(path, rays);
+    final r = size.width / 2;
+    final o = Offset(r, r);
+    const brass = Color(0xFFC9A55B);
+    // Slow sheen around the rim.
+    c.drawCircle(
+        o,
+        r * 0.98,
+        Paint()
+          ..shader = SweepGradient(
+              transform: GradientRotation(t * math.pi * 2),
+              colors: const [
+                Color(0xFF6E5A30),
+                Color(0xFFE6C77A),
+                Color(0xFF6E5A30),
+                Color(0xFFB8964A),
+                Color(0xFF6E5A30)
+              ]).createShader(Rect.fromCircle(center: o, radius: r)));
+    c.drawCircle(o, r * 0.86, Paint()..color = const Color(0xFF15120F));
+    c.drawCircle(
+        o,
+        r * 0.8,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8
+          ..color = brass.withValues(alpha: 0.6));
+    // Laurel.
+    final leaf = Paint()..color = brass.withValues(alpha: 0.85);
+    for (final side in [-1.0, 1.0]) {
+      for (var i = 0; i < 7; i++) {
+        final a = math.pi / 2 + side * (0.35 + i * 0.27);
+        final p = o + Offset(math.cos(a), math.sin(a)) * r * 0.66;
+        c.save();
+        c.translate(p.dx, p.dy);
+        c.rotate(a + side * 0.6);
+        c.drawOval(
+            Rect.fromCenter(
+                center: Offset.zero, width: r * 0.16, height: r * 0.07),
+            leaf);
+        c.restore();
+      }
     }
-    final gold = Paint()..color = const Color(0xFFF2B705);
-    final dark = Paint()..color = const Color(0xFFC98A00);
-    // Handles.
-    final h = Paint()
-      ..color = const Color(0xFFC98A00)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5;
-    c.drawArc(
-        const Rect.fromLTWH(18, 22, 22, 24), math.pi * 0.5, math.pi, false, h);
-    c.drawArc(
-        const Rect.fromLTWH(60, 22, 22, 24), -math.pi * 0.5, math.pi, false, h);
-    // Cup.
-    final cup = Path()
-      ..moveTo(28, 18)
-      ..lineTo(72, 18)
-      ..quadraticBezierTo(72, 58, 50, 62)
-      ..quadraticBezierTo(28, 58, 28, 18)
-      ..close();
-    c.drawPath(cup, gold);
-    c.drawRect(const Rect.fromLTWH(45, 60, 10, 12), dark);
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            const Rect.fromLTWH(32, 72, 36, 9), const Radius.circular(3)),
-        gold);
-    c.drawRRect(
-        RRect.fromRectAndRadius(
-            const Rect.fromLTWH(28, 80, 44, 9), const Radius.circular(3)),
-        Paint()..color = const Color(0xFF6D4C41));
-    // Shine.
-    c.drawPath(
-        Path()
-          ..moveTo(34, 22)
-          ..lineTo(40, 22)
-          ..quadraticBezierTo(40, 44, 48, 54)
-          ..quadraticBezierTo(34, 48, 34, 22)
-          ..close(),
-        Paint()..color = const Color(0x66FFFFFF));
-    for (var i = 0; i < stars.clamp(0, 5); i++) {
-      final x = 50 + (i - (stars - 1) / 2) * 9;
-      drawStar(c, Offset(x, 36), 3.6, Colors.white);
-    }
-    // Sparkles.
-    for (var i = 0; i < 4; i++) {
-      final k = (t * 2 + i / 4) % 1;
-      final o = Offset(20 + (i * 23) % 64.0, 12 + (i * 37) % 50.0);
-      drawStar(c, o, 3 * math.sin(k * math.pi), const Color(0xFFFFF3B0));
-    }
-    c.restore();
+    const numerals = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+    final n = numerals[(stars - 1).clamp(0, numerals.length - 1)];
+    final tp = TextPainter(
+      text: TextSpan(
+          text: n,
+          style: TextStyle(
+              fontFamily: 'Playfair',
+              fontWeight: FontWeight.w700,
+              fontSize: r * 0.62,
+              color: const Color(0xFFE6C77A),
+              height: 1)),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(c, o - Offset(tp.width / 2, tp.height / 2 + r * 0.04));
   }
 
   @override

@@ -13,73 +13,129 @@ Mood moodFromMorale(double morale) => morale >= 60
         ? Mood.neutral
         : (morale >= 25 ? Mood.annoyed : Mood.angry));
 
-/// Head-and-shoulders portrait of a staff member in a round frame.
+Color moodColor(double v) => v >= 60
+    ? const Color(0xFF74C08F)
+    : (v >= 40 ? const Color(0xFFE2AE52) : const Color(0xFFE3705C));
+
+/// A monogram portrait: initials on a dark plate tinted by role, with a
+/// thin ring in the colour of their mood and a small role badge.
 class StaffAvatar extends StatelessWidget {
   final int seed;
   final String role;
+  final String name;
   final double size;
-  final Mood mood;
-  final Color? ring;
+  final double? morale;
   const StaffAvatar(
       {super.key,
       required this.seed,
       required this.role,
+      this.name = '',
       this.size = 44,
-      this.mood = Mood.happy,
-      this.ring});
+      this.morale});
+
+  static const _tint = {
+    'headChef': Color(0xFF7A5A2E),
+    'lineCook': Color(0xFF6B4A35),
+    'prepCook': Color(0xFF5E4A3A),
+    'server': Color(0xFF3B4A5E),
+    'cashier': Color(0xFF3E5A48),
+    'dishwasher': Color(0xFF3A5560),
+    'cleaner': Color(0xFF4E4A44),
+    'manager': Color(0xFF5A3E5E),
+    'owner': Color(0xFF2E5E68),
+  };
 
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-        child: CustomPaint(
-          size: Size.square(size),
-          painter: _AvatarPainter(seed, role, mood, ring),
-        ),
-      );
-}
-
-class _AvatarPainter extends CustomPainter {
-  final int seed;
-  final String role;
-  final Mood mood;
-  final Color? ring;
-  _AvatarPainter(this.seed, this.role, this.mood, this.ring);
-  @override
-  void paint(Canvas c, Size size) {
-    final r = size.width / 2;
-    final o = Offset(r, r);
-    final bg = const [
-      Color(0xFFFFE5D9),
-      Color(0xFFE2ECE9),
-      Color(0xFFDDE7F7),
-      Color(0xFFFFF1C1),
-      Color(0xFFEADCF8),
-    ][seed % 5];
-    c.drawCircle(o, r, Paint()..color = bg);
-    c.save();
-    c.clipPath(Path()..addOval(Rect.fromCircle(center: o, radius: r)));
-    // A close head-and-shoulders crop: the head sits just above the middle.
-    final s = size.width / 21;
-    drawPerson(c, Offset(r, r * 0.86 + 23 * s),
-        role == 'owner' ? Look.owner : Look.staff(seed, role),
-        s: s, mood: mood);
-    c.restore();
-    if (ring != null) {
-      c.drawCircle(
-          o,
-          r - 1.2,
-          Paint()
-            ..color = ring!
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2.4);
-    }
+  Widget build(BuildContext context) {
+    final parts =
+        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    final initials = parts.isEmpty
+        ? '?'
+        : (parts.first[0] + (parts.length > 1 ? parts.last[0] : ''))
+            .toUpperCase();
+    final tint = _tint[role] ?? const Color(0xFF4A4038);
+    final ring = morale == null ? const Color(0xFF39322B) : moodColor(morale!);
+    return ExcludeSemantics(
+      child: SizedBox.square(
+        dimension: size,
+        child: Stack(clipBehavior: Clip.none, children: [
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                  center: const Alignment(-0.3, -0.4),
+                  radius: 1.0,
+                  colors: [
+                    Color.lerp(tint, Colors.white, 0.12)!,
+                    Color.lerp(tint, Colors.black, 0.35)!
+                  ]),
+              border: Border.all(color: ring, width: size > 50 ? 2.5 : 2),
+            ),
+            alignment: Alignment.center,
+            child: Text(initials,
+                style: TextStyle(
+                    fontFamily: 'Playfair',
+                    fontWeight: FontWeight.w700,
+                    fontSize: size * 0.36,
+                    color: const Color(0xFFF1E8D8),
+                    height: 1)),
+          ),
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              width: size * 0.42,
+              height: size * 0.42,
+              decoration: BoxDecoration(
+                  color: const Color(0xFF1C1916),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF39322B))),
+              alignment: Alignment.center,
+              child: Icon(_roleIcon(role),
+                  size: size * 0.24, color: const Color(0xFFC9A55B)),
+            ),
+          ),
+        ]),
+      ),
+    );
   }
 
+  static IconData _roleIcon(String r) => switch (r) {
+        'headChef' || 'lineCook' || 'prepCook' => Icons.restaurant,
+        'server' => Icons.room_service_outlined,
+        'cashier' => Icons.point_of_sale_outlined,
+        'dishwasher' => Icons.water_drop_outlined,
+        'cleaner' => Icons.cleaning_services_outlined,
+        'manager' => Icons.workspace_premium_outlined,
+        _ => Icons.person_outline,
+      };
+}
+
+/// A ring gauge with the value in the middle (morale, happiness).
+class RingGauge extends StatelessWidget {
+  final double value; // 0..100
+  final double size;
+  const RingGauge(this.value, {super.key, this.size = 52});
   @override
-  bool shouldRepaint(covariant _AvatarPainter old) =>
-      old.seed != seed ||
-      old.role != role ||
-      old.mood != mood ||
-      old.ring != ring;
+  Widget build(BuildContext context) => SizedBox.square(
+        dimension: size,
+        child: Stack(alignment: Alignment.center, children: [
+          SizedBox.square(
+            dimension: size,
+            child: CircularProgressIndicator(
+              value: (value / 100).clamp(0, 1),
+              strokeWidth: size * 0.08,
+              backgroundColor: const Color(0xFF28231F),
+              valueColor: AlwaysStoppedAnimation(moodColor(value)),
+            ),
+          ),
+          Text('${value.round()}',
+              style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: size * 0.3,
+                  fontFeatures: const [FontFeature.tabularFigures()])),
+        ]),
+      );
 }
 
 /// A plate (or bowl, or cup) with the dish on it.
@@ -91,10 +147,19 @@ class DishPicture extends StatelessWidget {
       {super.key, required this.dishId, this.size = 44, this.off = false});
   @override
   Widget build(BuildContext context) => ExcludeSemantics(
-        child: Opacity(
-          opacity: off ? 0.45 : 1,
-          child: CustomPaint(
-              size: Size.square(size), painter: _DishPainter(dishId)),
+        child: ColorFiltered(
+          // Slightly muted so the food sits in the dark palette.
+          colorFilter: const ColorFilter.matrix([
+            0.72, 0.2, 0.04, 0, -8, //
+            0.1, 0.78, 0.08, 0, -8, //
+            0.08, 0.16, 0.7, 0, -8, //
+            0, 0, 0, 1, 0,
+          ]),
+          child: Opacity(
+            opacity: off ? 0.45 : 1,
+            child: CustomPaint(
+                size: Size.square(size), painter: _DishPainter(dishId)),
+          ),
         ),
       );
 }
@@ -540,7 +605,7 @@ class _EquipPainter extends CustomPainter {
     final box = Rect.fromLTWH(w * 0.08, w * 0.12, w * 0.84, w * 0.76);
     c.drawRRect(
         RRect.fromRectAndRadius(Offset.zero & size, Radius.circular(w * 0.22)),
-        Paint()..color = const Color(0xFFEFF3F5));
+        Paint()..color = const Color(0xFF28231F));
     if (station != null) {
       drawStation(c, box.deflate(w * 0.06), station!,
           cap: station == 'cold'

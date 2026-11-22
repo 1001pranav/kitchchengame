@@ -6,6 +6,7 @@ import 'state/game_controller.dart';
 import 'state/save_service.dart';
 import 'state/settings.dart';
 import 'state/sound_service.dart';
+import 'ui/screens/intro_screen.dart';
 import 'ui/screens/title_screen.dart';
 import 'ui/shell/shell.dart';
 import 'ui/theme.dart';
@@ -46,7 +47,7 @@ class KitchenChainApp extends StatelessWidget {
         builder: (context, _) => MaterialApp(
           title: 'Kitchen Chain',
           debugShowCheckedModeBanner: false,
-          theme: buildTheme(_accent(controller)),
+          theme: buildTheme(),
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context).copyWith(
               textScaler: TextScaler.linear(controller.settings.textScale),
@@ -70,14 +71,9 @@ class RootRouter extends StatelessWidget {
     final c = GameScope.of(context);
     final st = c.state;
     if (st == null) return const TitleScreen();
-    if (st.phase == 'market') return const MarketScreen();
+    if (st.phase == 'market') {
+      return c.introPending ? const IntroScreen() : const MarketScreen();
+    }
     return const GameShell();
   }
-}
-
-Color _accent(GameController c) {
-  final st = c.state;
-  if (st == null) return Palette.accent;
-  final hex = c.content.themes[st.themeId]?.accent ?? '#2F7D4F';
-  return Color(int.parse('FF${hex.substring(1)}', radix: 16));
 }
