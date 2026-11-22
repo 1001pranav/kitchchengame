@@ -9,16 +9,16 @@ import '../scene/shopfront.dart';
 import '../widgets/common.dart';
 
 const areaLabels = {
-  'door': 'Door & till',
+  'door': 'Door',
   'tables': 'Tables',
   'pass': 'Pass',
   'dishes': 'Dishes'
 };
 const areaIcons = {
-  'door': Icons.door_front_door,
-  'tables': Icons.table_restaurant,
-  'pass': Icons.room_service,
-  'dishes': Icons.wash
+  'door': Icons.door_front_door_outlined,
+  'tables': Icons.table_restaurant_outlined,
+  'pass': Icons.room_service_outlined,
+  'dishes': Icons.wash_outlined
 };
 
 class _Attention {
@@ -129,177 +129,170 @@ class PrepBoard extends StatelessWidget {
         working.where((s) => roles.contains(s.role)).length;
     final fest = sim.festivalOn(st.dayIndex);
     final orders = l.orders;
-    return Centered(
-      child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Shopfront(
-                  name: l.name,
-                  accent: accentOf(c.content.themes[l.themeId]?.accent),
-                  quality: tierQuality(l.tierId),
-                  time: DayTime.morning,
-                  open: false,
-                  animate: true,
-                  height: MediaQuery.of(context).size.height < 700 ? 84 : 128,
-                  seed: l.id),
-            ),
-            const SizedBox(height: 10),
-            if (c.settings.tutorial && st.dayIndex < 3)
-              _Tutorial(day: st.dayIndex),
-            const OwnersDesk(),
-            if (st.openLocations.length > 1) SectionTitle('${l.name} today'),
-            Panel(
-              onTap: () => showWhy(context, sim.explain('demand')),
-              child: Row(children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                      color: Palette.accentSoft,
-                      borderRadius: BorderRadius.circular(14)),
-                  child: const Icon(Icons.groups_2,
-                      color: Palette.accent, size: 30),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('FORECAST',
-                            style: TextStyle(
-                                fontSize: 12,
-                                letterSpacing: 1.1,
-                                fontWeight: FontWeight.w800,
-                                color: Palette.muted)),
-                        Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            spacing: 6,
-                            children: [
-                              Text('~${fc.groups}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium),
-                              const TermText('parties', 'group',
-                                  style: TextStyle(fontSize: 16)),
-                              Pill(fc.label,
-                                  color: fc.label.contains('busy')
-                                      ? Palette.tomato
-                                      : Palette.accent),
-                            ]),
-                        if (fest != null)
-                          Text('${fest.name} is on: busier than usual',
-                              style: const TextStyle(
-                                  color: Palette.tomato,
+    final target = sim.targetPreview();
+    final closed = l.closedUntil > st.dayIndex;
+    final busy = fc.label.contains('busy');
+    final stations = <(String, int, bool)>[
+      ('Kitchen', count(['headChef', 'lineCook']), false),
+      ('Floor', count(['server']), false),
+      ('Till', count(['cashier']), false),
+      ('Dishes', count(['dishwasher']), false),
+      ('Cleaning', count(['cleaner']), false),
+      ('Prep', count(['prepCook']), true),
+    ];
+    return Column(children: [
+      Expanded(
+        child: Centered(
+          child: ListView(padding: EdgeInsets.zero, children: [
+            // Hero: the place at dawn, and tonight in one number.
+            Stack(children: [
+              ShaderMask(
+                shaderCallback: (r) => const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.white, Colors.white, Colors.transparent],
+                  stops: [0, 0.55, 1],
+                ).createShader(r),
+                blendMode: BlendMode.dstIn,
+                child: Shopfront(
+                    name: l.name,
+                    quality: tierQuality(l.tierId),
+                    time: DayTime.morning,
+                    open: false,
+                    animate: true,
+                    height:
+                        MediaQuery.of(context).size.height < 700 ? 150 : 200,
+                    seed: l.id),
+              ),
+              Positioned(
+                left: 20,
+                right: 20,
+                bottom: 4,
+                child:
+                    Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('TONIGHT AT',
+                              style: TextStyle(
+                                  color: Palette.accent,
+                                  fontSize: 10.5,
+                                  letterSpacing: 2.2,
                                   fontWeight: FontWeight.w600)),
-                      ]),
-                ),
-                const Icon(Icons.help_outline, color: Palette.muted),
-              ]),
-            ),
-            SectionTitle('Needs attention (${att.length})'),
-            if (att.isEmpty)
-              const EmptyNote('Nothing urgent. A good day to open on time.')
-            else
-              Panel(
-                padding: EdgeInsets.zero,
-                child: Column(children: [
-                  for (var i = 0; i < att.length; i++) ...[
-                    if (i > 0) const Divider(height: 1),
-                    ListTile(
-                      leading: Icon(att[i].icon, color: att[i].color),
-                      title: Text(att[i].text,
-                          style: const TextStyle(fontSize: 14.5)),
-                      trailing: att[i].tab == 0
-                          ? null
-                          : const Icon(Icons.chevron_right),
-                      onTap: att[i].tab == 0
-                          ? null
-                          : () => ShellNav.to(context, att[i].tab),
-                    ),
-                  ],
+                          const SizedBox(height: 4),
+                          Text(l.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(fontSize: 26)),
+                        ]),
+                  ),
+                  GestureDetector(
+                    onTap: () => showWhy(context, sim.explain('demand')),
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text('${fc.groups}',
+                              style: const TextStyle(
+                                  fontSize: 40,
+                                  height: 1,
+                                  fontWeight: FontWeight.w700,
+                                  fontFeatures: [
+                                    FontFeature.tabularFigures()
+                                  ])),
+                          Text(
+                              fest != null
+                                  ? fest.name.toUpperCase()
+                                  : 'PARTIES · ${fc.label.toUpperCase()}',
+                              style: TextStyle(
+                                  color: busy || fest != null
+                                      ? Palette.tomato
+                                      : Palette.muted,
+                                  fontSize: 10,
+                                  letterSpacing: 1.6,
+                                  fontWeight: FontWeight.w600)),
+                        ]),
+                  ),
                 ]),
               ),
-            const SectionTitle('Today\'s team'),
-            Panel(
-              onTap: () => ShellNav.to(context, 1),
+            ]),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(children: [
-                      Expanded(
-                          child: Text(
-                              '${working.length} of ${l.staff.length} working',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 16))),
-                      const TermText('Days off', 'rota',
-                          style: TextStyle(color: Palette.muted)),
+                    // Tonight in three numbers.
+                    _Brief(items: [
+                      (
+                        'TARGET',
+                        '≤ $target',
+                        target == 1 ? 'party lost' : 'parties lost',
+                        () => showTerm(context, 'shift_target')
+                      ),
+                      (
+                        'ON SHIFT',
+                        '${working.length}/${l.staff.length}',
+                        'staff',
+                        () => ShellNav.to(context, 1)
+                      ),
+                      (
+                        'ARRIVING',
+                        '${orders.length}',
+                        orders.length == 1 ? 'delivery' : 'deliveries',
+                        () => ShellNav.to(context, 2)
+                      ),
                     ]),
-                    const SizedBox(height: 10),
-                    Wrap(spacing: 8, runSpacing: 8, children: [
-                      _teamChip('Kitchen', count(['headChef', 'lineCook']),
-                          Icons.soup_kitchen),
-                      _teamChip('Prep', count(['prepCook']), Icons.blender,
-                          optional: true),
-                      _teamChip('Floor', count(['server']), Icons.room_service),
-                      _teamChip(
-                          'Till', count(['cashier']), Icons.point_of_sale),
-                      _teamChip('Dishes', count(['dishwasher']), Icons.wash),
-                      _teamChip('Cleaning', count(['cleaner']),
-                          Icons.cleaning_services),
-                    ]),
-                  ]),
-            ),
-            if (orders.isNotEmpty) ...[
-              const SectionTitle('Deliveries coming'),
-              for (final o in orders)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Panel(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(children: [
-                      const Icon(Icons.local_shipping, color: Palette.muted),
-                      const SizedBox(width: 10),
-                      Expanded(
-                          child: Text(
-                              '${sim.content.suppliers[o.supplierId]!.name} · ${o.lines.length} items${o.late ? ' · late' : ''}')),
-                      Text(o.dueDay == st.dayIndex ? 'today' : 'tomorrow',
-                          style: const TextStyle(color: Palette.muted)),
-                    ]),
-                  ),
-                ),
-            ],
-            const SectionTitle('Shift'),
-            Panel(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const Icon(Icons.flag, color: Palette.tomato),
-                      const SizedBox(width: 8),
-                      const TermText('Target', 'shift_target',
-                          style: TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(width: 6),
-                      Expanded(
-                          child: Text(
-                              'lose no more than ${sim.targetPreview()} part${sim.targetPreview() == 1 ? 'y' : 'ies'}')),
-                    ]),
-                    const SizedBox(height: 12),
-                    Row(children: [
-                      const TermText('Where you start', 'area',
-                          style: TextStyle(color: Palette.muted)),
-                      const Spacer(),
-                      if (st.owner.restingToday)
-                        const Pill('Resting today',
-                            color: Palette.owner, icon: Icons.bedtime),
-                    ]),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
+                    if (c.settings.tutorial && st.dayIndex < 3)
+                      Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: _Tutorial(day: st.dayIndex)),
+                    const OwnersDesk(),
+                    SectionTitle(att.isEmpty
+                        ? 'Before you open'
+                        : 'Before you open · ${att.length}'),
+                    if (att.isEmpty)
+                      const _AllClear()
+                    else
+                      for (final a in att) _AttentionRow(a: a),
+                    const SectionTitle('Stations'),
+                    GestureDetector(
+                      onTap: () => ShellNav.to(context, 1),
+                      child: GridView(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            mainAxisSpacing: 1,
+                            crossAxisSpacing: 1,
+                            mainAxisExtent: 18 +
+                                MediaQuery.textScalerOf(context).scale(36)),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          for (final (name, n, optional) in stations)
+                            _StationCell(
+                                name: name, n: n, missing: n == 0 && !optional),
+                        ],
+                      ),
+                    ),
+                    SectionTitle(
+                      'Your post',
+                      trailing: st.owner.restingToday
+                          ? const Text('RESTING',
+                              style: TextStyle(
+                                  color: Palette.owner,
+                                  fontSize: 10.5,
+                                  letterSpacing: 1.6,
+                                  fontWeight: FontWeight.w700))
+                          : null,
+                    ),
                     Row(children: [
                       for (final a in areaLabels.keys)
                         Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 2),
                             child: _AreaButton(
                               area: a,
                               selected: st.owner.startArea == a &&
@@ -313,74 +306,205 @@ class PrepBoard extends StatelessWidget {
                     ]),
                   ]),
             ),
-            const SizedBox(height: 18),
-            Row(children: [
-              Expanded(
-                flex: 2,
-                child: OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(56)),
-                  onPressed: () async {
-                    if (st.owner.restingToday) {
-                      sendCmd(context, const OwnerRest(false));
-                      return;
-                    }
-                    final ok = await confirm(context, 'Rest today?',
-                        'Your energy goes back to 100, but the team runs the whole shift without you. If a job has nobody, nobody does it.',
-                        ok: 'Rest');
-                    if (ok && context.mounted) {
-                      sendCmd(context, const OwnerRest(true));
-                    }
-                  },
-                  icon: Icon(st.owner.restingToday
-                      ? Icons.directions_run
-                      : Icons.bedtime),
-                  label:
-                      Text(st.owner.restingToday ? 'Work today' : 'Rest today'),
+          ]),
+        ),
+      ),
+      // The one decision that matters most, always in reach.
+      Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0E0C0A),
+          border: Border(top: BorderSide(color: Palette.line)),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+        child: Centered(
+          child: Row(children: [
+            SizedBox(
+              width: 56,
+              height: 56,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+                onPressed: () async {
+                  if (st.owner.restingToday) {
+                    sendCmd(context, const OwnerRest(false));
+                    return;
+                  }
+                  final ok = await confirm(context, 'Take the day off?',
+                      'Your energy goes back to 100. The team runs the whole shift without you.',
+                      ok: 'Rest');
+                  if (ok && context.mounted) {
+                    sendCmd(context, const OwnerRest(true));
+                  }
+                },
+                child: Tooltip(
+                  message: st.owner.restingToday ? 'Work today' : 'Rest today',
+                  child: Icon(
+                      st.owner.restingToday
+                          ? Icons.directions_walk
+                          : Icons.bedtime_outlined,
+                      color: st.owner.restingToday
+                          ? Palette.owner
+                          : Palette.muted),
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 3,
-                child: Pressable(
-                    child: FilledButton.icon(
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Pressable(
+                child: FilledButton(
                   style: FilledButton.styleFrom(
                       minimumSize: const Size.fromHeight(56),
-                      backgroundColor: Palette.tomato),
+                      backgroundColor: Palette.tomato,
+                      foregroundColor: Colors.white,
+                      textStyle: const TextStyle(
+                          fontSize: 15,
+                          letterSpacing: 2,
+                          fontWeight: FontWeight.w700)),
                   onPressed: () => sendCmd(context, const StartService()),
-                  icon: const Icon(Icons.storefront),
-                  label: Text(l.closedUntil > st.dayIndex
-                      ? 'SKIP THE DAY'
-                      : 'OPEN DOORS'),
-                )),
+                  child: Text(closed ? 'SKIP THE DAY' : 'OPEN THE DOORS'),
+                ),
               ),
-            ]),
+            ),
           ]),
+        ),
+      ),
+    ]);
+  }
+}
+
+/// Three numbers side by side, separated by hairlines.
+class _Brief extends StatelessWidget {
+  final List<(String, String, String, VoidCallback)> items;
+  const _Brief({required this.items});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.symmetric(
+            horizontal: BorderSide(color: Palette.line.withValues(alpha: 0.9))),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: IntrinsicHeight(
+        child: Row(children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const VerticalDivider(width: 1, color: Palette.line),
+            Expanded(
+              child: InkWell(
+                onTap: items[i].$4,
+                child: Column(children: [
+                  Text(items[i].$1,
+                      style: const TextStyle(
+                          color: Palette.muted,
+                          fontSize: 9.5,
+                          letterSpacing: 1.8,
+                          fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 4),
+                  Text(items[i].$2,
+                      style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: [FontFeature.tabularFigures()])),
+                  Text(items[i].$3,
+                      style: const TextStyle(
+                          color: Palette.muted, fontSize: 11.5)),
+                ]),
+              ),
+            ),
+          ],
+        ]),
+      ),
     );
   }
+}
 
-  Widget _teamChip(String label, int n, IconData icon,
-      {bool optional = false}) {
-    final missing = n == 0 && !optional;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: missing ? Palette.bad.withValues(alpha: 0.1) : Palette.surface2,
-        borderRadius: BorderRadius.circular(10),
+class _AllClear extends StatelessWidget {
+  const _AllClear();
+  @override
+  Widget build(BuildContext context) => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 4),
+        child: Row(children: [
+          Icon(Icons.check, size: 18, color: Palette.ok),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text('All clear. Open on time.',
+                style: TextStyle(color: Palette.muted, fontSize: 14.5)),
+          ),
+        ]),
+      );
+}
+
+/// One problem to deal with before service: a severity bar, the line, a way to fix it.
+class _AttentionRow extends StatelessWidget {
+  final _Attention a;
+  const _AttentionRow({required this.a});
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Palette.surface,
+        child: InkWell(
+          onTap: a.tab == 0 ? null : () => ShellNav.to(context, a.tab),
+          child: IntrinsicHeight(
+            child: Row(children: [
+              Container(width: 3, color: a.color),
+              const SizedBox(width: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Icon(a.icon, size: 18, color: a.color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(a.text, style: const TextStyle(fontSize: 14)),
+                ),
+              ),
+              if (a.tab != 0)
+                const Padding(
+                  padding: EdgeInsets.only(right: 10),
+                  child:
+                      Icon(Icons.chevron_right, size: 18, color: Palette.muted),
+                ),
+            ]),
+          ),
+        ),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icon, size: 16, color: missing ? Palette.bad : Palette.ink),
-        const SizedBox(width: 5),
-        Text('$label $n',
-            style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: missing ? Palette.bad : Palette.ink)),
-        if (missing)
-          const Padding(
-              padding: EdgeInsets.only(left: 3),
-              child: Icon(Icons.warning_amber_rounded,
-                  size: 15, color: Palette.bad)),
-      ]),
+    );
+  }
+}
+
+class _StationCell extends StatelessWidget {
+  final String name;
+  final int n;
+  final bool missing;
+  const _StationCell(
+      {required this.name, required this.n, required this.missing});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: missing ? const Color(0xFF2E1A16) : Palette.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(name.toUpperCase(),
+                  style: TextStyle(
+                      color: missing ? Palette.bad : Palette.muted,
+                      fontSize: 9.5,
+                      letterSpacing: 1.6,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(height: 2),
+              Text(missing ? 'none' : '$n',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: missing ? Palette.bad : Palette.ink)),
+            ]),
+      ),
     );
   }
 }
@@ -393,24 +517,27 @@ class _AreaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? Palette.owner : Palette.surface2,
-      borderRadius: BorderRadius.circular(12),
+      color: selected ? const Color(0xFF16302F) : Palette.surface,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: selected ? Palette.owner : Palette.line)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         onTap: onTap,
         child: SizedBox(
           height: 58,
           child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(areaIcons[area],
-                color: selected ? Colors.white : Palette.ink, size: 20),
-            const SizedBox(height: 2),
-            Text(areaLabels[area]!,
+                color: selected ? Palette.owner : Palette.muted, size: 19),
+            const SizedBox(height: 4),
+            Text(areaLabels[area]!.toUpperCase(),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 9.5,
+                    letterSpacing: 1.2,
                     fontWeight: FontWeight.w700,
-                    color: selected ? Colors.white : Palette.ink)),
+                    color: selected ? Palette.ink : Palette.muted)),
           ]),
         ),
       ),
@@ -445,12 +572,10 @@ class _Tutorial extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Panel(
-        color: const Color(0xFF2B2416),
+        color: const Color(0xFF1F1B15),
         borderColor: const Color(0xFF5C4A23),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Icon(Icons.school, color: Palette.warn),
-            const SizedBox(width: 8),
             Expanded(
                 child: Text(t.$1,
                     style: const TextStyle(fontWeight: FontWeight.w800))),

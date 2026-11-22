@@ -118,11 +118,17 @@ class _StockList extends StatelessWidget {
                     Icon(AssetCatalog.storage(storage),
                         size: 18, color: Palette.muted),
                     const SizedBox(width: 6),
-                    Text(
-                        '${sim.stored(storage)} / ${sim.capacity(storage)} units',
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Flexible(
+                      flex: 3,
+                      child: Text(
+                          '${sim.stored(storage)} / ${sim.capacity(storage)} units',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
+                      flex: 2,
                       child: StatBar(
                         sim.capacity(storage) == 0
                             ? 1

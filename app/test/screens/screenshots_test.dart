@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kitchen_chain/main.dart';
+import 'package:kitchen_chain/ui/widgets/dock.dart';
 import 'package:kitchen_chain/state/game_controller.dart';
 import 'package:kitchen_chain/state/save_service.dart';
 import 'package:kitchen_chain/state/settings.dart';
@@ -88,14 +89,14 @@ void main() {
 
     await shot('prep_desk');
     await t.tap(find.descendant(
-        of: find.byType(NavigationBar), matching: find.text('Company')));
+        of: find.byType(GameDock), matching: find.text('COMPANY')));
     await shot('company_overview');
     await t.tap(find.text('Outlets'));
     await shot('company_outlets');
     await t.tap(find.text('Expand'));
     await shot('company_expand');
     await t.tap(find.descendant(
-        of: find.byType(NavigationBar), matching: find.text('Today')));
+        of: find.byType(GameDock), matching: find.text('TODAY')));
     c.send(const StartService());
     c.setSpeed(Speed.paused);
     for (var i = 0; i < 150; i++) {

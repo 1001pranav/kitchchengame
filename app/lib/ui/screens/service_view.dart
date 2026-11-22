@@ -8,6 +8,7 @@ import '../theme.dart';
 import '../widgets/common.dart';
 import 'prep_board.dart';
 import '../widgets/juice.dart';
+import '../scene/pictures.dart';
 import '../scene/restaurant_scene.dart';
 
 /// The live restaurant (doc 07 §4.4). Drawn with widgets instead of Flame (see README).
@@ -95,112 +96,161 @@ class _ClockBar extends StatelessWidget {
     final c = GameScope.of(context);
     final sim = c.sim!;
     final over = ss.lost > ss.target;
-    Widget sp(Speed s, IconData icon, String tip, {bool enabled = true}) =>
-        Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: Tooltip(
-            message: tip,
-            child: Material(
-              color: c.speed == s ? Palette.accent : Palette.surface2,
-              borderRadius: BorderRadius.circular(10),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: enabled
-                    ? () => c.setSpeed(s)
-                    : () => showToast(
-                        context, 'Fast-forward needs every job covered today.'),
-                child: SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: Icon(icon,
-                      size: 22,
-                      color: c.speed == s
-                          ? Colors.white
-                          : (enabled
-                              ? Palette.ink
-                              : Palette.muted.withValues(alpha: 0.4))),
-                ),
-              ),
-            ),
-          ),
-        );
+    final speeds = [
+      (Speed.paused, Icons.pause, 'Pause', true),
+      (Speed.normal, Icons.play_arrow, 'Normal speed', true),
+      (Speed.fast, Icons.fast_forward, 'Double speed', true),
+      (
+        Speed.auto,
+        Icons.double_arrow,
+        'Fast-forward (every job covered)',
+        sim.canAutoRun
+      ),
+    ];
+    const label = TextStyle(
+        color: Palette.muted,
+        fontSize: 9,
+        letterSpacing: 1.6,
+        fontWeight: FontWeight.w600);
     return Container(
-      color: Palette.surface,
-      padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+      color: const Color(0xFF0E0C0A),
       child: Column(children: [
-        Row(children: [
-          Text(sim.clock(math.min(ss.tick, 390)),
-              style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  fontFeatures: [FontFeature.tabularFigures()])),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: c.quietSpell &&
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 10, 8),
+          child: Row(children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(sim.clock(math.min(ss.tick, 390)),
+                  style: const TextStyle(
+                      fontSize: 24,
+                      height: 1,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: [FontFeature.tabularFigures()])),
+              const SizedBox(height: 3),
+              c.quietSpell &&
                       c.speed != Speed.paused &&
                       c.settings.quietFastForward
-                  ? const Pill('quiet ×4',
-                      color: Palette.muted, icon: Icons.fast_forward)
-                  : const SizedBox(),
-            ),
-          ),
-          sp(Speed.paused, Icons.pause, 'Pause'),
-          sp(Speed.normal, Icons.play_arrow, 'Normal speed'),
-          sp(Speed.fast, Icons.fast_forward, 'Double speed'),
-          sp(Speed.auto, Icons.double_arrow, 'Fast-forward (every job covered)',
-              enabled: sim.canAutoRun),
-        ]),
-        const SizedBox(height: 6),
-        Row(children: [
-          Expanded(
-              child: StatBar(ss.tick / 360, color: Palette.accent, height: 6)),
-          const SizedBox(width: 10),
-          Flexible(
-              child: RollingMoney(sim.state.viewLoc.today.revenue,
-                  size: 14, sign: true)),
-          const SizedBox(width: 10),
-          Semantics(
-            label: 'Lost ${ss.lost} of target ${ss.target}',
-            child: GestureDetector(
-              onTap: () => showTerm(context, 'shift_target'),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  border: Border.all(color: over ? Palette.bad : Palette.line),
-                  borderRadius: BorderRadius.circular(8),
-                  color: over ? Palette.bad.withValues(alpha: 0.08) : null,
-                ),
-                child: Row(children: [
-                  Icon(Icons.flag,
-                      size: 14, color: over ? Palette.bad : Palette.muted),
-                  const SizedBox(width: 3),
-                  Text('${ss.lost}/${ss.target}',
+                  ? const Text('QUIET · ×4',
                       style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                          color: over ? Palette.bad : Palette.ink)),
-                ]),
+                          color: Palette.accent,
+                          fontSize: 9,
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w600))
+                  : const Text('SERVICE', style: label),
+            ]),
+            const SizedBox(width: 14),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Takings tonight.
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('TAKINGS', style: label),
+                            const SizedBox(height: 2),
+                            RollingMoney(sim.state.viewLoc.today.revenue,
+                                size: 15, sign: true),
+                          ]),
+                      const SizedBox(width: 12),
+                      // Parties lost against tonight's target.
+                      Semantics(
+                        label: 'Lost ${ss.lost} of target ${ss.target}',
+                        child: GestureDetector(
+                          onTap: () => showTerm(context, 'shift_target'),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('LOST',
+                                    style: label.copyWith(
+                                        color: over
+                                            ? Palette.bad
+                                            : Palette.muted)),
+                                const SizedBox(height: 2),
+                                Text('${ss.lost}/${ss.target}',
+                                    style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color:
+                                            over ? Palette.bad : Palette.ink)),
+                              ]),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Favours: rush or treat a table.
+                      GestureDetector(
+                        onTap: () => showTerm(context, 'favour'),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('FAVOURS', style: label),
+                              const SizedBox(height: 5),
+                              Row(children: [
+                                for (var i = 0; i < 3; i++)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 4),
+                                    width: 8,
+                                    height: 8,
+                                    transform: Matrix4.rotationZ(math.pi / 4),
+                                    transformAlignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: i < ss.favours
+                                          ? Palette.accent
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                          color: Palette.accent, width: 1.2),
+                                    ),
+                                  ),
+                              ]),
+                            ]),
+                      ),
+                    ]),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => showTerm(context, 'favour'),
-            child: Row(children: [
-              for (var i = 0; i < 3; i++)
-                Container(
-                  margin: const EdgeInsets.only(left: 3),
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: i < ss.favours ? Palette.owner : Colors.transparent,
-                    border: Border.all(color: Palette.owner, width: 2),
+            const SizedBox(width: 8),
+            // Speed: one segmented control.
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Palette.line),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Row(children: [
+                for (final (sp, icon, tip, enabled) in speeds)
+                  Tooltip(
+                    message: tip,
+                    child: InkWell(
+                      onTap: enabled
+                          ? () => c.setSpeed(sp)
+                          : () => showToast(context,
+                              'Fast-forward needs every job covered today.'),
+                      child: Container(
+                        width: 32,
+                        height: 34,
+                        color:
+                            c.speed == sp ? Palette.accent : Colors.transparent,
+                        child: Icon(icon,
+                            size: 18,
+                            color: c.speed == sp
+                                ? Palette.onAccent
+                                : (enabled
+                                    ? Palette.ink
+                                    : Palette.muted.withValues(alpha: 0.4))),
+                      ),
+                    ),
                   ),
-                ),
-            ]),
+              ]),
+            ),
+          ]),
+        ),
+        // The evening, as a hairline that fills.
+        Stack(children: [
+          Container(height: 2, color: Palette.line),
+          FractionallySizedBox(
+            widthFactor: (ss.tick / 360).clamp(0.0, 1.0),
+            child: Container(height: 2, color: Palette.accent),
           ),
         ]),
       ]),
@@ -232,9 +282,9 @@ class _Controls extends StatelessWidget {
     final atDoor = ss.groups.where((x) => x.state == 'waitTable').length;
     return Container(
       decoration: const BoxDecoration(
-          color: Palette.surface,
+          color: Color(0xFF0E0C0A),
           border: Border(top: BorderSide(color: Palette.line))),
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
       child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -251,23 +301,50 @@ class _Controls extends StatelessWidget {
             SizedBox(
               height: 44,
               child: g == null || g.gone
-                  ? Row(children: [
-                      const Icon(Icons.touch_app,
-                          size: 18, color: Palette.muted),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          sim.state.dayIndex < 3 && present
-                              ? 'Tap the floor to walk there, or a bubble to do that job.'
-                              : 'Waiting: door $atDoor · order $waitOrder · food $waitFood · bill $waitBill',
-                          maxLines: 2,
-                          style: const TextStyle(
-                              color: Palette.muted,
-                              fontWeight: FontWeight.w600),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ])
+                  ? (sim.state.dayIndex < 3 && present
+                      ? const Row(children: [
+                          Icon(Icons.touch_app_outlined,
+                              size: 16, color: Palette.accent),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Tap the floor to walk there. Tap a bubble to do that job yourself.',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: Palette.muted, fontSize: 12.5),
+                            ),
+                          ),
+                        ])
+                      : Row(children: [
+                          for (final (k, n) in [
+                            ('AT DOOR', atDoor),
+                            ('TO ORDER', waitOrder),
+                            ('FOR FOOD', waitFood),
+                            ('FOR BILL', waitBill),
+                          ])
+                            Expanded(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('$n',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            height: 1.1,
+                                            fontWeight: FontWeight.w700,
+                                            color: n > 2
+                                                ? Palette.warn
+                                                : Palette.ink)),
+                                    Text(k,
+                                        maxLines: 1,
+                                        style: const TextStyle(
+                                            color: Palette.muted,
+                                            fontSize: 8.5,
+                                            letterSpacing: 1.2,
+                                            fontWeight: FontWeight.w600)),
+                                  ]),
+                            ),
+                        ]))
                   : Row(children: [
                       Expanded(
                         child: Text(
@@ -316,21 +393,28 @@ class _Controls extends StatelessWidget {
             Row(children: [
               const SizedBox(
                   width: 46,
-                  child: TermText('Stand', 'area',
+                  child: TermText('POST', 'area',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 9.5,
+                          letterSpacing: 1.6,
+                          fontWeight: FontWeight.w700,
                           color: Palette.muted))),
               for (final a in areaLabels.keys)
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
                     child: Material(
-                      color:
-                          ss.ownerArea == a ? Palette.owner : Palette.surface2,
-                      borderRadius: BorderRadius.circular(10),
+                      color: ss.ownerArea == a
+                          ? const Color(0xFF16302F)
+                          : Palette.surface,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                              color: ss.ownerArea == a
+                                  ? Palette.owner
+                                  : Palette.line)),
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         onTap: present
                             ? () => sendCmd(context,
                                 OwnerStand(ss.ownerArea == a ? null : a))
@@ -343,19 +427,19 @@ class _Controls extends StatelessWidget {
                                 Icon(areaIcons[a],
                                     size: 16,
                                     color: ss.ownerArea == a
-                                        ? Colors.white
-                                        : Palette.ink),
+                                        ? Palette.owner
+                                        : Palette.muted),
                                 const SizedBox(width: 3),
                                 Flexible(
-                                  child: Text(
-                                      a == 'door' ? 'Door' : areaLabels[a]!,
+                                  child: Text(areaLabels[a]!.toUpperCase(),
                                       overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: 9.5,
+                                          letterSpacing: 1,
                                           fontWeight: FontWeight.w700,
                                           color: ss.ownerArea == a
-                                              ? Colors.white
-                                              : Palette.ink)),
+                                              ? Palette.ink
+                                              : Palette.muted)),
                                 ),
                               ]),
                         ),
@@ -373,8 +457,9 @@ class _Controls extends StatelessWidget {
                     width: 46,
                     child: Text('TEAM',
                         style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 9.5,
+                            letterSpacing: 1.6,
+                            fontWeight: FontWeight.w700,
                             color: Palette.muted))),
                 Expanded(
                   child: ListView(scrollDirection: Axis.horizontal, children: [
@@ -415,8 +500,11 @@ class _ActBtn extends StatelessWidget {
           style: FilledButton.styleFrom(
             minimumSize: const Size(0, 40),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            backgroundColor: Palette.owner.withValues(alpha: 0.12),
-            foregroundColor: Palette.owner,
+            backgroundColor: const Color(0xFF16302F),
+            foregroundColor: const Color(0xFF8FD3DE),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Palette.owner)),
           ),
           onPressed: enabled ? onTap : null,
           icon: Icon(icon, size: 16),
@@ -436,14 +524,13 @@ class _TeamChip extends StatelessWidget {
     final c = GameScope.of(context);
     final moved = role != staff.role;
     return Material(
-      color: Palette.surface2,
+      color: Palette.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(
-            color: moved ? Palette.warn : Colors.transparent, width: 2),
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: moved ? Palette.warn : Palette.line),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         onTap: () {
           final i = floorRoles.indexOf(role);
           final next = floorRoles[(i + 1) % floorRoles.length];
@@ -452,8 +539,13 @@ class _TeamChip extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Row(children: [
-            Icon(AssetCatalog.role(role), size: 16),
-            const SizedBox(width: 4),
+            StaffAvatar(
+                seed: staff.id,
+                name: staff.name,
+                role: role,
+                size: 26,
+                morale: staff.morale),
+            const SizedBox(width: 8),
             Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,

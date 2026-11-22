@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kitchen_chain/main.dart';
+import 'package:kitchen_chain/ui/widgets/dock.dart';
 import 'package:kitchen_chain/state/game_controller.dart';
 import 'package:kitchen_chain/state/save_service.dart';
 import 'package:kitchen_chain/state/settings.dart';
@@ -77,13 +78,12 @@ void main() {
       c.send(const BuyRestaurant(2));
       await t.pump(const Duration(milliseconds: 500));
       await _closeSheets(t, c);
-      // On small phones the forecast sits below the shopfront and the tutorial.
-      await t.scrollUntilVisible(find.text('FORECAST'), 200,
-          scrollable: find.byType(Scrollable).first);
-      expect(find.text('FORECAST'), findsOneWidget);
+      // The briefing: tonight's numbers and the pinned call to action.
+      expect(find.text('TARGET'), findsOneWidget);
+      expect(find.text('OPEN THE DOORS'), findsOneWidget);
       for (final tab in ['Staff', 'Stock', 'Kitchen', 'Money', 'Today']) {
         await t.tap(find.descendant(
-            of: find.byType(NavigationBar), matching: find.text(tab)));
+            of: find.byType(GameDock), matching: find.text(tab.toUpperCase())));
         await t.pump(const Duration(milliseconds: 300));
         await _closeSheets(t, c);
       }
@@ -113,7 +113,7 @@ void main() {
       await t.pump(const Duration(milliseconds: 500));
       await _closeSheets(t, c);
       expect(c.state!.phase, 'close');
-      expect(find.textContaining('Sleep'), findsOneWidget);
+      expect(find.textContaining('SLEEP'), findsOneWidget);
       await t.tap(find.text('Why'));
       await t.pump(const Duration(milliseconds: 300));
       await t.tap(find.text('Tomorrow'));
@@ -137,7 +137,7 @@ void main() {
     await _closeSheets(t, c);
     for (final tab in ['Staff', 'Stock', 'Kitchen', 'Money', 'Today']) {
       await t.tap(find.descendant(
-          of: find.byType(NavigationBar), matching: find.text(tab)));
+          of: find.byType(GameDock), matching: find.text(tab.toUpperCase())));
       await t.pump(const Duration(milliseconds: 300));
       await _closeSheets(t, c);
     }
@@ -181,9 +181,14 @@ void main() {
         .id));
     await t.pump(const Duration(milliseconds: 500));
     await _closeSheets(t, c);
+    await t.scrollUntilVisible(find.text("Owner's desk".toUpperCase()), 200,
+        scrollable: find
+            .byWidgetPredicate(
+                (w) => w is Scrollable && w.axisDirection == AxisDirection.down)
+            .first);
     expect(find.text("Owner's desk".toUpperCase()), findsOneWidget);
     await t.tap(find.descendant(
-        of: find.byType(NavigationBar), matching: find.text('Company')));
+        of: find.byType(GameDock), matching: find.text('COMPANY')));
     await t.pump(const Duration(milliseconds: 400));
     await _closeSheets(t, c);
     c.state!.requests.clear();
@@ -205,7 +210,7 @@ void main() {
         find.text('Managers looking for work'.toUpperCase()), findsOneWidget);
     // Service at both outlets, watching the one without the owner.
     await t.tap(find.descendant(
-        of: find.byType(NavigationBar), matching: find.text('Today')));
+        of: find.byType(GameDock), matching: find.text('TODAY')));
     await t.pump(const Duration(milliseconds: 300));
     await _closeSheets(t, c);
     c.send(SelectLocation(l2.id));
