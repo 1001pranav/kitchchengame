@@ -4,6 +4,8 @@ import 'package:sim_core/sim_core.dart';
 import '../shell/shell.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
+import '../opening_goal.dart';
 import 'kitchen_tab.dart';
 import '../widgets/juice.dart';
 import '../scene/shopfront.dart';
@@ -20,14 +22,11 @@ class CloseReport extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Column(children: [
-        Container(
-          color: Palette.surface,
-          child: const TabBar(tabs: [
-            Tab(text: 'The day'),
-            Tab(text: 'Why'),
-            Tab(text: 'Tomorrow')
-          ]),
-        ),
+        const GameTabBar(tabs: [
+          Tab(text: 'The day'),
+          Tab(text: 'Why'),
+          Tab(text: 'Tomorrow')
+        ]),
         Expanded(
           child: TabBarView(children: [
             _DayPage(t: t),
@@ -62,6 +61,50 @@ class CloseReport extends StatelessWidget {
   }
 }
 
+/// Opening night's goal, settled.
+class _GoalResult extends StatelessWidget {
+  final OpeningGoal goal;
+  final int served;
+  const _GoalResult({required this.goal, required this.served});
+  @override
+  Widget build(BuildContext context) {
+    final met = goal.met(served);
+    final short = goal.parties - served;
+    final body = Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: met ? const Color(0xFF241E15) : Palette.surface,
+        border: Border.all(
+            color: met ? Palette.accent.withValues(alpha: 0.6) : Palette.line),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Served $served of ${goal.parties}',
+                style: const TextStyle(
+                    fontFamily: displayFont,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text(
+                met
+                    ? 'A full room on night one. That is the standard now.'
+                    : '$short short. The walk-outs below show where they were lost.',
+                style: const TextStyle(
+                    color: Palette.muted, fontSize: 13, height: 1.35)),
+          ]),
+        ),
+        const SizedBox(width: 12),
+        Icon(met ? Icons.verified_outlined : Icons.flag_outlined,
+            color: met ? Palette.accent : Palette.muted, size: 30),
+      ]),
+    );
+    return met ? Confetti(pieces: 28, child: body) : body;
+  }
+}
+
 class _DayPage extends StatelessWidget {
   final DayStats t;
   const _DayPage({required this.t});
@@ -72,9 +115,17 @@ class _DayPage extends StatelessWidget {
     final ss = sim.service;
     final met = ss != null && !t.closed && ss.lost <= ss.target;
     final st = sim.state;
-    final verdict =
-        t.closed ? 'CLOSED' : (met ? 'TARGET MET' : 'TARGET MISSED');
-    final vColor = t.closed ? Palette.muted : (met ? Palette.ok : Palette.bad);
+    final goal = t.closed
+        ? null
+        : OpeningGoal.of(sim, forecast: t.forecast, dayIndex: t.dayIndex);
+    final goalMet = goal?.met(t.groupsServed) ?? false;
+    final verdict = t.closed
+        ? 'CLOSED'
+        : goal != null
+            ? (goalMet ? 'GOAL MET' : 'GOAL MISSED')
+            : (met ? 'TARGET MET' : 'TARGET MISSED');
+    final good = goal != null ? goalMet : met;
+    final vColor = t.closed ? Palette.muted : (good ? Palette.ok : Palette.bad);
     final scale = MediaQuery.textScalerOf(context).scale(1);
     final cells = <(String, String, Color?, VoidCallback?)>[
       ('SERVED', '${t.groupsServed}', null, null),
@@ -135,7 +186,10 @@ class _DayPage extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('${weekdays[st.weekday].toUpperCase()} · AFTER SERVICE',
+            Text(
+                goal != null
+                    ? 'OPENING NIGHT · AFTER SERVICE'
+                    : '${weekdays[st.weekday].toUpperCase()} · AFTER SERVICE',
                 style: const TextStyle(
                     color: Palette.accent,
                     fontSize: 10.5,
@@ -147,6 +201,10 @@ class _DayPage extends StatelessWidget {
                     .textTheme
                     .titleLarge
                     ?.copyWith(height: 1.25)),
+            if (goal != null) ...[
+              const SizedBox(height: 14),
+              _GoalResult(goal: goal, served: t.groupsServed),
+            ],
             const SizedBox(height: 18),
             // Profit counts up.
             InkWell(

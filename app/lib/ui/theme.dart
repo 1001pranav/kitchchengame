@@ -124,11 +124,18 @@ ThemeData buildTheme([Color accent = Palette.accent]) {
           color: Palette.ink),
     ),
     tabBarTheme: const TabBarThemeData(
-      labelColor: Palette.accent,
+      labelColor: Palette.ink,
       unselectedLabelColor: Palette.muted,
-      indicatorColor: Palette.accent,
       dividerColor: Palette.line,
-      labelStyle: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.3),
+      indicatorSize: TabBarIndicatorSize.label,
+      indicator: UnderlineTabIndicator(
+          borderSide: BorderSide(color: Palette.accent, width: 2),
+          insets: EdgeInsets.only(bottom: 6)),
+      labelStyle: TextStyle(
+          fontWeight: FontWeight.w700, fontSize: 13, letterSpacing: 0.6),
+      unselectedLabelStyle: TextStyle(
+          fontWeight: FontWeight.w500, fontSize: 13, letterSpacing: 0.6),
+      overlayColor: WidgetStatePropertyAll(Colors.transparent),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: const Color(0xFF0E0C0A),

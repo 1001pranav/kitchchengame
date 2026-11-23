@@ -296,6 +296,7 @@ class _RestaurantSceneState extends State<RestaurantScene>
   String? _spotArea;
   bool _fresh = true;
   final _rnd = math.Random(5);
+  final Map<int, int> _ticketSeen = {}; // ticket id -> service tick first seen
 
   @override
   void initState() {
@@ -1134,24 +1135,14 @@ class _ScenePainter extends CustomPainter {
           height: 10);
       tp.paint(c, sign.center - Offset(tp.width / 2, tp.height / 2));
       if (queued > 0) {
-        // Order tickets waiting for this station.
-        final o = Offset(e.value.right - 4, e.value.top + 2);
-        for (var i = 0; i < math.min(queued, 4); i++) {
-          final r =
-              Rect.fromLTWH(o.dx - 6 + i * 2.5, o.dy - 8 - i * 1.5, 9, 11);
-          fillRRect(c, RRect.fromRectAndRadius(r, const Radius.circular(1)),
-              const Color(0xFFFFF8E1));
-          strokeRRect(c, RRect.fromRectAndRadius(r, const Radius.circular(1)),
-              const Color(0x55000000), 0.6);
-        }
-        final num = labelPainter('$queued', 9,
-            queued > 3 ? const Color(0xFFC24A3A) : const Color(0xFF2A2420));
-        num.paint(
-            c,
-            Offset(o.dx - 1 + math.min(queued, 4) * 2.5 - num.width / 2,
-                o.dy - 6));
+        // How many are waiting for this station.
+        final num = labelPainter(
+            '$queued', 8.5, queued > 3 ? Palette.bad : Palette.muted,
+            weight: FontWeight.w700, shadow: false);
+        num.paint(c, Offset(e.value.right - num.width - 2, e.value.top - 10));
       }
     }
+    _ticketRail(c, t);
     // Ready plates on the pass.
     var ready = 0;
     for (final k in ss.tickets) {
@@ -1188,6 +1179,62 @@ class _ScenePainter extends CustomPainter {
           8.5,
           Palette.bad);
       tp.paint(c, Offset(l.sink.right - tp.width, l.sink.bottom + 3));
+    }
+  }
+
+  /// Order slips hanging over the pass, oldest first. Cream when new, amber
+  /// after ten minutes, red after twenty; a lit top edge while it cooks.
+  void _ticketRail(Canvas c, double t) {
+    final live = ss.tickets
+        .where((k) => k.state == 'wait' || k.state == 'cook')
+        .toList();
+    for (final k in live) {
+      s._ticketSeen.putIfAbsent(k.id, () => ss.tick);
+    }
+    if (s._ticketSeen.length > 300) {
+      final ids = live.map((k) => k.id).toSet();
+      s._ticketSeen.removeWhere((id, _) => !ids.contains(id));
+    }
+    live.sort((a, b) => s._ticketSeen[a.id]!.compareTo(s._ticketSeen[b.id]!));
+    final y = l.pass.top - 19;
+    final steel = Paint()
+      ..color = const Color(0xFF8C9096)
+      ..strokeWidth = 1.2;
+    c.drawLine(Offset(l.pass.left + 4, y), Offset(l.pass.right - 4, y), steel);
+    const w = 10.0, h = 14.0, gap = 12.5;
+    final fit = ((l.pass.width - 30) / gap).floor();
+    for (var i = 0; i < math.min(live.length, fit); i++) {
+      final k = live[i];
+      final age = ss.tick - s._ticketSeen[k.id]!;
+      final late = age >= 20;
+      final head = k.state == 'cook'
+          ? const Color(0xFFE0893C)
+          : late
+              ? const Color(0xFFD2553F)
+              : (age >= 10 ? const Color(0xFFE2AE52) : const Color(0xFFBFB6A6));
+      final x = l.pass.left + 10 + i * gap;
+      c.save();
+      c.translate(x + w / 2, y);
+      c.rotate(math.sin(t * (late ? 5 : 1.6) + k.id) * (late ? 0.09 : 0.04));
+      final body = Rect.fromLTWH(-w / 2, 0, w, h);
+      c.drawRect(body.shift(const Offset(0.8, 1.2)),
+          Paint()..color = const Color(0x66000000));
+      c.drawRect(body, Paint()..color = const Color(0xFFF3EAD8));
+      c.drawRect(Rect.fromLTWH(-w / 2, 0, w, 3), Paint()..color = head);
+      final ink = Paint()
+        ..color = const Color(0x66332A22)
+        ..strokeWidth = 0.7;
+      for (final ly in [6.0, 8.6, 11.2]) {
+        c.drawLine(
+            Offset(-w / 2 + 2, ly), Offset(w / 2 - (ly > 10 ? 4 : 2), ly), ink);
+      }
+      c.drawCircle(Offset.zero, 1.1, Paint()..color = const Color(0xFF5B5F64));
+      c.restore();
+    }
+    if (live.length > fit) {
+      final more = labelPainter('+${live.length - fit}', 9, Palette.bad,
+          weight: FontWeight.w800);
+      more.paint(c, Offset(l.pass.left + 10 + fit * gap, y + 2));
     }
   }
 

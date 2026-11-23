@@ -36,7 +36,9 @@ extension _Staff on Sim {
       if (lf('festival_absence') && _festivalOn(state.dayIndex) != null) {
         p += (state.flags['${loc.id}:festival_absence_pct'] ?? 0) / 100;
       }
-      if (_rng.chance(p)) {
+      // Everyone turns up for opening night (the roll still happens, so the
+      // random stream is the same as any other day).
+      if (_rng.chance(p) && state.dayIndex > 0) {
         s.absentToday = true;
         state.pendingNotices
             .add('${s.name} (${roleName(s.role)}) is absent today.');
@@ -47,7 +49,7 @@ extension _Staff on Sim {
       s.workingToday = true;
       var pLate = (100 - s.reliability) / 300;
       if (s.hasTrait('trait_often_late')) pLate *= 2;
-      if (_rng.chance(pLate)) {
+      if (_rng.chance(pLate) && state.dayIndex > 0) {
         s.lateTick = _rng.nextInt(15, 60);
         _note('late', '${s.name} arrived late (${_clock(s.lateTick)})', 0);
       }

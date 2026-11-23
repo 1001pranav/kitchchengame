@@ -44,7 +44,15 @@ Future<void> main() async {
   // Skip ahead in the day so the room is busy when the recording starts.
   c.send(const StartService());
   if (screen == 'close') {
-    c.send(const EndService());
+    // Play the whole night out so the report has something to say.
+    if (Uri.base.queryParameters['full'] == '1') {
+      c.send(const OwnerStand('pass'));
+      for (var i = 0; i < 2000 && c.state!.phase == 'service'; i++) {
+        c.sim!.tick();
+        clear();
+      }
+    }
+    if (c.state!.phase == 'service') c.send(const EndService());
     clear();
     runApp(KitchenChainApp(controller: c));
     return;

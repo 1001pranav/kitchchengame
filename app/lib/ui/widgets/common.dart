@@ -203,7 +203,7 @@ class SectionTitle extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(child: Container(height: 1, color: Palette.line)),
-        if (trailing != null) trailing!,
+        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ]),
     );
   }

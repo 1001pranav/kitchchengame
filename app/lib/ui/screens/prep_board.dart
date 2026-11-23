@@ -7,6 +7,7 @@ import '../theme.dart';
 import '../widgets/juice.dart';
 import '../scene/shopfront.dart';
 import '../widgets/common.dart';
+import '../opening_goal.dart';
 
 const areaLabels = {
   'door': 'Door',
@@ -130,6 +131,7 @@ class PrepBoard extends StatelessWidget {
     final fest = sim.festivalOn(st.dayIndex);
     final orders = l.orders;
     final target = sim.targetPreview();
+    final goal = OpeningGoal.of(sim);
     final closed = l.closedUntil > st.dayIndex;
     final busy = fc.label.contains('busy');
     final stations = <(String, int, bool)>[
@@ -224,6 +226,10 @@ class PrepBoard extends StatelessWidget {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    if (goal != null) ...[
+                      _OpeningGoalCard(goal: goal, forecast: fc.groups),
+                      const SizedBox(height: 12),
+                    ],
                     // Tonight in three numbers.
                     _Brief(items: [
                       (
@@ -372,6 +378,75 @@ class PrepBoard extends StatelessWidget {
 }
 
 /// Three numbers side by side, separated by hairlines.
+/// Opening night: one goal, stated like a challenge, not a tooltip.
+class _OpeningGoalCard extends StatelessWidget {
+  final OpeningGoal goal;
+  final int forecast;
+  const _OpeningGoalCard({required this.goal, required this.forecast});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2A2218), Color(0xFF1A1612)],
+        ),
+        border: Border.all(color: Palette.accent.withValues(alpha: 0.55)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Row(children: [
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('OPENING NIGHT · YOUR GOAL',
+                style: TextStyle(
+                    color: Palette.accent,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text('Serve ${goal.parties} parties',
+                style: const TextStyle(
+                    fontFamily: displayFont,
+                    fontSize: 26,
+                    height: 1.1,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            Text(
+                'About $forecast are expected. The staff will not manage it alone: '
+                'stand where the queue builds and keep it moving.',
+                style: const TextStyle(
+                    color: Palette.muted, fontSize: 13, height: 1.35)),
+          ]),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          width: 58,
+          height: 58,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Palette.accent, width: 1.5),
+          ),
+          alignment: Alignment.center,
+          child: FittedBox(
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Text('${goal.parties}',
+                  style: const TextStyle(
+                      fontFamily: displayFont,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Palette.accent)),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
 class _Brief extends StatelessWidget {
   final List<(String, String, String, VoidCallback)> items;
   const _Brief({required this.items});

@@ -6,6 +6,7 @@ import 'package:sim_core/sim_core.dart';
 import '../../state/game_controller.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../opening_goal.dart';
 import 'prep_board.dart';
 import '../widgets/juice.dart';
 import '../scene/pictures.dart';
@@ -59,6 +60,11 @@ class _ServiceViewState extends State<ServiceView> {
       onSelect: (g) =>
           setState(() => selectedGroup = g == selectedGroup ? null : g),
     );
+    final goal =
+        OpeningGoal.of(sim, forecast: sim.state.viewLoc.today.forecast);
+    final goalStrip = goal == null
+        ? const SizedBox.shrink()
+        : _GoalStrip(goal: goal, served: sim.state.viewLoc.today.groupsServed);
     final controls = _Controls(
         ss: ss,
         selectedGroup: selectedGroup,
@@ -69,6 +75,7 @@ class _ServiceViewState extends State<ServiceView> {
         return SingleChildScrollView(
           child: Column(children: [
             _ClockBar(ss: ss),
+            goalStrip,
             SizedBox(
                 height: RestaurantScene.neededHeight(
                     box.maxWidth, ss.tables.length),
@@ -79,6 +86,7 @@ class _ServiceViewState extends State<ServiceView> {
       }
       return Column(children: [
         _ClockBar(ss: ss),
+        goalStrip,
         Expanded(child: room),
         controls,
       ]);
@@ -87,6 +95,99 @@ class _ServiceViewState extends State<ServiceView> {
 }
 
 // ------------------------------------------------------------------ top line
+
+/// Opening night only: parties served against the goal, live.
+class _GoalStrip extends StatefulWidget {
+  final OpeningGoal goal;
+  final int served;
+  const _GoalStrip({required this.goal, required this.served});
+  @override
+  State<_GoalStrip> createState() => _GoalStripState();
+}
+
+class _GoalStripState extends State<_GoalStrip> {
+  late bool _wasMet = widget.goal.met(widget.served);
+
+  @override
+  void didUpdateWidget(_GoalStrip old) {
+    super.didUpdateWidget(old);
+    final met = widget.goal.met(widget.served);
+    if (met && !_wasMet) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          showToast(context, 'Opening-night goal met. Keep them coming.',
+              bad: false);
+        }
+      });
+    }
+    _wasMet = met;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final g = widget.goal;
+    final met = g.met(widget.served);
+    final k = (widget.served / g.parties).clamp(0.0, 1.0);
+    final col = met ? Palette.accent : Palette.ink;
+    return Semantics(
+      label:
+          'Opening night goal: ${widget.served} of ${g.parties} parties served',
+      child: Container(
+        color: const Color(0xFF171410),
+        padding: const EdgeInsets.fromLTRB(14, 7, 14, 8),
+        child: Row(children: [
+          Text(met ? 'GOAL MET' : 'OPENING NIGHT',
+              style: TextStyle(
+                  color: met ? Palette.accent : Palette.muted,
+                  fontSize: 9,
+                  letterSpacing: 1.6,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: Stack(children: [
+                Container(height: 4, color: Palette.line),
+                TweenAnimationBuilder<double>(
+                  tween: Tween(end: k),
+                  duration: const Duration(milliseconds: 500),
+                  curve: Curves.easeOutCubic,
+                  builder: (_, v, __) => FractionallySizedBox(
+                    widthFactor: v,
+                    child: Container(
+                        height: 4,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [
+                            Palette.accent.withValues(alpha: 0.6),
+                            Palette.accent
+                          ]),
+                        )),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text.rich(
+              TextSpan(children: [
+                TextSpan(
+                    text: '${widget.served}',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800, fontSize: 13, color: col)),
+                TextSpan(
+                    text: ' / ${g.parties}',
+                    style: const TextStyle(
+                        color: Palette.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+              ]),
+              style: const TextStyle(
+                  fontFeatures: [FontFeature.tabularFigures()])),
+        ]),
+      ),
+    );
+  }
+}
 
 class _ClockBar extends StatelessWidget {
   final ServiceState ss;

@@ -5,6 +5,7 @@ import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
 
 class StockTab extends StatelessWidget {
   const StockTab({super.key});
@@ -13,13 +14,11 @@ class StockTab extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Column(children: [
-        Container(
-            color: Palette.surface,
-            child: const TabBar(tabs: [
-              Tab(text: 'Stock'),
-              Tab(text: 'Suppliers'),
-              Tab(text: 'Auto-order')
-            ])),
+        const GameTabBar(tabs: [
+          Tab(text: 'Stock'),
+          Tab(text: 'Suppliers'),
+          Tab(text: 'Auto-order')
+        ]),
         const Expanded(
             child: TabBarView(
                 children: [_StockList(), _Suppliers(), _ParLevels()])),
@@ -38,39 +37,97 @@ class _StockList extends StatelessWidget {
     final use = sim.expectedDailyUse();
     final used = use.keys.toSet()..addAll(l.stock.map((b) => b.ingredientId));
     final canOrder = sim.state.phase != 'service';
+    final risks = sim.runOutRisks();
+    final useToday = used
+        .where(
+            (id) => l.stock.any((b) => b.ingredientId == id && b.daysLeft <= 1))
+        .length;
+    final value = l.stock.fold<double>(
+        0, (a, b) => a + b.qty * sim.unitPrice('sup_standard', b.ingredientId));
+    final urgent = risks.isNotEmpty && canOrder;
     return Centered(
       child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Row(children: [
-              Expanded(
-                child: FilledButton.icon(
-                  style: FilledButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50)),
-                  onPressed: canOrder ? () => showOrderSheet(context) : null,
-                  icon: const Icon(Icons.add_shopping_cart),
-                  label:
-                      Text(canOrder ? 'Place an order' : 'Order after service'),
-                ),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 14, 2, 14),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('THE LARDER',
+                        style: TextStyle(
+                            color: Palette.accent,
+                            fontSize: 10.5,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 3),
+                    Text(
+                        risks.isEmpty
+                            ? 'Stocked for tomorrow'
+                            : '${risks.length} running out',
+                        style: const TextStyle(
+                            fontFamily: displayFont,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700)),
+                  ]),
+            ),
+            StatStrip(items: [
+              StatItem('RUN OUT', '${risks.length}', 'by tomorrow',
+                  color: risks.isEmpty ? null : Palette.bad),
+              StatItem('USE TODAY', '$useToday', 'or it goes off',
+                  color: useToday == 0 ? null : Palette.warn),
+              StatItem('ON SHELVES', fmtMoney(value.round()), 'at cost'),
             ]),
+            const SizedBox(height: 14),
+            SizedBox(
+              height: 50,
+              child: urgent
+                  ? FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                          backgroundColor: Palette.tomato,
+                          foregroundColor: Colors.white),
+                      onPressed: () => showOrderSheet(context),
+                      icon: const Icon(Icons.local_shipping_outlined),
+                      label: const Text('PLACE AN ORDER',
+                          style: TextStyle(
+                              letterSpacing: 1.6, fontWeight: FontWeight.w700)),
+                    )
+                  : OutlinedButton.icon(
+                      onPressed:
+                          canOrder ? () => showOrderSheet(context) : null,
+                      icon: const Icon(Icons.local_shipping_outlined),
+                      label: Text(
+                          canOrder ? 'PLACE AN ORDER' : 'ORDER AFTER SERVICE',
+                          style: const TextStyle(
+                              letterSpacing: 1.6, fontWeight: FontWeight.w700)),
+                    ),
+            ),
             const SizedBox(height: 6),
             const Text(
-                'Orders arrive at the start of tomorrow. Cash & Carry is the only same-day option (prep only, pricier).',
-                style: TextStyle(color: Palette.muted, fontSize: 12.5)),
+                'Delivered tomorrow morning. Cash & Carry is same-day, before service only, and dearer.',
+                style: TextStyle(color: Palette.muted, fontSize: 12)),
             if (l.orders.isNotEmpty) ...[
               const SectionTitle('On order'),
-              for (final o in l.orders)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Panel(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+              LedgerGroup(children: [
+                for (final o in l.orders)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(children: [
-                      const Icon(Icons.local_shipping, color: Palette.muted),
+                      const Icon(Icons.local_shipping_outlined,
+                          color: Palette.muted, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                            '${sim.content.suppliers[o.supplierId]!.name} · ${o.lines.length} items · arrives ${o.dueDay <= sim.state.dayIndex + 1 ? 'tomorrow' : 'day ${o.dueDay + 1}'}'),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(sim.content.suppliers[o.supplierId]!.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w600)),
+                              Text(
+                                  '${o.lines.length} items · arrives ${o.dueDay <= sim.state.dayIndex + 1 ? 'tomorrow' : 'day ${o.dueDay + 1}'}',
+                                  style: const TextStyle(
+                                      color: Palette.muted, fontSize: 12)),
+                            ]),
                       ),
                       Money(o.total, size: 13),
                       if (o.placedDay == sim.state.dayIndex && canOrder)
@@ -81,22 +138,30 @@ class _StockList extends StatelessWidget {
                                 sendCmd(context, CancelOrder(o.id))),
                     ]),
                   ),
-                ),
+              ]),
             ],
             if (l.payables.isNotEmpty) ...[
               const SectionTitle('Bills to suppliers'),
-              for (final p in l.payables)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Panel(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              LedgerGroup(children: [
+                for (final p in l.payables)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(children: [
                       Icon(p.inherited ? Icons.history : Icons.receipt_long,
+                          size: 20,
                           color: p.inherited ? Palette.bad : Palette.muted),
                       const SizedBox(width: 10),
                       Expanded(
-                          child: Text('${p.label}\ndue day ${p.dueDay + 1}',
-                              style: const TextStyle(height: 1.3))),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(p.label,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w600)),
+                            Text('due day ${p.dueDay + 1}',
+                                style: const TextStyle(
+                                    color: Palette.muted, fontSize: 12)),
+                          ])),
                       Money(p.amount, size: 13),
                       const SizedBox(width: 6),
                       if (canOrder)
@@ -106,56 +171,47 @@ class _StockList extends StatelessWidget {
                             child: const Text('Pay')),
                     ]),
                   ),
-                ),
+              ]),
             ],
             for (final storage in ['chilled', 'dry', 'frozen']) ...[
               SectionTitle(
-                  '${storage[0].toUpperCase()}${storage.substring(1)} storage'),
-              Panel(
-                padding: const EdgeInsets.all(12),
-                child: Column(children: [
-                  Row(children: [
-                    Icon(AssetCatalog.storage(storage),
-                        size: 18, color: Palette.muted),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      flex: 3,
-                      child: Text(
-                          '${sim.stored(storage)} / ${sim.capacity(storage)} units',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      flex: 2,
-                      child: StatBar(
-                        sim.capacity(storage) == 0
-                            ? 1
-                            : sim.stored(storage) / sim.capacity(storage),
+                '${storage[0].toUpperCase()}${storage.substring(1)}',
+                trailing: Text(
+                    '${sim.stored(storage)} / ${sim.capacity(storage)}',
+                    style: TextStyle(
                         color: sim.stored(storage) > sim.capacity(storage)
                             ? Palette.bad
-                            : Palette.staff,
-                      ),
-                    ),
-                  ]),
-                  if (sim.stored(storage) > sim.capacity(storage))
-                    const Padding(
-                      padding: EdgeInsets.only(top: 6),
-                      child: Text(
-                          'Over capacity: everything in here goes off a day faster.',
-                          style: TextStyle(color: Palette.bad, fontSize: 12.5)),
-                    ),
-                  const SizedBox(height: 6),
-                  for (final id
-                      in (used
-                          .where((i) =>
-                              sim.content.ingredients[i]!.storage == storage)
-                          .toList()
-                        ..sort()))
-                    _IngRow(id: id, perDay: use[id] ?? 0),
-                ]),
+                            : Palette.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700)),
               ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Meter(
+                    sim.capacity(storage) == 0
+                        ? 1
+                        : sim.stored(storage) / sim.capacity(storage),
+                    color: sim.stored(storage) > sim.capacity(storage)
+                        ? Palette.bad
+                        : Palette.accent.withValues(alpha: 0.7),
+                    height: 2),
+              ),
+              if (sim.stored(storage) > sim.capacity(storage))
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: Text(
+                      'Over capacity: everything in here goes off a day faster.',
+                      style: TextStyle(color: Palette.bad, fontSize: 12.5)),
+                ),
+              LedgerGroup(children: [
+                for (final id
+                    in (used
+                        .where((i) =>
+                            sim.content.ingredients[i]!.storage == storage)
+                        .toList()
+                      ..sort()))
+                  _IngRow(id: id, perDay: use[id] ?? 0),
+              ]),
             ],
           ]),
     );
@@ -179,54 +235,66 @@ class _IngRow extends StatelessWidget {
         : batches.map((b) => b.daysLeft).reduce(math.min);
     final onOrder = l.orders.fold<int>(0, (a, o) => a + (o.lines[id] ?? 0));
     final cover = perDay <= 0 ? null : onHand / perDay;
+    final coverColor = cover == null
+        ? Palette.muted
+        : cover < 1
+            ? Palette.bad
+            : (cover < 2 ? Palette.warn : Palette.ok);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(children: [
         Expanded(
-          flex: 5,
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(ing.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-            Text(
-                'use-by ${ing.shelfLifeDays}d · ${sim.unitPrice('sup_standard', id).toStringAsFixed(2)}/unit',
-                style: const TextStyle(color: Palette.muted, fontSize: 11.5)),
+            Row(children: [
+              Flexible(
+                child: Text(ing.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14.5)),
+              ),
+              if (expiry != null && expiry <= 2) ...[
+                const SizedBox(width: 8),
+                StateDot(expiry <= 1 ? 'use today' : 'off in ${expiry}d',
+                    color: expiry <= 1 ? Palette.bad : Palette.warn),
+              ],
+            ]),
+            const SizedBox(height: 6),
+            Row(children: [
+              SizedBox(
+                width: 72,
+                child: Meter(cover == null ? 0 : cover / 4, color: coverColor),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                    cover == null
+                        ? 'not on the menu'
+                        : '${cover.toStringAsFixed(1)} days left',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        color: cover != null && cover < 1
+                            ? Palette.bad
+                            : Palette.muted,
+                        fontSize: 12)),
+              ),
+            ]),
           ]),
         ),
-        Expanded(
-            flex: 2,
-            child: Text('$onHand',
-                textAlign: TextAlign.right,
-                style: const TextStyle(fontWeight: FontWeight.w800))),
-        Expanded(
-          flex: 3,
-          child: Text(
-            cover == null ? '' : '${cover.toStringAsFixed(1)} days',
-            textAlign: TextAlign.right,
-            style: TextStyle(
-                color: cover != null && cover < 1 ? Palette.bad : Palette.muted,
-                fontWeight: cover != null && cover < 1
-                    ? FontWeight.w800
-                    : FontWeight.w500),
-          ),
-        ),
-        Expanded(
-          flex: 3,
-          child: expiry == null
-              ? const SizedBox()
-              : Align(
-                  alignment: Alignment.centerRight,
-                  child: Pill('${expiry}d',
-                      color: expiry <= 1
-                          ? Palette.bad
-                          : (expiry <= 2 ? Palette.warn : Palette.muted),
-                      icon: Icons.schedule)),
-        ),
-        Expanded(
-            flex: 2,
-            child: Text(onOrder > 0 ? '+$onOrder' : '',
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                    color: Palette.staff, fontWeight: FontWeight.w700))),
+        const SizedBox(width: 10),
+        Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+          Text('$onHand',
+              style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  fontFeatures: [FontFeature.tabularFigures()])),
+          Text(onOrder > 0 ? '+$onOrder coming' : 'in stock',
+              style: TextStyle(
+                  color: onOrder > 0 ? Palette.staff : Palette.muted,
+                  fontSize: 11)),
+        ]),
       ]),
     );
   }
