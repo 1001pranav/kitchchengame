@@ -1,0 +1,927 @@
+
+# ================================================================ chain.dart
+# Several outlets (doc 02 §15, doc 11 Parts B–D): travel, managers, requests, neglect,
+# skimming, the outlet market and building, selling and closing, badges, chain perks,
+# central kitchen, bulk contract and franchising (doc 13).
+
+const managerProfiles := {
+	"allRounder": [0.0, 0.0, 0.0], "peoplePerson": [15.0, -5.0, -10.0],
+	"tightShip": [-10.0, 15.0, -5.0], "numbers": [-5.0, -10.0, 15.0],
+}
+const profileNames := {"allRounder": "All-rounder", "peoplePerson": "People person", "tightShip": "Tight ship", "numbers": "Numbers"}
+const formatNames := {"neighbourhood": "Neighbourhood", "highStreet": "High street", "officeDistrict": "Office district"}
+const perkText := {
+	"perk_neighbourhood": "staff you promote to manager start with +5 people skill",
+	"perk_highStreet": "marketing costs 15% less everywhere",
+	"perk_officeDistrict": "delivery platforms take 16% instead of 20%",
+}
+
+# ---------------------------------------------------------- basics
+
+func _format(l: M.Location) -> Dictionary:
+	var f = b.map("FORMATS").get(l.format)
+	if f == null: f = b.map("FORMATS")["neighbourhood"]
+	var out := {}
+	for k in f: out[k] = float(f[k])
+	return out
+
+var _unattended: bool:
+	get: return state.ownerLocationId != loc.id or state.owner.restingToday
+
+## Average rating over all trading outlets.
+func _companyRating() -> float:
+	var ls: Array = state.openLocations.filter(func(l): return l.openDay <= state.dayIndex)
+	if ls.is_empty(): return state.loc.reputation
+	var a := 0.0
+	for l in ls: a += l.reputation
+	return a / ls.size()
+
+func _story(text: String) -> void:
+	loc.story.append(M.TimelineEntry.mk(state.dayIndex, text))
+	if loc.story.size() > 40: loc.story.remove_at(0)
+
+func _managerNote(text: String, cost: int) -> void:
+	if cost >= 0:
+		loc.managerCostWeek += cost
+	else:
+		loc.managerSaveWeek -= cost
+	loc.managerNotes.append(text)
+	if loc.managerNotes.size() > 12: loc.managerNotes.remove_at(0)
+
+func _expectedManagerWage(meanSkill: float) -> int:
+	return roundi(b.dmap("BASE_WAGE")["manager"] * (0.4 + 1.2 * meanSkill / 100))
+
+func _mastery(skill: float) -> float:
+	return clampf((skill - b.d("MASTERY_FROM")) / (b.d("MASTERY_FULL") - b.d("MASTERY_FROM")), 0, 1)
+
+## Standards slipping at an outlet the owner has not visited (doc 02 §15.5).
+func _slack() -> float:
+	if state.locations.size() < 2: return 0.0
+	var m := loc.manager
+	if m == null or not _unattended: return 0.0
+	var grace := m.managerSkill * m.managerSkill / b.d("NEGLECT_GRACE_SQ_DIV")
+	var neglect := maxf(0, (state.dayIndex - loc.lastVisitDay) - grace)
+	return minf(b.d("NEGLECT_MAX"), neglect * b.d("NEGLECT_PER_DAY"))
+
+# ---------------------------------------------------------- morning and evening
+
+func _chainMorning() -> void:
+	var ol := state.locationById(state.ownerLocationId)
+	if ol == null or ol.closedForGood:
+		state.ownerLocationId = state.openLocations[0].id
+	var vl := state.locationById(state.viewLocationId)
+	if vl == null or vl.closedForGood:
+		state.viewLocationId = state.ownerLocationId
+	if state.stage >= 3:
+		if state.marketRefreshDay < 0 or state.dayIndex >= state.marketRefreshDay:
+			_refreshOutletMarket()
+			state.marketRefreshDay = state.dayIndex + 28
+		if state.managerApplicants.is_empty() or state.dayIndex % 14 == 0:
+			_generateManagerApplicants()
+	# Offers for listed outlets (doc 02 §14.7).
+	for l in state.openLocations:
+		remove_where(l.saleOffers, func(o): return o.expiresDay < state.dayIndex)
+		if l.listedDay >= 0:
+			var waited: int = state.dayIndex - l.listedDay
+			if waited >= 7 and l.saleOffers.size() < 3 and _rng.chance(1.0 / 7):
+				var est: int = at(l, _saleEstimate)
+				l.saleOffers.append(M.SaleOffer.mk(roundi(est * _rng.range_f(0.8, 1.1)), state.dayIndex + 7))
+				state.pendingNotices.append("A buyer has made an offer for %s: %s (valid 7 days)." % [l.name, money(l.saleOffers[l.saleOffers.size() - 1].amount)])
+	# Old requests: unanswered for 3 days, the manager is fed up.
+	for r in state.requests:
+		if state.dayIndex - r.raisedDay > 3:
+			var rl := state.locationById(r.locationId)
+			var m: M.Staff = rl.manager if rl != null else null
+			if m != null: m.morale = maxf(0, m.morale - 2)
+	remove_where(state.requests, func(r): return state.dayIndex - r.raisedDay > 14 or state.locationById(r.locationId) == null)
+
+func _chainEvening() -> void:
+	for l in state.openLocations:
+		at(l, func():
+			# A visit: at least VISIT_MIN_TICKS of service with the owner there (doc 02 §15.3).
+			var present: bool = l.ownerTicksToday >= b.i("VISIT_MIN_TICKS") or \
+				(l.service != null and l.service.done == true and l.today.closed and state.ownerLocationId == l.id)
+			if present:
+				l.lastVisitDay = state.dayIndex
+				l.ownerDaysThisWeek += 1
+				var mm: M.Staff = l.manager
+				if mm != null and state.dayIndex - mm.lastCoachDay >= 7:
+					_growManager(mm, 1)
+					mm.lastCoachDay = state.dayIndex
+			var m: M.Staff = l.manager
+			if m == null: return
+			# Learning on the job: +1 to the weakest sub-skill per 28 days in post.
+			if state.dayIndex - m.lastLearnDay >= 28:
+				m.lastLearnDay = state.dayIndex
+				_growManager(m, 1)
+			# A dishonest manager skims (doc 02 §15.6).
+			if m.honesty < 40 and l.today.revenue > 0 and _rng.chance((40 - m.honesty) / 100 + _slack()):
+				var lost := roundi(l.today.revenue * b.d("SKIM_PCT"))
+				state.cash -= lost
+				l.today.other += lost
+				_note("skim", "Cash in the till was %s short of sales" % money(lost), lost)
+			# People mastery: the crew improves (doc 02 §15.16).
+			var pm := _mastery(m.people)
+			if pm > 0 and posmod(state.dayIndex - m.hiredDay, 28) == 27 and _rng.chance(pm):
+				for s in l.staff:
+					if not s.isManager and s.skill < 80: s.skill += 1
+				_managerNote("%s developed the crew (+1 skill each)" % m.name, -300))
+
+func _growManager(m: M.Staff, n: int) -> void:
+	for i in n:
+		if m.managerSkill >= m.potential: return
+		if m.people <= m.upkeep and m.people <= m.stockSkill:
+			m.people = minf(90, m.people + 1)
+		elif m.upkeep <= m.stockSkill:
+			m.upkeep = minf(90, m.upkeep + 1)
+		else:
+			m.stockSkill = minf(90, m.stockSkill + 1)
+	m.skill = round(m.managerSkill)
+
+# ---------------------------------------------------------- the manager runs prep
+
+func _managerPrep() -> void:
+	var l := loc
+	var m := l.manager
+	var p := l.policies
+	# People: rota mistakes, absence cover, fatigue care.
+	if _rng.chance((100 - m.people) / 300):
+		var working: Array = l.staff.filter(func(s): return s.workingToday and not s.isManager)
+		if not working.is_empty():
+			var s: M.Staff = _rng.pick(working)
+			s.workingToday = false
+			_managerNote("%s left %s off the rota by mistake" % [m.name, s.name], 150)
+			_note("managerRota", "%s left %s off the rota by mistake" % [m.name, s.name], 150)
+	for s in l.staff.filter(func(s): return s.absentToday):
+		if _rng.chance(m.people / 100):
+			var cover = first_or_null(l.staff, func(x): return (x.role == s.role or (x.isCook and s.isCook)) and not x.workingToday \
+				and not x.absentToday and x.absentUntil <= state.dayIndex and x.trainingUntil <= state.dayIndex)
+			if cover != null:
+				cover.workingToday = true
+				cover.workDayOffDay = state.dayIndex
+				cover.fatigue = minf(100, cover.fatigue + 6)
+				_managerNote("%s called in %s to cover %s" % [m.name, cover.name, s.name], -200)
+	if m.people >= 60:
+		for s in l.staff.filter(func(s): return s.workingToday and s.fatigue > 75 and not s.isManager):
+			var others := count(l.staff, func(x): return x != s and x.role == s.role and x.workingToday)
+			if others > 0:
+				s.workingToday = false
+				s.fatigue = maxf(0, s.fatigue - 30)
+	# Stock: order to cover today and tomorrow, with errors that shrink with skill.
+	if p.autoOrder:
+		var u := _rng.range_f(-1, 1)
+		var mult := 1 + u * (100 - m.stockSkill) / 200
+		# A good stock manager buys fresh food and meat from the specialists.
+		var plan := ["sup_farm", "sup_butcher", "sup_standard"] if m.stockSkill >= 60 else ["sup_standard"]
+		var ordered := {}
+		for sup in plan:
+			var so := _suggestedOrder(sup)
+			var lines := {}
+			for k in so:
+				lines[k] = roundi(so[k] * mult)
+			for k in lines.keys():
+				if lines[k] <= 0 or ordered.has(k): lines.erase(k)
+			if not lines.is_empty() and _orderTotal(sup, lines) >= content.suppliers[sup].minOrder:
+				for k in lines: ordered[k] = true
+			if not lines.is_empty() and _orderTotal(sup, lines) >= content.suppliers[sup].minOrder:
+				_placeOrder(sup, lines)
+				if mult > 1.15:
+					_managerNote("%s over-ordered stock" % m.name, roundi((mult - 1) * _orderTotal(sup, lines)))
+				if mult < 0.85:
+					_managerNote("%s under-ordered: dishes may sell out" % m.name, 200)
+		# Same-day top-up if something runs out today.
+		var short := {}
+		var use := _expectedDailyUse(l)
+		for ing in use:
+			var need: int = ceili(use[ing]) - l.stockOf(ing)
+			if need > 0 and m.stockSkill >= 50: short[ing] = need
+		if not short.is_empty() and state.cash > 2000:
+			_placeOrder("sup_cash_carry", short)
+	# People: a good manager develops the weakest cook when the course fits the limit.
+	if state.weekday == 1:
+		var cooks: Array = l.staff.filter(func(s): return s.isCook and s.skill < 70 and s.trainingUntil < state.dayIndex)
+		dsort(cooks, func(a, c): return cmpn(a.skill, c.skill))
+		if not cooks.is_empty():
+			var c: M.Staff = cooks[0]
+			var cost := roundi(b.d("TRAIN_COST_PER_SKILL") * c.skill)
+			if cost <= p.spendingLimit:
+				if m.people >= 60 and state.cash > 5000:
+					_train(c.id)
+					_managerNote("%s sent %s on a course" % [m.name, c.name], -200)
+			else:
+				# Beyond their authority: ask (doc 02 §15.10, kind "training").
+				_request("training", cost, null, c.id, null,
+					"%s (cook, skill %d) needs a cooking course. Pay %s?" % [c.name, roundi(c.skill), money(cost)], m.people)
+	# No head chef: ask to promote the best line cook. A promotion means a raise, so it is a request.
+	if not any(l.staff, func(s): return s.role == "headChef"):
+		var lc: Array = l.staff.filter(func(s): return s.role == "lineCook")
+		dsort(lc, func(a, c): return cmpn(c.skill, a.skill))
+		if not lc.is_empty() and lc[0].skill >= 50:
+			var c: M.Staff = lc[0]
+			var raise := maxi(0, _expectedWage("headChef", c.skill) - c.wage) * 7
+			_request("promote", raise, null, c.id, null,
+				"There is no head chef. Promote %s (skill %d)? Their pay rises by %s a week." % [c.name, roundi(c.skill), money(raise)], m.people)
+	# Upkeep: servicing, repairs within the spending limit, early warnings.
+	for e in l.equipment.duplicate():
+		var t: Content.EquipmentType = content.equipment[e.type]
+		if e.broken:
+			var mode := "proper" if m.upkeep >= 60 else "cheap"
+			var cost := roundi(t.price * float(b.map("REPAIR")[mode]["cost"]))
+			if cost <= p.spendingLimit and state.cash >= cost:
+				var inst := M.IncidentInstance.new()
+				inst.id = 0; inst.incidentId = "manager"; inst.subjectId = e.id; inst.createdDay = state.dayIndex
+				_applyEffect({"type": "repair", "mode": mode}, inst, [])
+				if mode == "cheap":
+					_managerNote("%s chose a cheap repair on the %s" % [m.name, t.name.to_lower()], roundi(t.price * 0.05))
+			else:
+				_request("repair", roundi(t.price * 0.25), roundi(t.price * 0.10), e.id, null,
+					"The %s is broken. Repair it properly?" % t.name.to_lower(), m.upkeep)
+			continue
+		if e.condition < p.maintenanceThreshold and state.dayIndex - e.lastMaintDay >= 7 and e.condition < _maxCondition(e) - 5:
+			if _rng.chance(clampf(0.3 + m.upkeep / 100, 0, 1)):
+				if e.condition >= 50 or state.weekday == 0: _maintain(e.id)
+			else:
+				_managerNote("%s skipped servicing the %s" % [m.name, t.name.to_lower()], 100)
+		if e.condition < 45 and _rng.chance(m.upkeep / 100) and _rng.chance(0.2):
+			_request("replace", t.price, roundi(t.price * 0.5), e.id, null,
+				"The %s is worn out (condition %d). Replace it?" % [t.name.to_lower(), roundi(e.condition)], m.upkeep)
+	# Requests for things beyond their authority (doc 02 §15.10).
+	for role_ in ["lineCook", "server", "dishwasher", "cleaner"]:
+		var have := count(l.staff, func(s): return s.role == role_ or (role_ == "lineCook" and s.role == "headChef"))
+		var need := 3 if role_ == "lineCook" else (2 if role_ == "server" else 1)
+		if have < need:
+			var wage := _expectedWage(role_, 50) * 7
+			if p.mayHire:
+				var a = first_or_null(state.applicants, func(x): return x.role == role_)
+				if a != null:
+					_hire(a.id)
+					continue
+			_request("hire", wage, null, null, role_, "We are short of a %s. Hire one?" % roleName(role_).to_lower(), m.people)
+	for s in l.staff.filter(func(s): return not s.isManager and s.morale < 45 and s.wage < _expectedWage(s.role, s.skill)):
+		var exp := _expectedWage(s.role, s.skill)
+		if p.mayGiveRaises:
+			_setWage(s.id, exp)
+		else:
+			_request("raise", (exp - s.wage) * 7, roundi((exp - s.wage) * 3.5), s.id, null,
+				"%s is unhappy and underpaid. Raise to %s a day?" % [s.name, money(exp)], m.people)
+	# Buzz recovers slowly after an ad: ask again only once the last one is three weeks gone.
+	var lastAd := -999
+	for c in l.campaigns: lastAd = maxi(lastAd, c.endDay)
+	if l.buzz < 0.25 and state.stage >= 2 and state.dayIndex - lastAd > 21:
+		_request("marketing", 3000, null, null, "localAd", "Buzz is low. Run a local ad?", m.managerSkill)
+
+func _request(kind: String, cost: int, cheaper, subjectId, subjectKey, text: String, skill: float) -> void:
+	if any(state.requests, func(r): return r.locationId == loc.id and r.kind == kind and r.subjectId == subjectId and r.subjectKey == subjectKey):
+		return
+	if not _rng.chance(clampf(0.4 + skill / 100, 0, 1)):
+		var mn: String = loc.manager.name if loc.manager != null else "The manager"
+		_managerNote("%s did not raise: %s" % [mn, text.split(".")[0].to_lower()], 100)
+		return
+	var r := M.Request.new()
+	r.id = state.allocId(); r.locationId = loc.id; r.kind = kind; r.subjectId = subjectId; r.subjectKey = subjectKey
+	r.cost = cost; r.cheaperCost = cheaper; r.text = text; r.raisedDay = state.dayIndex
+	state.requests.append(r)
+
+func _managerClose() -> void:
+	# Upkeep mastery slows wear (doc 02 §15.16): give some condition back.
+	var m := loc.manager
+	if m == null: return
+	var um := _mastery(m.upkeep)
+	if um > 0:
+		for e in loc.equipment:
+			if not e.broken:
+				e.condition = minf(_maxCondition(e), e.condition + content.equipment[e.type].wearPerDay * 0.3 * um)
+
+## What happens to a card nobody answers: the manager decides by the stance, else the default.
+func _ignoredChoice(inst: M.IncidentInstance) -> String:
+	var def: Content.IncidentDef = content.incidents[inst.incidentId]
+	var l := state.locationById(inst.locationId)
+	if l == null or l.manager == null or state.ownerLocationId == l.id:
+		return def.defaultOption
+	return at(l, func():
+		var opts: Array = def.options.filter(func(o): return _optionBlocked(o, inst) == null)
+		if opts.is_empty(): return def.defaultOption
+		var scored: Array = []
+		for o in opts: scored.append([o, _optionCashForManager(inst, o)])
+		dsort(scored, func(a, c): return cmpn(c[1], a[1]))
+		var within: Array = scored.filter(func(e): return -e[1] <= l.policies.spendingLimit)
+		var pool: Array = [scored[0]] if within.is_empty() else within
+		match l.policies.stance:
+			"frugal": return pool[0][0].id
+			"quality": return pool[pool.size() - 1][0].id
+		return pool[pool.size() / 2][0].id)
+
+func _optionCashForManager(inst: M.IncidentInstance, o: Content.IncidentOption) -> int:
+	var sum := 0
+	for e in o.effects:
+		if e.get("type") == "cash" and e.get("amount") != null and e.get("chance") == null:
+			sum += _amount(e["amount"], inst)
+		if e.get("type") == "repair" or e.get("type") == "replace":
+			var eq := loc.equipmentById(inst.subjectId)
+			if eq != null:
+				sum -= roundi(content.equipment[eq.type].price * (1.0 if e["type"] == "replace" else 0.25))
+	return sum
+
+# ---------------------------------------------------------- weekly per outlet
+
+func _weeklyOutlet(w: M.WeekRecord) -> void:
+	var l := loc
+	# Ledger (doc 02 §15.8).
+	if w.operatingProfit > 0: l.returned += w.operatingProfit
+	# Losing weeks and crisis (doc 02 §15.7), with an opening grace for new builds.
+	var inGrace: bool = l.openDay > 0 and state.dayIndex - l.openDay < 7 * b.i("OPENING_GRACE_WEEKS") \
+		and not any(l.weeks, func(x): return x.operatingProfit > 0)
+	if w.operatingProfit >= 0:
+		if l.crisis:
+			state.pendingNotices.append("%s is out of trouble." % l.name)
+			_story("Out of trouble")
+		l.lossWeeks = 0
+		l.crisis = false
+	elif not inGrace:
+		l.lossWeeks += 1
+		if l.lossWeeks >= 4 and not l.crisis and state.locations.size() > 1:
+			l.crisis = true
+			state.pendingNotices.append("%s has lost money four weeks running: it is in trouble. Staff are worried about their jobs." % l.name)
+			_story("In trouble after four losing weeks")
+			for s in l.staff:
+				s.moodMods.append(M.MoodMod.mk("Job security", -10, state.dayIndex + 28))
+		if l.lossWeeks >= 8 and state.locations.size() > 1:
+			_raiseIncident("inc_location_failing", null, null, true)
+	# Manager's profit bonus.
+	var m := l.manager
+	if m != null and m.bonusPct > 0 and w.operatingProfit > 0:
+		var bonus := roundi(w.operatingProfit * m.bonusPct / 100.0)
+		spend(bonus, "wages")
+	# Badges (doc 11 §D.1).
+	var wasGold := l.badge == "gold"
+	if w.operatingProfit > 0 and l.ownerDaysThisWeek <= 1:
+		l.goldWeeks += 1
+	else:
+		l.goldWeeks = 0
+	var badge := l.badge
+	if l.invested > 0 and l.returned >= l.invested * 0.5 and badge == "":
+		badge = "bronze"
+		l.buzz = minf(1, l.buzz + 0.2)
+	if l.invested > 0 and l.returned >= l.invested and l.reputation >= 4.0 and (badge == "bronze" or badge == ""):
+		badge = "silver"
+		for s in l.staff:
+			s.loyalty = minf(100, s.loyalty + 5)
+	if l.goldWeeks >= 8 and l.reputation >= 4.3 and badge != "gold":
+		badge = "gold"
+		l.buzz = minf(1, l.buzz + 0.4)
+		l.competition = maxf(0, l.competition - 0.1)
+		var perk := "perk_%s" % l.format
+		if not state.perks.has(perk):
+			state.perks[perk] = true
+			state.pendingNotices.append("Chain perk earned: %s." % perkText.get(perk, perk))
+	if wasGold and l.lossWeeks >= 4: badge = "silver"
+	if badge != l.badge:
+		var name := "" if badge.is_empty() else badge[0].to_upper() + badge.substr(1)
+		if not badge.is_empty():
+			state.pendingNotices.append("%s earned a %s badge." % [l.name, name])
+			_story("%s badge" % name)
+			_timeline("%s: %s badge" % [l.name, name])
+		l.badge = badge
+	l.managerCostWeek = 0
+	l.managerSaveWeek = 0
+
+func _weeklyChain() -> void:
+	# Central kitchen running cost.
+	if state.centralKitchen:
+		at(state.openLocations[0], func(): spend(b.i("CENTRAL_KITCHEN_WEEKLY"), "other"))
+	# Franchises pay their fees and sometimes embarrass the brand (doc 13).
+	if state.franchises > 0:
+		var fee := state.franchises * b.i("FRANCHISE_WEEKLY_FEE")
+		state.cash += fee
+		at(state.openLocations[0], func():
+			loc.today.other -= fee
+			_note("franchise", "Franchise fees: %s" % money(fee), 0))
+		if _rng.chance(b.d("FRANCHISE_SCANDAL_CHANCE") * state.franchises):
+			for l in state.openLocations:
+				l.reputation = maxf(0, l.reputation - 0.1)
+			state.pendingNotices.append("A franchisee served something awful and it went viral. Every outlet's rating fell by 0.1.")
+			_timeline("Franchise scandal: every rating −0.1")
+
+# ---------------------------------------------------------- travel
+
+var _globalTick: int:
+	get:
+		var t := 0
+		for l in state.openLocations:
+			var s: M.ServiceState = l.service
+			if s != null and s.tick > t: t = s.tick
+		return t
+
+func _travelTick() -> void:
+	if not state.travelling: return
+	if _globalTick >= state.travelUntilTick:
+		state.ownerLocationId = state.travelTo
+		state.viewLocationId = state.travelTo
+		state.travelTo = -1
+		var dest := state.locationById(state.ownerLocationId)
+		if dest != null and dest.service != null:
+			dest.service.ownerArea = state.owner.startArea if state.owner.startArea != null else "door"
+		emit("ownerArrived", {"locationId": state.ownerLocationId})
+
+func _ownerTravel(toId: int) -> CommandResult:
+	var to := state.locationById(toId)
+	if to == null or to.closedForGood: return CommandResult.fail(SimError.unknownId)
+	if toId == state.ownerLocationId and not state.travelling: return CommandResult.good()
+	if state.phase == "prep":
+		state.ownerLocationId = toId
+		state.viewLocationId = toId
+		return CommandResult.good()
+	if state.phase != "service": return CommandResult.fail(SimError.wrongPhase)
+	if state.travelling: return CommandResult.fail(SimError.limitReached, "You are already on the road.")
+	if state.owner.restingToday: return CommandResult.fail(SimError.locked, "You are resting today.")
+	var from := state.locationById(state.ownerLocationId)
+	if from != null and from.service != null:
+		at(from, func():
+			for id in ss.ownerQueue:
+				var tk := ss.task(id)
+				if tk != null: tk.reserved = false
+			ss.ownerQueue.clear()
+			ss.ownerArea = null)
+	state.travelTo = toId
+	state.travelUntilTick = _globalTick + b.i("TRAVEL_TICKS")
+	state.owner.energy = maxf(0, state.owner.energy - b.d("TRAVEL_ENERGY"))
+	emit("ownerTravelling", {"to": toId})
+	return CommandResult.good()
+
+# ---------------------------------------------------------- managers
+
+func _generateManagerApplicants() -> void:
+	state.managerApplicants.clear()
+	var r := _companyRating()
+	var grades := ["Trainee", "Junior", "Capable", "Senior", "Veteran"]
+	var w := [30.0, 30.0, 25.0, maxf(0.0, 10 + 10 * (r - 3.5)), maxf(0.0, 5 + 10 * (r - 4.0))]
+	var ranges := {"Trainee": [20, 34], "Junior": [35, 49], "Capable": [50, 64], "Senior": [65, 79], "Veteran": [80, 92]}
+	var used := {}
+	for l in state.locations:
+		for s in l.staff: used[s.name] = true
+	for i in 3:
+		var g: String = _rng.weighted(grades, w)
+		var mean := float(_rng.next_int(ranges[g][0], ranges[g][1]))
+		var m := _makeManager(mean, used)
+		state.managerApplicants.append(m)
+
+func _makeManager(mean: float, used: Dictionary, profile = null) -> M.Staff:
+	var prof: String = profile if profile != null else _rng.pick(managerProfiles.keys())
+	var off: Array = managerProfiles[prof]
+	var sub := func(i: int) -> float: return round(clampf(mean + off[i] + _rng.range_f(-5, 5), 5, 95))
+	var m := _makeStaff("manager", mean, 60, 1, used)
+	m.people = sub.call(0)
+	m.upkeep = sub.call(1)
+	m.stockSkill = sub.call(2)
+	m.profile = prof
+	m.potential = minf(95, m.managerSkill + _rng.next_int(5, 35))
+	m.skill = round(m.managerSkill)
+	m.wage = _expectedManagerWage(m.managerSkill)
+	m.askingWage = m.wage
+	m.dayOff = 7 # managers work every day the outlet is open (SPEC-GAP, doc 12)
+	m.traits = []
+	m.hiredDay = state.dayIndex
+	m.lastLearnDay = state.dayIndex
+	match m.grade:
+		"Veteran": m.bonusPct = 5
+		"Senior": m.bonusPct = 3
+		"Capable": m.bonusPct = 1
+		_: m.bonusPct = 0
+	return m
+
+func _hireManager(id: int) -> CommandResult:
+	var a = first_or_null(state.managerApplicants, func(x): return x.id == id)
+	if a == null: return CommandResult.fail(SimError.unknownId)
+	if loc.manager != null: return CommandResult.fail(SimError.limitReached, "%s already has a manager." % loc.name)
+	var r := _companyRating()
+	if (a.grade == "Senior" and r < 3.5) or (a.grade == "Veteran" and r < 4.0):
+		return CommandResult.fail(SimError.refused, "%s only joins companies rated %s stars or better." % [a.name, "4.0" if a.grade == "Veteran" else "3.5"])
+	state.managerApplicants.erase(a)
+	a.hiredDay = state.dayIndex
+	a.lastLearnDay = state.dayIndex
+	loc.staff.append(a)
+	_story("%s became manager (%s)" % [a.name, a.grade])
+	_timeline("%s: hired %s as manager (%s)" % [loc.name, a.name, a.grade])
+	return CommandResult.good()
+
+func _promoteToManager(staffId: int) -> CommandResult:
+	var s := loc.staffById(staffId)
+	if s == null: return CommandResult.fail(SimError.unknownId)
+	if not ["server", "cashier", "headChef"].has(s.role) or s.skill < 60:
+		return CommandResult.fail(SimError.invalidValue, "Only a server, cashier or head chef with skill 60+ can become a manager.")
+	if loc.manager != null:
+		return CommandResult.fail(SimError.limitReached, "This outlet already has a manager. Transfer them first.")
+	var mean := 0.6 * s.skill + 10
+	var m := _makeManager(mean, {}, "allRounder")
+	if state.perks.has("perk_neighbourhood"):
+		m.people = minf(95, m.people + 5)
+	s.role = "manager"
+	s.people = m.people
+	s.upkeep = m.upkeep
+	s.stockSkill = m.stockSkill
+	s.profile = "allRounder"
+	s.potential = minf(95, m.potential + 10)
+	s.skill = round(s.managerSkill)
+	s.wage = _expectedManagerWage(s.managerSkill)
+	s.loyalty = minf(100, s.loyalty + 15)
+	s.dayOff = 7
+	s.lastLearnDay = state.dayIndex
+	s.lastGrowthDay = state.dayIndex
+	_story("%s promoted to manager" % s.name)
+	_timeline("Promoted %s to manager at %s" % [s.name, loc.name])
+	return CommandResult.good()
+
+func _transfer(staffId: int, toId: int) -> CommandResult:
+	var to := state.locationById(toId)
+	var s := loc.staffById(staffId)
+	if to == null or to.closedForGood: return CommandResult.fail(SimError.unknownId)
+	if s == null: return CommandResult.fail(SimError.unknownId)
+	if to.id == loc.id: return CommandResult.fail(SimError.invalidValue)
+	if s.isManager and to.manager != null:
+		return CommandResult.fail(SimError.limitReached, "%s already has a manager." % to.name)
+	loc.staff.erase(s)
+	to.staff.append(s)
+	s.absentUntil = maxi(s.absentUntil, state.dayIndex + (2 if state.phase == "close" else 1))
+	s.workingToday = false
+	s.morale = maxf(0, s.morale - 5)
+	s.moodMods.append(M.MoodMod.mk("New place", -3, state.dayIndex + 7))
+	_story("%s moved to %s" % [s.name, to.name])
+	var vl := state.locationById(state.viewLocationId)
+	var fromName: String = vl.name if vl != null else "another outlet"
+	at(to, func(): _story("%s arrived from %s" % [s.name, fromName]))
+	return CommandResult.good()
+
+func _answerRequest(id: int, answer: String) -> CommandResult:
+	var r = first_or_null(state.requests, func(x): return x.id == id)
+	if r == null: return CommandResult.fail(SimError.unknownId)
+	var l := state.locationById(r.locationId)
+	if l == null: return CommandResult.fail(SimError.unknownId)
+	if answer == "deny":
+		state.requests.erase(r)
+		var m := l.manager
+		if m != null: m.morale = maxf(0, m.morale - 2)
+		return CommandResult.good()
+	var cheaper: bool = answer == "cheaper" and r.cheaperCost != null
+	var cost: int = r.cheaperCost if cheaper else r.cost
+	var res: CommandResult = at(l, func() -> CommandResult:
+		match r.kind:
+			"repair":
+				var e := l.equipmentById(r.subjectId)
+				if e == null or not e.broken: return CommandResult.good()
+				if state.cash < cost: return CommandResult.fail(SimError.notEnoughCash)
+				var inst := M.IncidentInstance.new()
+				inst.id = 0; inst.incidentId = "request"; inst.subjectId = e.id; inst.createdDay = state.dayIndex
+				_applyEffect({"type": "repair", "mode": "cheap" if cheaper else "proper"}, inst, [])
+				return CommandResult.good()
+			"replace":
+				var e := l.equipmentById(r.subjectId)
+				if e == null: return CommandResult.good()
+				return _buyEquipment(e.type, cheaper, e.id)
+			"hire":
+				var role_: String = r.subjectKey
+				var cands: Array = state.applicants.filter(func(a): return a.role == role_ or (role_ == "lineCook" and a.role == "headChef"))
+				dsort(cands, func(a, c): return cmpn(c.skill, a.skill))
+				if cands.is_empty():
+					return CommandResult.fail(SimError.unknownId, "No %s applied this week. New applicants come on Sunday." % roleName(role_).to_lower())
+				return _hire(cands[0].id)
+			"raise":
+				var s := l.staffById(r.subjectId)
+				if s == null: return CommandResult.good()
+				var exp := _expectedWage(s.role, s.skill)
+				return _setWage(s.id, roundi((s.wage + exp) / 2.0) if cheaper else exp)
+			"marketing":
+				return _startCampaign(r.subjectKey if r.subjectKey != null else "localAd")
+			"training":
+				var s := l.staffById(r.subjectId)
+				if s == null or s.trainingUntil > state.dayIndex: return CommandResult.good()
+				return _train(s.id)
+			"promote":
+				var s := l.staffById(r.subjectId)
+				if s == null or s.role != "lineCook" or any(l.staff, func(o): return o.role == "headChef"):
+					return CommandResult.good()
+				return _promote(s.id)
+		return CommandResult.good())
+	if res.ok: state.requests.erase(r)
+	return res
+
+func _audit() -> CommandResult:
+	if state.ownerLocationId != loc.id:
+		return CommandResult.fail(SimError.locked, "You must be at %s to audit it." % loc.name)
+	var cost := b.i("AUDIT_COST")
+	if state.cash < cost: return CommandResult.fail(SimError.notEnoughCash)
+	spend(cost, "other")
+	var cheats: Array = loc.staff.filter(func(s): return s.honesty < 40 and (s.isManager or s.role == "cashier" or s.role == "server"))
+	for s in cheats:
+		s.daysWorked = maxi(s.daysWorked, 14)
+	var text: String
+	if cheats.is_empty():
+		text = "The books are clean. Nobody is taking money."
+	else:
+		var names: Array = []
+		for s in cheats: names.append("%s (%s)" % [s.name, roleName(s.role).to_lower()])
+		text = "The audit found who is taking money: %s." % ", ".join(names)
+	_note("audit", text, 0)
+	return CommandResult.good(text)
+
+# ---------------------------------------------------------- the outlet market
+
+func _refreshOutletMarket() -> void:
+	state.outletMarket.clear()
+	var names: Array = theme.restaurantNames.duplicate()
+	_rng.shuffle(names)
+	var taken := {}
+	for l in state.locations: taken[l.name] = true
+	var free: Array = names.filter(func(n): return not taken.has(n))
+	var factor := b.d("TAKEOVER_MARKET_PRICE_FACTOR")
+	var ni := 0
+	for tier in content.tiers:
+		var saved := state.nextId
+		var nm: String
+		if free.is_empty():
+			nm = "Outlet %d" % state.nextLocId
+		else:
+			nm = free[ni % free.size()]
+			ni += 1
+		var l := _generateLocation(tier, nm)
+		state.nextId = maxi(saved, state.nextId)
+		l.format = ("highStreet" if _rng.chance(0.5) else "officeDistrict") if (state.stage >= 3 and _rng.chance(0.4)) else "neighbourhood"
+		l.rentWeekly = roundi(l.rentWeekly * _format(l).get("rentMult", 1.0))
+		state.outletMarket.append(M.Offer.mk(tier.id, roundi(tier.price * factor), 0, l))
+	state.sites.clear()
+	var classes := ["weak", "average", "good", "prime"]
+	for i in 3:
+		var fmt: String = ["neighbourhood", "highStreet", "officeDistrict"][i]
+		var sid := state.allocId()
+		var cls: String = _rng.pick(classes)
+		var area: String = _rng.pick(["North", "East", "River", "Market", "Station", "Park", "Old Town", "Harbour"])
+		state.sites.append(M.Site.mk(sid, cls, fmt, "%s %s" % [area, "Business Park" if fmt == "officeDistrict" else ("High Street" if fmt == "highStreet" else "Corner")]))
+
+func _weeklyFixed(l: M.Location) -> int:
+	var w := 0
+	for s in l.staff: w += s.wage * 6
+	return l.rentWeekly + w + roundi(b.d("UTILITIES_BASE") * 7)
+
+func _adopt(l: M.Location, invested: int, themeId = null) -> M.Location:
+	l.id = state.nextLocId
+	state.nextLocId += 1
+	l.themeId = themeId if themeId != null else state.themeId
+	l.invested = invested
+	l.lastVisitDay = state.dayIndex
+	l.originalTables = l.tableSeats.size()
+	l.today = M.DayStats.mk(state.dayIndex)
+	if l.format == "officeDistrict":
+		l.deliveryOn = true
+		state.perks["delivery_unlocked"] = true
+	if not state.brands.has(l.themeId): state.brands.append(l.themeId)
+	for s in l.staff:
+		s.id = state.allocId()
+		s.hiredDay = state.dayIndex
+	for e in l.equipment:
+		e.id = state.allocId()
+	# A different cuisine needs its own menu and kitchen (doc 13: second brand).
+	if l.themeId != state.themeId or any(l.menu.keys(), func(d): return content.dishes[d].theme != l.themeId and l.themeId != "mixed"):
+		var th: Content.CuisineTheme = content.themes[l.themeId]
+		l.menu.clear()
+		for d in content.dishes_for(l.themeId):
+			var mi := M.MenuItem.new()
+			mi.dishId = d.id; mi.price = d.basePrice; mi.enabled = th.startingMenu == null or th.startingMenu.has(d.id)
+			l.menu[d.id] = mi
+		remove_where(l.equipment, func(e): return content.equipment[e.type].kind == "station")
+		for e in th.startingEquipment["base"]:
+			for i in e[1]:
+				var q := M.Equipment.new()
+				q.id = state.allocId(); q.type = e[0]; q.condition = 70; q.ageDays = 400
+				l.equipment.append(q)
+	state.locations.append(l)
+	return l
+
+func _buyOutlet(index: int, themeId) -> CommandResult:
+	if state.stage < 3: return CommandResult.fail(SimError.locked, "Opening more outlets unlocks at Stage 3.")
+	if index < 0 or index >= state.outletMarket.size(): return CommandResult.fail(SimError.unknownId)
+	if themeId != null and themeId != state.themeId and state.stage < 5:
+		return CommandResult.fail(SimError.locked, "A second brand (another cuisine) unlocks at Stage 5.")
+	var o: M.Offer = state.outletMarket[index]
+	var reserve := b.i("OPENING_RESERVE_WEEKS") * _weeklyFixed(o.location)
+	if state.cash - o.price < reserve:
+		return CommandResult.fail(SimError.notEnoughCash, "After paying %s you must keep %s (two weeks of its running costs). Cash now: %s." % [money(o.price), money(reserve), money(state.cash)])
+	state.cash -= o.price
+	state.outletMarket.remove_at(index)
+	var l := _adopt(o.location, o.price, themeId)
+	l.openDay = state.dayIndex + 1
+	at(l, func():
+		_activateHiddenProblems(l)
+		_story("Bought for %s" % money(o.price)))
+	_timeline("Bought a second-hand restaurant: %s (%s)" % [l.name, money(o.price)])
+	state.pendingNotices.append("%s is yours. It trades from tomorrow. It needs a manager on days you are not there." % l.name)
+	return CommandResult.good(l.id)
+
+func _inspectOutlet(index: int) -> CommandResult:
+	if index < 0 or index >= state.outletMarket.size(): return CommandResult.fail(SimError.unknownId)
+	var o: M.Offer = state.outletMarket[index]
+	if o.inspected: return CommandResult.fail(SimError.limitReached, "Already inspected.")
+	var cost := b.i("DUE_DILIGENCE_COST")
+	if state.cash < cost: return CommandResult.fail(SimError.notEnoughCash)
+	state.cash -= cost
+	o.inspected = true
+	var hidden: Array = o.location.hidden.duplicate()
+	_rng.shuffle(hidden)
+	for k in ceili(hidden.size() / 2.0):
+		hidden[k].revealed = true
+	return CommandResult.good()
+
+## Cost of building from scratch (doc 02 §15.9 route B), broken down for the UI.
+func _buildCost(site: M.Site, size: String, fitOut: String, themeId: String) -> Dictionary:
+	var cls: Content.LocationClass = content.locationClasses[site.classId]
+	var sizeT: Dictionary = b.map("BUILD_SIZES")[size]
+	var fitT: Dictionary = b.map("FIT_OUTS")[fitOut]
+	var rent := roundi(cls.weeklyRent * float(sizeT["rent"]) * float(b.map("FORMATS")[site.format]["rentMult"]))
+	var fit := roundi(float(fitT["cost"]) * float(sizeT["fitOut"]))
+	var eq := 0
+	var th: Content.CuisineTheme = content.themes[themeId]
+	for e in th.startingEquipment["base"]:
+		eq += content.equipment[e[0]].price * e[1]
+	for t in ["eq_fridge", "eq_freezer", "eq_shelving", "eq_dish_machine", "eq_hood", "eq_pos"]:
+		eq += content.equipment[t].price
+	return {"fitOut": fit, "equipment": eq, "deposit": rent * 4, "licence": b.i("OPENING_LICENCE"), "rent": rent, "days": int(fitT["days"])}
+
+func _buildOutlet(siteId: int, size: String, fitOut: String, themeId) -> CommandResult:
+	if state.stage < 3: return CommandResult.fail(SimError.locked, "Opening more outlets unlocks at Stage 3.")
+	var site = first_or_null(state.sites, func(s): return s.id == siteId)
+	if site == null: return CommandResult.fail(SimError.unknownId)
+	var th: String = themeId if themeId != null else state.themeId
+	if th != state.themeId and state.stage < 5:
+		return CommandResult.fail(SimError.locked, "A second brand (another cuisine) unlocks at Stage 5.")
+	var c := _buildCost(site, size, fitOut, th)
+	var upFront: int = c.fitOut + c.equipment + c.deposit + c.licence
+	var sizeT: Dictionary = b.map("BUILD_SIZES")[size]
+	var fitT: Dictionary = b.map("FIT_OUTS")[fitOut]
+	var tables := int(sizeT["tables"])
+	var staffWeek := 6 * (220 + 140 + 80 + 100 * 2 + 80)
+	var reserve: int = b.i("OPENING_RESERVE_WEEKS") * (c.rent + staffWeek)
+	if state.cash - upFront < reserve:
+		return CommandResult.fail(SimError.notEnoughCash, "You need %s now plus %s in reserve." % [money(upFront), money(reserve)])
+	state.cash -= upFront
+	state.sites.erase(site)
+	var six := maxi(1, roundi(tables * 0.15))
+	var four := roundi(tables * 0.45)
+	var seats: Array = []
+	for i in tables - six - four: seats.append(2)
+	for i in four: seats.append(4)
+	for i in six: seats.append(6)
+	var l := M.Location.new()
+	l.id = 0; l.name = site.name; l.tierId = "good"; l.classId = site.classId; l.rentWeekly = c.rent
+	l.tableSeats = seats; l.reputation = b.d("SCRATCH_START_RATING"); l.hygiene = 95
+	l.buzz = float(fitT["buzz"]); l.freshness = 1; l.awareness = b.d("SCRATCH_START_AWARENESS")
+	l.format = site.format
+	for ing in content.ingredients.values():
+		l.priceIndex[ing.id] = state.loc.priceIndex.get(ing.id, 1.0)
+	for s in content.suppliers.values():
+		l.supplierRel[s.id] = 50
+	var thm: Content.CuisineTheme = content.themes[th]
+	for e in thm.startingEquipment["base"]:
+		for i in e[1]:
+			var q := M.Equipment.new()
+			q.id = 0; q.type = e[0]; q.condition = 100
+			l.equipment.append(q)
+	for t in ["eq_fridge", "eq_freezer", "eq_shelving", "eq_dish_machine", "eq_hood", "eq_pos"]:
+		var q := M.Equipment.new()
+		q.id = 0; q.type = t; q.condition = 100
+		l.equipment.append(q)
+	# An opening crew recruited during the fit-out (paid from the opening day).
+	var used := {}
+	for x in state.locations:
+		for s in x.staff: used[s.name] = true
+	var centre := 20 + 10 * _companyRating()
+	for role_ in ["headChef", "lineCook", "lineCook", "dishwasher", "server", "server", "cleaner"]:
+		var skill := round(_rng.triangular(15, 90, clampf(centre, 20, 80)))
+		l.staff.append(_makeStaff(role_, skill, 65, 1, used))
+	_assignDaysOff(l.staff)
+	_adopt(l, upFront, th)
+	l.openDay = state.dayIndex + c.days
+	at(l, func(): _story("Lease signed; fit-out started (%s)" % money(upFront)))
+	_timeline("Started building %s; opens on day %d" % [l.name, l.openDay + 1])
+	state.pendingNotices.append("Work has started on %s. Rent is due from today; it opens on day %d." % [l.name, l.openDay + 1])
+	return CommandResult.good(l.id)
+
+# ---------------------------------------------------------- selling and closing
+
+func _saleEstimate() -> int:
+	var l := loc
+	var resale := 0
+	for e in l.equipment: resale += _equipmentResale(e)
+	var ws: Array = l.weeks if l.weeks.size() <= 8 else l.weeks.slice(l.weeks.size() - 8)
+	var avg := 0
+	if not ws.is_empty():
+		var a := 0
+		for w in ws: a += w.operatingProfit
+		avg = a / ws.size()
+	var est: int = resale + b.i("SALE_PROFIT_MULT") * maxi(0, avg) + roundi(10000 * l.reputation)
+	est = roundi(est * (1 + {"bronze": 0.05, "silver": 0.10, "gold": 0.20}.get(l.badge, 0.0)))
+	if l.crisis: est = roundi(est * 0.6)
+	return est
+
+func _sellCheck() -> CommandResult:
+	if state.openLocations.size() < 2: return CommandResult.fail(SimError.locked, "You cannot sell your only restaurant.")
+	if loc.leaseLockUntil > state.dayIndex: return CommandResult.fail(SimError.locked, "The 2-year lease lock-in forbids selling.")
+	if loc.closedUntil > state.dayIndex: return CommandResult.fail(SimError.locked, "Not while it is closed by an inspector.")
+	return CommandResult.good()
+
+func _completeSale(amount: int) -> void:
+	var l := loc
+	state.cash += amount
+	# A loan secured on this outlet is paid first (the starting loan is secured on the first).
+	if l.id == state.locations[0].id:
+		for loan in state.loans.filter(func(x): return x.secured):
+			var pay := mini(loan.outstanding, state.cash)
+			state.cash -= pay
+			loan.outstanding -= pay
+			if loan.outstanding <= 0: state.loans.erase(loan)
+	for p in l.payables:
+		state.cash -= p.amount
+	l.payables.clear()
+	_retire(l, "Sold for %s" % money(amount))
+
+func _retire(l: M.Location, why: String) -> void:
+	l.closedForGood = true
+	l.service = null
+	l.listedDay = -1
+	remove_where(state.requests, func(r): return r.locationId == l.id)
+	remove_where(state.incidents, func(i): return i.locationId == l.id and not i.resolved)
+	at(l, func(): _story(why))
+	_timeline("%s: %s" % [l.name, why])
+	if state.ownerLocationId == l.id:
+		state.ownerLocationId = state.openLocations[0].id
+	if state.viewLocationId == l.id:
+		state.viewLocationId = state.ownerLocationId
+
+func _quickSale() -> CommandResult:
+	var chk := _sellCheck()
+	if not chk.ok: return chk
+	var amount := roundi(_saleEstimate() * 0.7)
+	_completeSale(amount)
+	return CommandResult.good(amount)
+
+func _closeOutlet() -> CommandResult:
+	if state.openLocations.size() < 2: return CommandResult.fail(SimError.locked, "You cannot close your only restaurant.")
+	var l := loc
+	var resale := 0
+	for e in l.equipment: resale += _equipmentResale(e)
+	var severance := 0
+	for s in l.staff: severance += s.wage * b.i("SEVERANCE_DAYS")
+	var fee := l.rentWeekly * 4
+	state.cash += resale - severance - fee
+	_retire(l, "Closed (equipment sold %s, severance %s, lease fee %s)" % [money(resale), money(severance), money(fee)])
+	return CommandResult.good()
+
+func _renovate(tables: int) -> CommandResult:
+	var l := loc
+	if tables <= 0 or tables % 2 != 0: return CommandResult.fail(SimError.invalidValue, "Add tables in pairs.")
+	var mx := (l.tableSeats.size() if l.originalTables == 0 else l.originalTables) * 1.5
+	if l.tableSeats.size() + tables > mx:
+		return CommandResult.fail(SimError.limitReached, "The room fits at most %d tables." % floori(mx))
+	var cost := tables * b.i("RENOVATION_COST_PER_TABLE")
+	if state.cash < cost: return CommandResult.fail(SimError.notEnoughCash, "Renovation costs %s." % money(cost))
+	spend(cost, "upkeep")
+	for i in tables:
+		l.tableSeats.append(4 if i % 2 == 0 else 2)
+	var days := ceili(tables / 4.0)
+	var from := state.dayIndex + 1 if state.phase == "close" else state.dayIndex
+	l.closedUntil = maxi(l.closedUntil, from + days)
+	l.buzz = minf(1, l.buzz + 0.3)
+	l.competition = maxf(0, l.competition - 0.1)
+	l.invested += cost
+	_story("Renovated: +%d tables" % tables)
+	return CommandResult.good()
+
+# ---------------------------------------------------------- stage 4–5 systems
+
+func _buildCentralKitchen() -> CommandResult:
+	if state.stage < 4: return CommandResult.fail(SimError.locked, "A central kitchen unlocks at Stage 4 (Chain).")
+	if state.centralKitchen: return CommandResult.fail(SimError.limitReached, "You already have one.")
+	var cost := b.i("CENTRAL_KITCHEN_COST")
+	if state.cash < cost: return CommandResult.fail(SimError.notEnoughCash, "A central kitchen costs %s." % money(cost))
+	state.cash -= cost
+	state.centralKitchen = true
+	_timeline("Built a central kitchen")
+	return CommandResult.good()
+
+func _signBulk() -> CommandResult:
+	if state.stage < 4: return CommandResult.fail(SimError.locked, "Bulk contracts unlock at Stage 4 (Chain).")
+	if state.bulkContractUntil > state.dayIndex: return CommandResult.fail(SimError.limitReached, "A contract is already running.")
+	var fee := b.i("BULK_CONTRACT_FEE")
+	if state.cash < fee: return CommandResult.fail(SimError.notEnoughCash)
+	state.cash -= fee
+	state.bulkContractUntil = state.dayIndex + 26 * 7
+	if state.openLocations.size() >= 3: _completeObjective("obj_4_bulk")
+	_timeline("Signed a 26-week bulk contract")
+	return CommandResult.good()
+
+func _startFranchise() -> CommandResult:
+	if state.stage < 5: return CommandResult.fail(SimError.locked, "Franchising unlocks at Stage 5 (Group).")
+	if not any(state.openLocations, func(l): return l.badge == "gold"):
+		return CommandResult.fail(SimError.locked, "Buyers want proof the recipe works without you: earn a gold badge first.")
+	state.franchises += 1
+	var fee := b.i("FRANCHISE_SIGNING_FEE")
+	state.cash += fee
+	_timeline("Sold franchise number %d (%s)" % [state.franchises, money(fee)])
+	return CommandResult.good(fee)

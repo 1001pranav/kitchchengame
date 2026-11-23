@@ -14,6 +14,8 @@ import '../screens/stock_tab.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
 import 'incident_card.dart';
+import '../widgets/juice.dart';
+import '../widgets/dock.dart';
 import 'notices.dart';
 
 /// Lets any screen switch the bottom tab (deep links from attention lines and reports).
@@ -146,43 +148,20 @@ class _GameShellState extends State<GameShell> {
             ),
           Expanded(child: IndexedStack(index: tab, children: pages)),
         ]),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: tab,
-          height: 66,
-          onDestinationSelected: (i) => setState(() => tab = i),
-          destinations: [
-            NavigationDestination(
-              icon: Badge(
-                  isLabelVisible: st.phase == 'service',
-                  label: const Text('LIVE'),
-                  backgroundColor: Palette.tomato,
-                  child: const Icon(Icons.today)),
-              label: 'Today',
-            ),
-            NavigationDestination(
-                icon: Badge(
-                    isLabelVisible: staffBadge > 0,
-                    label: Text('$staffBadge'),
-                    child: const Icon(Icons.groups)),
-                label: 'Staff'),
-            NavigationDestination(
-                icon: Badge(
-                    isLabelVisible: stockBadge > 0,
-                    label: Text('$stockBadge'),
-                    child: const Icon(Icons.inventory_2)),
-                label: 'Stock'),
-            NavigationDestination(
-                icon: Badge(
-                    isLabelVisible: kitchenBadge > 0,
-                    label: Text('$kitchenBadge'),
-                    child: const Icon(Icons.soup_kitchen)),
-                label: 'Kitchen'),
-            NavigationDestination(
-                icon: Badge(
-                    isLabelVisible: st.requests.isNotEmpty,
-                    label: Text('${st.requests.length}'),
-                    child: const Icon(Icons.account_balance_wallet)),
-                label: st.stage >= 3 ? 'Company' : 'Money'),
+        bottomNavigationBar: GameDock(
+          selected: tab,
+          onSelect: (i) => setState(() => tab = i),
+          items: [
+            DockItem(GameIcon.cloche, 'Today', live: st.phase == 'service'),
+            DockItem(GameIcon.toque, 'Staff',
+                badge: staffBadge > 0 ? '$staffBadge' : null),
+            DockItem(GameIcon.crate, 'Stock',
+                badge: stockBadge > 0 ? '$stockBadge' : null),
+            DockItem(GameIcon.pan, 'Kitchen',
+                badge: kitchenBadge > 0 ? '$kitchenBadge' : null),
+            DockItem(st.stage >= 3 ? GameIcon.building : GameIcon.ledger,
+                st.stage >= 3 ? 'Company' : 'Money',
+                badge: st.requests.isNotEmpty ? '${st.requests.length}' : null),
           ],
         ),
       ),
@@ -199,7 +178,7 @@ class TopBar extends StatelessWidget {
     final st = sim.state;
     final energy = st.owner.energy / 100;
     return Material(
-      color: Palette.surface,
+      color: const Color(0xFF0E0C0A),
       elevation: 0,
       child: SafeArea(
         bottom: false,
@@ -213,11 +192,15 @@ class TopBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Day ${st.dayIndex + 1} · ${weekdays[st.weekday]}',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 15)),
                     Text(
-                        '${seasonName(st.season)} · Year ${st.year} · ${st.viewLoc.name}',
+                        '${weekdays[st.weekday].toUpperCase()} · DAY ${st.dayIndex + 1}',
+                        style: const TextStyle(
+                            color: Palette.accent,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.8,
+                            fontSize: 10.5)),
+                    const SizedBox(height: 2),
+                    Text('${seasonName(st.season)}, year ${st.year}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -232,7 +215,7 @@ class TopBar extends StatelessWidget {
                 onTap: () => showWhy(context, sim.explain('cash')),
                 child: Padding(
                     padding: const EdgeInsets.all(6),
-                    child: Money(st.cash, size: 16)),
+                    child: RollingMoney(st.cash, size: 16)),
               ),
             ),
             Semantics(

@@ -1,0 +1,316 @@
+
+# ================================================================ day.dart
+# Day orchestration: prep (beginDay) and close (endDay) in the exact order of doc 02 §3.
+
+func _beginDay() -> void:
+	state.phase = "prep"
+	state.travelTo = -1
+	if state.weekday == 0:
+		state.owner.restDaysThisWeek = 0
+	# Yearly cost creep notice (doc 11 §A.4).
+	if state.dayIndex > 0 and state.dayIndex % 336 == 0:
+		state.pendingNotices.append("A new year: wages people expect and ingredient prices have gone up about 3%. Customers will accept prices about 3% higher too.")
+	# Owner rest.
+	state.owner.restingToday = state.owner.forcedRestDay == state.dayIndex
+	if state.owner.restingToday:
+		state.pendingNotices.append("You are exhausted and must rest today. The team runs the shift without you.")
+	for k in state.flags.keys():
+		if state.flags[k] < state.dayIndex:
+			state.flags.erase(k)
+	_chainMorning()
+	for l in state.openLocations:
+		at(l, _beginLocationDay)
+	emit("dayStarted", {"day": state.dayIndex})
+
+func _beginLocationDay() -> void:
+	var l := loc
+	l.today = M.DayStats.mk(state.dayIndex)
+	l.service = null
+	l.ownerTicksToday = 0
+	if state.weekday == 0:
+		l.ownerDaysThisWeek = 0
+	if l.openDay == state.dayIndex and state.dayIndex > 0:
+		state.pendingNotices.append("%s opens its doors today." % l.name)
+		_story("Opened for business")
+	for m in l.menu.values():
+		m.soldYesterday = m.soldToday
+		m.soldToday = 0
+		m.unavailableToday = 0
+	remove_where(l.demandMods, func(m): return m.untilDay < state.dayIndex)
+	# Campaign outcomes are revealed the next morning (doc 02 §13.1).
+	for c in l.campaigns:
+		if not c.revealed and c.startDay < state.dayIndex and c.type != "blogger":
+			c.revealed = true
+			state.pendingNotices.append(c.reason)
+	# 2. Deliveries and bills due.
+	_processDeliveries()
+	_payPayables()
+	# 3. Absences.
+	_rollAttendance()
+	# 4. Prices.
+	_updatePrices()
+	# Scheduled state changes from hidden problems.
+	for sc in state.scheduled.duplicate():
+		if sc.day > state.dayIndex or sc.locationId != l.id:
+			continue
+		if sc.incidentId == "@flag:pests":
+			state.scheduled.erase(sc)
+			state.flags["%d:pests" % loc.id] = 1 << 30
+		elif sc.incidentId == "@fake_reviews":
+			state.scheduled.erase(sc)
+			l.reputation = maxf(0, l.reputation - 0.5)
+			state.pendingNotices.append("A review site removed dozens of fake 5-star reviews the last owner had bought. Your rating fell by 0.5.")
+			_note("fakeReviews", "Fake reviews removed: rating −0.5", 50)
+			_timeline("Fake reviews removed: rating −0.5")
+			_markHidden("fake_reviews")
+	if _rng.chance(b.d("GAS_LOW_CHANCE")):
+		state.flags["%d:gas_low" % loc.id] = state.dayIndex
+	# 5. Overnight incidents: forced/scheduled first, then up to two rolls.
+	_incidentsAtPrep()
+	if lf("ill_guest"):
+		state.flags.erase("%d:ill_guest" % loc.id)
+		_raiseIncident("inc_food_poisoning", null, null, true)
+	# A manager runs prep wherever the owner is not (doc 02 §15.2).
+	if state.ownerLocationId != l.id and l.manager != null and l.openDay <= state.dayIndex:
+		_managerPrep()
+	# 6. Forecast.
+	loc.today.forecast = _forecast().groups
+
+# ---------------------------------------------------------- close
+
+## Close every outlet, then the company's daily, weekly and monthly business.
+func _closeAll() -> void:
+	for l in state.openLocations:
+		at(l, _closeDay)
+	_ownerClose()
+	_chainEvening()
+	if state.weekday == 6:
+		_weekly()
+	if state.dayOfMonth == 28:
+		_monthly()
+	for l in state.openLocations:
+		at(l, _checkObjectives)
+	_bankruptcyCheck()
+	state.cashHistory.append(state.cash)
+	if state.cashHistory.size() > 56:
+		state.cashHistory.remove_at(0)
+	emit("dayClosed", {})
+
+func _closeDay() -> void:
+	var l := loc
+	var t := loc.today
+	var closedToday := l.closedUntil > state.dayIndex
+	# Fixed costs accrue every day (paid in cash weekly / monthly).
+	var d := state.weekday
+	t.rent = roundi(l.rentWeekly * (d + 1) / 7.0) - roundi(l.rentWeekly * d / 7.0)
+	var working := count(l.equipment, _isWorking)
+	var util := b.d("UTILITIES_BASE") + b.d("UTILITIES_PER_GROUP") * t.groupsServed + b.d("UTILITIES_PER_UNIT") * working
+	t.utilities = roundi(util)
+	state.monthUtilities += t.utilities
+	# Skimming by a dishonest cashier nobody caught.
+	var skimmer = first_or_null(l.staff, func(s): return s.workingToday and s.role == "cashier" and s.honesty < 40)
+	if skimmer != null and t.revenue > 0:
+		var lost := roundi(t.revenue * b.d("SKIM_PCT"))
+		state.cash -= lost
+		t.other += lost
+		_note("skim", "Cash in the till was %s short of sales" % money(lost), lost)
+	_ageStock()
+	_equipmentClose()
+	_hygieneClose(closedToday)
+	_staffClose()
+	_reputationClose()
+	_lifecycleClose()
+	_rollIncidents("close")
+	_autoOrder()
+	_managerClose()
+
+func _maxCondition(e: M.Equipment) -> float:
+	return maxf(b.d("MAX_CONDITION_FLOOR"), b.d("MAX_CONDITION_START") - 5 * (e.ageDays / 168))
+
+func _breakChance(e: M.Equipment) -> float:
+	var p := b.d("BREAK_BASE") + maxf(0, 60 - e.condition) / b.d("BREAK_COND_DIVISOR")
+	if e.fragileUntil >= state.dayIndex:
+		p += b.d("CHEAP_REPAIR_FAIL_PER_DAY")
+	return p
+
+func _equipmentClose() -> void:
+	var l := loc
+	var busy: bool = loc.today.groupsArrived > 1.2 * maxi(1, loc.today.forecast)
+	for e in l.equipment:
+		e.ageDays += 1
+		if e.broken:
+			continue
+		var t: Content.EquipmentType = content.equipment[e.type]
+		var wokHei := 2 if (e.type == "eq_wok" and lf("wok_hei")) else 1
+		e.condition = maxf(0, e.condition - t.wearPerDay * (1.5 if busy else 1.0) * wokHei)
+		if _rng.chance(_breakChance(e)):
+			e.broken = true
+			_note("breakdown", "%s broke down" % t.name, t.price / 10)
+			_timeline("%s broke down" % t.name)
+			emit("equipmentBroke", {"equipmentId": e.id})
+			state.scheduled.append(M.Scheduled.mk("inc_breakdown", state.dayIndex + 1, e.id, null, loc.id))
+
+func _hygieneClose(closed: bool) -> void:
+	var l := loc
+	var h := l.hygiene
+	h -= loc.today.groupsServed * b.d("HYGIENE_PER_GROUP")
+	var cleaners: Array = l.staff.filter(func(s): return s.workingToday and s.role == "cleaner")
+	var sum := 0.0
+	for c in cleaners:
+		sum += 0.5 + c.skill / 100
+	if cleaners.is_empty():
+		# Stand-in: the dishwasher cleans at half effect.
+		for w in l.staff.filter(func(s): return s.workingToday and s.role == "dishwasher"):
+			sum += 0.5 * (0.5 + (w.skill - 15) / 100)
+	h += b.d("HYGIENE_CLEAN_PCT") * (100 - h) * sum
+	if not closed and not any(l.staff, func(s): return s.workingToday and s.role == "dishwasher"):
+		h -= 5
+	if not _hasWorking("eq_hood"): h -= 5
+	if lf("pests"): h -= 8
+	if lf("leak"): h -= 10
+	l.hygiene = clampf(h, 0, 100)
+
+func _ownerClose() -> void:
+	var o := state.owner
+	if o.restingToday:
+		o.energy = 100
+		o.zeroEnergyDays = 0
+		o.restDaysThisWeek += 1
+		return
+	if o.energy <= 0.5:
+		o.zeroEnergyDays += 1
+	else:
+		o.zeroEnergyDays = 0
+	if o.zeroEnergyDays >= 3:
+		o.forcedRestDay = state.dayIndex + 1
+		o.zeroEnergyDays = 0
+		_note("ownerExhausted", "You worked yourself to exhaustion: tomorrow is a forced rest day", 0)
+	o.energy = minf(100, o.energy + b.d("OWNER_RECOVERY"))
+
+func _reputationClose() -> void:
+	var l := loc
+	var t := loc.today
+	if t.starsN <= 0:
+		return
+	var avg := t.starsSum / t.starsN
+	var weight := minf(1.0, t.starsN / 20)
+	var k := b.d("REP_UP") if avg > l.reputation else b.d("REP_DOWN")
+	l.reputation = clampf(l.reputation + (avg - l.reputation) * k * weight, 0, 5)
+
+func _lifecycleClose() -> void:
+	var l := loc
+	# Buzz decay, keeping each campaign's share in proportion.
+	var b0 := l.buzz
+	l.buzz = maxf(0, l.buzz - b.d("BUZZ_DECAY"))
+	for c in l.campaigns:
+		c.buzzLeft = 0.0 if b0 <= 0 else c.buzzLeft * l.buzz / b0
+	l.freshness = maxf(0, l.freshness - b.d("FRESHNESS_DECAY"))
+	var aw := b.d("AWARENESS_GAIN") * (0.5 + l.buzz) * minf(1.5, l.reputation / 3.5)
+	l.awareness = minf(1, l.awareness + aw)
+	_campaignAccounting()
+
+# ---------------------------------------------------------- objectives and stages
+
+func _markHidden(kind: String) -> void:
+	for hp in loc.hidden:
+		if hp.kind == kind:
+			hp.done = true
+
+func _updateHiddenProblems() -> void:
+	var l := loc
+	for hp in l.hidden:
+		if hp.done:
+			continue
+		match hp.kind:
+			"supplier_debt":
+				if not any(l.payables, func(p): return p.inherited): hp.done = true
+			"chef_leaving":
+				var chef = first_or_null(l.staff, func(s): return s.role == "headChef")
+				if chef == null or chef.morale >= 60 or state.dayIndex > hp.dueDay + 7:
+					hp.done = true
+			"pests":
+				if state.dayIndex > hp.dueDay and not lf("pests"): hp.done = true
+			"fridge_failing":
+				if every(l.equipment.filter(func(e): return e.type == "eq_fridge"), func(e): return e.condition >= 50 and not e.broken):
+					hp.done = true
+			"cashier_skimming":
+				if not any(l.staff, func(s): return s.role == "cashier" and s.honesty < 40): hp.done = true
+			"staff_feud":
+				if not lf("feud"): hp.done = true
+
+func _completeObjective(id: String) -> void:
+	if state.objectivesDone.has(id):
+		return
+	var obj = first_or_null(content.objectives, func(o): return o.id == id)
+	if obj == null or obj.stage > state.stage:
+		return
+	state.objectivesDone[id] = true
+	for r in obj.reward:
+		match r["type"]:
+			"cash": earn(int(r["amount"]), "none")
+			"reputation": loc.reputation = minf(5, loc.reputation + float(r["delta"]))
+			"loyalty":
+				for s in loc.staff:
+					s.loyalty = minf(100, s.loyalty + float(r["delta"]))
+			"flag": state.flags[r["key"]] = 1 << 30
+			"flagPerk": state.perks[r["key"]] = true
+			"credit": state.creditScore = minf(100, state.creditScore + float(r["delta"]))
+	state.pendingNotices.append("Goal complete: %s. Reward: %s." % [obj.text, obj.rewardText])
+	_timeline("Goal complete: %s" % obj.text)
+	emit("objectiveDone", {"id": id})
+
+func _checkObjectives() -> void:
+	var l := loc
+	var t := loc.today
+	_updateHiddenProblems()
+	if t.profit > 0 and not t.closed:
+		_completeObjective("obj_1_first_profit")
+	var s = l.service
+	if s != null and not state.owner.restingToday:
+		var covered := func(rs: Array) -> bool:
+			return any(l.staff, func(x): return x.workingToday and rs.has(x.role))
+		var allCovered: bool = covered.call(["headChef", "lineCook"]) and covered.call(["server"]) and covered.call(["cashier"]) \
+			and covered.call(["dishwasher"]) and covered.call(["cleaner"])
+		var served = (1 - t.ownerTasks * 2.0 / s.tick) if s.tick > 0 else 0.0
+		if allCovered and served >= 0.5 and t.groupsServed > 0:
+			_completeObjective("obj_1_full_rota")
+	if not l.hidden.is_empty() and every(l.hidden, func(h): return h.done) and state.dayIndex > 0:
+		_completeObjective("obj_1_clear_problems")
+	if l.reputation >= 4.0:
+		_completeObjective("obj_2_four_star")
+	if state.flag("promoted_trained_chef"):
+		_completeObjective("obj_2_train_chef")
+	# Stage 3–5 goals.
+	if state.stage >= 3 and l.id != state.locations[0].id and l.weeks.size() >= 4 \
+			and every(l.weeks.slice(l.weeks.size() - 4), func(w): return w.operatingProfit > 0):
+		_completeObjective("obj_3_second_profit")
+	if state.stage >= 3 and state.weekday == 6 and state.openLocations.size() > 1 \
+			and every(state.openLocations, func(x): return every(x.days.filter(func(dd): return dd.dayIndex > state.dayIndex - 7), func(dd): return dd.ownerTasks == 0) and x.today.ownerTasks == 0):
+		_completeObjective("obj_3_hands_off")
+	if state.stage >= 4 and _companyRating() >= 4.5:
+		_completeObjective("obj_4_brand_45")
+	if state.stage >= 5:
+		var second := count(state.openLocations, func(x): return x.themeId != state.themeId)
+		if second >= 3:
+			_completeObjective("obj_5_second_brand")
+
+func _checkStage() -> void:
+	var hq: M.Location = state.openLocations[0]
+	if state.stage == 1 and state.profitableWeeksInRow >= b.i("STAGE2_PROFIT_WEEKS") and hq.reputation >= b.d("STAGE2_REP"):
+		_stageUp(2, "Reached Stage 2: Stable")
+	elif state.stage == 2 and state.cash >= b.i("STAGE3_CASH") and _companyRating() >= b.d("STAGE3_REP") and state.dayIndex - state.lastMissDay > 56:
+		_stageUp(3, "Stage 3: ready to open a second location")
+	elif state.stage == 3:
+		# Stage 4 (Chain): 3 outlets, each profitable 4 weeks running (doc 01 §3.3).
+		var n := b.i("STAGE4_PROFIT_WEEKS")
+		var good := count(state.openLocations, func(l): return l.weeks.size() >= n and every(l.weeks.slice(l.weeks.size() - n), func(w): return w.operatingProfit > 0))
+		if good >= b.i("STAGE4_OUTLETS"):
+			_stageUp(4, "Stage 4: a chain")
+	elif state.stage == 4 and _valuation() >= b.i("STAGE5_VALUATION"):
+		_stageUp(5, "Stage 5: a restaurant group")
+
+func _stageUp(n: int, text: String) -> void:
+	state.stage = n
+	state.pendingNotices.append("@stage%d" % n)
+	_timeline(text)
+	emit("stageReached", {"stage": n})

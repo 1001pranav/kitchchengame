@@ -4,7 +4,11 @@ import 'package:sim_core/sim_core.dart';
 import '../shell/shell.dart';
 import '../theme.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
+import '../opening_goal.dart';
 import 'kitchen_tab.dart';
+import '../widgets/juice.dart';
+import '../scene/shopfront.dart';
 import 'stock_tab.dart';
 
 /// Close report in three pages (doc 07 §4.5).
@@ -18,14 +22,11 @@ class CloseReport extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Column(children: [
-        Container(
-          color: Palette.surface,
-          child: const TabBar(tabs: [
-            Tab(text: 'The day'),
-            Tab(text: 'Why'),
-            Tab(text: 'Tomorrow')
-          ]),
-        ),
+        const GameTabBar(tabs: [
+          Tab(text: 'The day'),
+          Tab(text: 'Why'),
+          Tab(text: 'Tomorrow')
+        ]),
         Expanded(
           child: TabBarView(children: [
             _DayPage(t: t),
@@ -39,19 +40,68 @@ class CloseReport extends StatelessWidget {
             color: Palette.surface,
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
             child: Centered(
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(54)),
-                onPressed: () => sendCmd(context, const EndDay()),
-                icon: const Icon(Icons.bedtime),
-                label: Text(
-                    'Sleep · next day (${weekdays[(sim.state.weekday + 1) % 7]})'),
+              child: Pressable(
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                      minimumSize: const Size.fromHeight(56),
+                      textStyle: const TextStyle(
+                          fontSize: 15,
+                          letterSpacing: 2,
+                          fontWeight: FontWeight.w700)),
+                  onPressed: () => sendCmd(context, const EndDay()),
+                  child: Text(
+                      'SLEEP · ${weekdays[(sim.state.weekday + 1) % 7].toUpperCase()}'),
+                ),
               ),
             ),
           ),
         ),
       ]),
     );
+  }
+}
+
+/// Opening night's goal, settled.
+class _GoalResult extends StatelessWidget {
+  final OpeningGoal goal;
+  final int served;
+  const _GoalResult({required this.goal, required this.served});
+  @override
+  Widget build(BuildContext context) {
+    final met = goal.met(served);
+    final short = goal.parties - served;
+    final body = Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: met ? const Color(0xFF241E15) : Palette.surface,
+        border: Border.all(
+            color: met ? Palette.accent.withValues(alpha: 0.6) : Palette.line),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Served $served of ${goal.parties}',
+                style: const TextStyle(
+                    fontFamily: displayFont,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text(
+                met
+                    ? 'A full room on night one. That is the standard now.'
+                    : '$short short. The walk-outs below show where they were lost.',
+                style: const TextStyle(
+                    color: Palette.muted, fontSize: 13, height: 1.35)),
+          ]),
+        ),
+        const SizedBox(width: 12),
+        Icon(met ? Icons.verified_outlined : Icons.flag_outlined,
+            color: met ? Palette.accent : Palette.muted, size: 30),
+      ]),
+    );
+    return met ? Confetti(pieces: 28, child: body) : body;
   }
 }
 
@@ -64,109 +114,187 @@ class _DayPage extends StatelessWidget {
     final sim = c.sim!;
     final ss = sim.service;
     final met = ss != null && !t.closed && ss.lost <= ss.target;
-    Widget stat(String k, String v,
-            {IconData? icon,
-            Color? color,
-            VoidCallback? onTap,
-            String? term}) =>
-        Expanded(
-          child: Panel(
-            onTap: onTap,
-            padding: const EdgeInsets.all(12),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                if (icon != null) ...[
-                  Icon(icon, size: 15, color: color ?? Palette.muted),
-                  const SizedBox(width: 4)
-                ],
-                Flexible(
-                  child: term == null
-                      ? Text(k,
-                          style: const TextStyle(
-                              color: Palette.muted, fontSize: 12))
-                      : TermText(k, term,
-                          style: const TextStyle(
-                              color: Palette.muted, fontSize: 12)),
-                ),
-              ]),
-              const SizedBox(height: 4),
-              Text(v,
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: color ?? Palette.ink)),
-            ]),
-          ),
-        );
+    final st = sim.state;
+    final goal = t.closed
+        ? null
+        : OpeningGoal.of(sim, forecast: t.forecast, dayIndex: t.dayIndex);
+    final goalMet = goal?.met(t.groupsServed) ?? false;
+    final verdict = t.closed
+        ? 'CLOSED'
+        : goal != null
+            ? (goalMet ? 'GOAL MET' : 'GOAL MISSED')
+            : (met ? 'TARGET MET' : 'TARGET MISSED');
+    final good = goal != null ? goalMet : met;
+    final vColor = t.closed ? Palette.muted : (good ? Palette.ok : Palette.bad);
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final cells = <(String, String, Color?, VoidCallback?)>[
+      ('SERVED', '${t.groupsServed}', null, null),
+      (
+        'WALKED OUT',
+        '${t.walkouts}',
+        t.walkouts > 0 ? Palette.bad : null,
+        () => showTerm(context, 'walk_out')
+      ),
+      (
+        'REVIEWS',
+        t.starsN == 0 ? '–' : t.avgStars.toStringAsFixed(1),
+        Palette.gold,
+        () => showWhy(context, sim.explain('satisfaction'))
+      ),
+      ('TIPS', fmtMoney(t.tips), null, null),
+      (
+        'WASTE',
+        fmtMoney(t.wasteCost),
+        t.wasteCost > 100 ? Palette.warn : null,
+        () => showTerm(context, 'waste')
+      ),
+      (
+        'LOST',
+        t.closed || ss == null ? '–' : '${ss.lost} / ${ss.target}',
+        met ? null : Palette.bad,
+        () => showTerm(context, 'shift_target')
+      ),
+    ];
     return Centered(
-      child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 24),
-          children: [
+      child: ListView(padding: EdgeInsets.zero, children: [
+        // The street at night, with tonight's verdict stamped on it.
+        Stack(children: [
+          ShaderMask(
+            shaderCallback: (r) => const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.white, Colors.white, Colors.transparent],
+              stops: [0, 0.5, 1],
+            ).createShader(r),
+            blendMode: BlendMode.dstIn,
+            child: Shopfront(
+                name: st.viewLoc.name,
+                quality: tierQuality(st.viewLoc.tierId),
+                time: DayTime.night,
+                open: false,
+                animate: true,
+                height: 170,
+                seed: st.viewLoc.id),
+          ),
+          Positioned(
+            right: 18,
+            bottom: 18,
+            child: _Stamp(text: verdict, color: vColor),
+          ),
+        ]),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(
+                goal != null
+                    ? 'OPENING NIGHT · AFTER SERVICE'
+                    : '${weekdays[st.weekday].toUpperCase()} · AFTER SERVICE',
+                style: const TextStyle(
+                    color: Palette.accent,
+                    fontSize: 10.5,
+                    letterSpacing: 2.2,
+                    fontWeight: FontWeight.w600)),
+            const SizedBox(height: 6),
             Text(sim.dayInOneLine(t),
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 14),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(height: 1.25)),
+            if (goal != null) ...[
+              const SizedBox(height: 14),
+              _GoalResult(goal: goal, served: t.groupsServed),
+            ],
+            const SizedBox(height: 18),
+            // Profit counts up.
+            InkWell(
+              onTap: () => showWhy(context, sim.explain('profit')),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('TONIGHT\'S PROFIT',
+                        style: TextStyle(
+                            color: Palette.muted,
+                            fontSize: 10,
+                            letterSpacing: 1.8,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 4),
+                    TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0, end: t.profit.toDouble()),
+                      duration: Duration(
+                          milliseconds: MediaQuery.of(context).disableAnimations
+                              ? 0
+                              : 1100),
+                      curve: Curves.easeOutCubic,
+                      builder: (_, v, __) => Text(
+                          fmtMoney(v.round(), sign: true),
+                          style: TextStyle(
+                              fontSize: 44,
+                              height: 1.05,
+                              fontWeight: FontWeight.w700,
+                              color: t.profit >= 0 ? Palette.ink : Palette.bad,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ])),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                        'Sales ${fmtMoney(t.revenue, sign: true)}  ·  Costs ${fmtMoney(-t.costs, sign: true)}',
+                        style: const TextStyle(
+                            color: Palette.muted, fontSize: 13)),
+                  ]),
+            ),
+            const SizedBox(height: 18),
             if (sim.runOutRisks().isNotEmpty) ...[
               const _OrderNudge(),
-              const SizedBox(height: 10),
+              const SizedBox(height: 14),
             ],
-            Panel(
-              onTap: () => showWhy(context, sim.explain('profit')),
-              child: Column(children: [
-                Row(children: [
-                  const Text('Profit today',
-                      style: TextStyle(color: Palette.muted)),
-                  const Spacer(),
-                  const Icon(Icons.help_outline,
-                      size: 18, color: Palette.muted),
-                ]),
-                const SizedBox(height: 6),
-                Align(
-                    alignment: Alignment.centerLeft,
-                    child: Money(t.profit,
-                        size: 30, sign: true, weight: FontWeight.w900)),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(child: _line('Sales', t.revenue)),
-                  Expanded(child: _line('Costs', -t.costs)),
-                ]),
-              ]),
+            GridView(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 1,
+                  crossAxisSpacing: 1,
+                  mainAxisExtent: 26 + 40 * scale),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                for (final (k, v, col, tap) in cells)
+                  Material(
+                    color: Palette.surface,
+                    child: InkWell(
+                      onTap: tap,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(k,
+                                    style: const TextStyle(
+                                        color: Palette.muted,
+                                        fontSize: 9.5,
+                                        letterSpacing: 1.6,
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text(v,
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w700,
+                                        color: col ?? Palette.ink)),
+                              ]),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Row(children: [
-              stat('Served', '${t.groupsServed}', icon: Icons.groups),
-              const SizedBox(width: 8),
-              stat('Walked out', '${t.walkouts}',
-                  icon: Icons.directions_walk,
-                  color: t.walkouts > 0 ? Palette.bad : Palette.ok,
-                  term: 'walk_out'),
-              const SizedBox(width: 8),
-              stat('Reviews',
-                  t.starsN == 0 ? '–' : t.avgStars.toStringAsFixed(1),
-                  icon: Icons.star,
-                  color: Palette.gold,
-                  onTap: () => showWhy(context, sim.explain('satisfaction'))),
-            ]),
-            const SizedBox(height: 8),
-            Row(children: [
-              stat('Tips for staff', fmtMoney(t.tips),
-                  icon: Icons.volunteer_activism),
-              const SizedBox(width: 8),
-              stat('Waste', fmtMoney(t.wasteCost),
-                  icon: Icons.delete_outline,
-                  color: t.wasteCost > 100 ? Palette.warn : null,
-                  term: 'waste'),
-              const SizedBox(width: 8),
-              stat('Target', t.closed ? '–' : (met ? 'Met' : 'Missed'),
-                  icon: Icons.flag,
-                  color: met ? Palette.ok : Palette.bad,
-                  term: 'shift_target'),
-            ]),
             if (met) ...[
-              const SizedBox(height: 8),
-              const Text('Target met: the team is a little happier tonight.',
-                  style: TextStyle(
-                      color: Palette.ok, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 10),
+              const Text('Target met. The team goes home a little happier.',
+                  style: TextStyle(color: Palette.ok, fontSize: 13)),
             ],
             const SectionTitle('Rating'),
             Panel(
@@ -189,16 +317,10 @@ class _DayPage extends StatelessWidget {
               _WeekPanel(w: sim.state.weeks.last),
             ],
           ]),
+        ),
+      ]),
     );
   }
-
-  Widget _line(String k, int v) => Row(children: [
-        Flexible(
-            child: Text('$k ',
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Palette.muted))),
-        Flexible(child: Money(v, size: 14, sign: true)),
-      ]);
 }
 
 class _WeekPanel extends StatelessWidget {
@@ -457,8 +579,8 @@ class _OrderNudge extends StatelessWidget {
     final sim = GameScope.of(context).sim!;
     final n = sim.runOutRisks().length;
     return Panel(
-      color: const Color(0xFFFFF4D6),
-      borderColor: const Color(0xFFF0D58A),
+      color: const Color(0xFF2B2416),
+      borderColor: const Color(0xFF5C4A23),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           const Icon(Icons.inventory_2, color: Palette.warn),
@@ -483,15 +605,56 @@ class _OrderNudge extends StatelessWidget {
                     okText: 'Ordered the usual from City Foodservice.');
               },
               icon: const Icon(Icons.shopping_cart_checkout, size: 18),
-              label: const Text('Order usual'),
+              label: const Text('Order usual',
+                  maxLines: 1, overflow: TextOverflow.ellipsis),
             ),
           ),
           const SizedBox(width: 8),
-          OutlinedButton(
-              onPressed: () => showOrderSheet(context),
-              child: const Text('Choose')),
+          Flexible(
+            child: OutlinedButton(
+                onPressed: () => showOrderSheet(context),
+                child: const Text('Choose',
+                    maxLines: 1, overflow: TextOverflow.ellipsis)),
+          ),
         ]),
       ]),
+    );
+  }
+}
+
+/// A rubber-stamp verdict that thumps down onto the picture.
+class _Stamp extends StatelessWidget {
+  final String text;
+  final Color color;
+  const _Stamp({required this.text, required this.color});
+  @override
+  Widget build(BuildContext context) {
+    final still = MediaQuery.of(context).disableAnimations;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: still ? 1 : 0, end: 1),
+      duration: const Duration(milliseconds: 520),
+      curve: Curves.easeOutBack,
+      builder: (_, k, child) => Opacity(
+        opacity: k.clamp(0, 1),
+        child: Transform.rotate(
+          angle: -0.12,
+          child: Transform.scale(scale: 1.8 - 0.8 * k, child: child),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: 2),
+          color: const Color(0xCC0E0C0A),
+        ),
+        child: Text(text,
+            style: TextStyle(
+                fontFamily: 'Playfair',
+                fontWeight: FontWeight.w800,
+                fontSize: 15,
+                letterSpacing: 1.6,
+                color: color)),
+      ),
     );
   }
 }

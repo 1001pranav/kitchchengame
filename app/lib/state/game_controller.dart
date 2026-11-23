@@ -69,7 +69,15 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     sim = Sim.newGame(
         content: content, seed: seed, difficulty: difficulty, themeId: themeId);
     speed = Speed.paused;
+    introPending = true;
     _changed();
+  }
+
+  /// The short story before the market, shown once per new game.
+  bool introPending = false;
+  void finishIntro() {
+    introPending = false;
+    notifyListeners();
   }
 
   Future<bool> load(String slot) async {
@@ -93,7 +101,8 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
       await saves.write(slot, s.toSave());
       return true;
     } catch (_) {
-      toast = 'The game could not be saved. Check that the phone has free storage.';
+      toast =
+          'The game could not be saved. Check that the phone has free storage.';
       return false;
     }
   }
@@ -197,6 +206,14 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     };
     if (settings.quietFastForward && quietSpell && speed != Speed.paused) m = 4;
     return base * m;
+  }
+
+  /// How fast the restaurant scene should animate: 0 while paused or a card is
+  /// open, 1 at normal speed, up to 4 when fast-forwarding.
+  double get playRate {
+    final s = sim;
+    if (s == null || s.state.phase != 'service' || cardOpen) return 0;
+    return _ticksPerSecond / content.balance.d('TICKS_PER_SECOND_1X');
   }
 
   void _onFrame() {

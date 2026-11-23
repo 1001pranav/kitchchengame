@@ -1,0 +1,103 @@
+[
+ {
+  "id": "trait_mentor",
+  "name": "Mentor",
+  "description": "Others in the same role work at +3 skill while this person is working",
+  "modifiers": {
+   "sameRoleSkillBonus": 3.0
+  }
+ },
+ {
+  "id": "trait_hot_headed",
+  "name": "Hot-headed",
+  "description": "Doubles weight of conflict incidents involving them",
+  "modifiers": {
+   "conflictWeight": 2.0
+  }
+ },
+ {
+  "id": "trait_often_late",
+  "name": "Often late",
+  "description": "pLate \u00d72",
+  "modifiers": {
+   "lateMult": 2.0
+  }
+ },
+ {
+  "id": "trait_perfectionist",
+  "name": "Perfectionist",
+  "description": "Better food, slower",
+  "modifiers": {
+   "qualityBonus": 5.0,
+   "durationMult": 1.1
+  }
+ },
+ {
+  "id": "trait_ambitious",
+  "name": "Ambitious",
+  "description": "Morale \u22121/day after 8 weeks without raise or promotion",
+  "modifiers": {
+   "raiseExpectWeeks": 8.0
+  }
+ },
+ {
+  "id": "trait_toxic",
+  "name": "Toxic",
+  "description": "Colleagues at the outlet get \u22125 on the Team happiness factor (doc 02 \u00a77.3)",
+  "modifiers": {
+   "toxic": 1.0
+  }
+ },
+ {
+  "id": "trait_loyal",
+  "name": "Loyal",
+  "description": "Half as likely to quit",
+  "modifiers": {
+   "quitMult": 0.5
+  }
+ },
+ {
+  "id": "trait_light_fingered",
+  "name": "Light-fingered",
+  "description": "Honesty never above 30",
+  "modifiers": {
+   "honestyCap": 30.0
+  }
+ },
+ {
+  "id": "trait_fast_learner",
+  "name": "Fast learner",
+  "description": "Training gains \u00d71.5",
+  "modifiers": {
+   "trainingMult": 1.5
+  }
+ },
+ {
+  "id": "trait_hard_worker",
+  "name": "Hard worker",
+  "description": "Gains fatigue more slowly",
+  "modifiers": {
+   "fatigueMult": 0.7
+  }
+ },
+ {
+  "id": "trait_clumsy",
+  "name": "Clumsy",
+  "description": "1% per task to add 3 ticks",
+  "modifiers": {
+   "mishapChance": 0.01
+  }
+ },
+ {
+  "id": "trait_charming",
+  "name": "Charming",
+  "description": "Groups they billed tip 25% more",
+  "modifiers": {
+   "tipMult": 1.25
+  },
+  "roles": [
+   "server",
+   "cashier"
+  ]
+ }
+]

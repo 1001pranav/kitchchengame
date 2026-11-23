@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import '../scene/pictures.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
 
 const _roleOrder = [
   'headChef',
@@ -21,13 +23,11 @@ class StaffTab extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Column(children: [
-        Container(
-            color: Palette.surface,
-            child: const TabBar(tabs: [
-              Tab(text: 'Team'),
-              Tab(text: 'Days off'),
-              Tab(text: 'Hire')
-            ])),
+        const GameTabBar(tabs: [
+          Tab(text: 'Team'),
+          Tab(text: 'Days off'),
+          Tab(text: 'Hire')
+        ]),
         const Expanded(
             child: TabBarView(children: [_TeamList(), _DaysOff(), _Hire()])),
       ]),
@@ -35,69 +35,121 @@ class StaffTab extends StatelessWidget {
   }
 }
 
-String faceFor(double m) => m >= 70
-    ? '😄'
-    : (m >= 50 ? '🙂' : (m >= 40 ? '😐' : (m >= 30 ? '😟' : '😠')));
-
 class _TeamList extends StatelessWidget {
   const _TeamList();
+  static const _sections = [
+    ('Kitchen', ['headChef', 'lineCook', 'prepCook']),
+    ('Floor', ['server', 'cashier']),
+    ('Back of house', ['dishwasher', 'cleaner']),
+  ];
   @override
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
-    final l = sim.state.viewLoc;
+    final st = sim.state;
+    final l = st.viewLoc;
     final hap = sim.outletHappiness();
     final staff = List<Staff>.of(l.staff)
       ..sort((a, b) =>
           _roleOrder.indexOf(a.role).compareTo(_roleOrder.indexOf(b.role)));
     final wages = l.staff.fold<int>(0, (a, s) => a + s.wage);
+    final onShift = l.staff.where((s) => s.workingToday).length;
+    final atRisk = l.staff.where((s) => s.morale < 30 || s.status == 'notice');
+    final managers = staff.where((s) => s.isManager).toList();
     return Centered(
       child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Panel(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 14, 2, 14),
               child: Row(children: [
-                Text(faceFor(hap), style: const TextStyle(fontSize: 34)),
-                const SizedBox(width: 12),
+                RingGauge(hap, size: 58),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const TermText('Team happiness', 'morale',
-                            style: TextStyle(color: Palette.muted)),
-                        Text('${hap.round()} / 100',
+                        const Text('THE BRIGADE',
+                            style: TextStyle(
+                                color: Palette.accent,
+                                fontSize: 10.5,
+                                letterSpacing: 2,
+                                fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 3),
+                        Text(_mood(hap),
                             style: const TextStyle(
-                                fontSize: 22, fontWeight: FontWeight.w900)),
+                                fontFamily: displayFont,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        TermText(
+                            'Team happiness ${hap.round()} of 100', 'morale',
+                            style: const TextStyle(
+                                color: Palette.muted, fontSize: 12.5)),
                       ]),
                 ),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text('${l.staff.length} people',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  Row(children: [
-                    Money(wages, size: 13),
-                    const Text(' /day',
-                        style: TextStyle(color: Palette.muted, fontSize: 12))
-                  ]),
-                ]),
               ]),
             ),
-            const SizedBox(height: 10),
-            for (final s in staff)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: StaffRow(
-                    staff: s, onTap: () => showStaffDetail(context, s.id)),
-              ),
+            StatStrip(items: [
+              StatItem('ON SHIFT', '$onShift/${l.staff.length}', 'today'),
+              StatItem('WAGES', fmtMoney(wages), 'per day'),
+              StatItem('AT RISK', '${atRisk.length}', 'may leave',
+                  color: atRisk.isEmpty ? null : Palette.bad),
+            ]),
+            if (managers.isNotEmpty) ...[
+              const SectionTitle('Manager'),
+              LedgerGroup(padding: EdgeInsets.zero, children: [
+                for (final s in managers)
+                  StaffRow(
+                      staff: s,
+                      grouped: true,
+                      onTap: () => showStaffDetail(context, s.id)),
+              ]),
+            ],
+            for (final (title, roles) in _sections)
+              if (staff.any((s) => !s.isManager && roles.contains(s.role))) ...[
+                SectionTitle(title,
+                    trailing: Text(
+                        '${staff.where((s) => !s.isManager && roles.contains(s.role)).length}',
+                        style: const TextStyle(
+                            color: Palette.muted,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700))),
+                LedgerGroup(padding: EdgeInsets.zero, children: [
+                  for (final s in staff
+                      .where((s) => !s.isManager && roles.contains(s.role)))
+                    StaffRow(
+                        staff: s,
+                        grouped: true,
+                        onTap: () => showStaffDetail(context, s.id)),
+                ]),
+              ],
           ]),
     );
   }
+
+  static String _mood(double h) => h >= 75
+      ? 'A happy kitchen'
+      : h >= 55
+          ? 'Steady'
+          : h >= 40
+              ? 'Grumbling'
+              : 'Close to walking out';
 }
 
 class StaffRow extends StatelessWidget {
   final Staff staff;
   final VoidCallback? onTap;
   final Widget? trailing;
-  const StaffRow({super.key, required this.staff, this.onTap, this.trailing});
+
+  /// Inside a [LedgerGroup]: no card of its own.
+  final bool grouped;
+  const StaffRow(
+      {super.key,
+      required this.staff,
+      this.onTap,
+      this.trailing,
+      this.grouped = false});
   @override
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
@@ -109,6 +161,9 @@ class StaffRow extends StatelessWidget {
     if (s.status == 'notice') {
       status = 'leaving in ${s.noticeLeft}d';
       sc = Palette.warn;
+    } else if (s.morale < 30) {
+      status = 'may leave';
+      sc = Palette.bad;
     } else if (s.trainingUntil > st.dayIndex) {
       status = 'training';
       sc = Palette.staff;
@@ -116,7 +171,7 @@ class StaffRow extends StatelessWidget {
       status = 'absent';
       sc = Palette.bad;
     } else if (st.phase != 'close' && s.workingToday) {
-      status = 'working';
+      status = 'on shift';
       sc = Palette.ok;
     } else if (s.dayOff == st.weekday) {
       status = 'day off';
@@ -128,73 +183,85 @@ class StaffRow extends StatelessWidget {
     final skillText = s.skillKnown
         ? '${s.skill.round()}'
         : '${(s.skill - 15).clamp(0, 100).round()}–${(s.skill + 15).clamp(0, 100).round()}';
-    return Panel(
-      onTap: onTap,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+    final energy = (100 - s.fatigue) / 100;
+    final row = Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Row(children: [
-        Stack(clipBehavior: Clip.none, children: [
-          CircleAvatar(
-              radius: 22,
-              backgroundColor: Palette.surface2,
-              child: Icon(AssetCatalog.role(s.role), color: Palette.ink)),
-          Positioned(
-              right: -6,
-              bottom: -6,
-              child: Text(faceFor(s.morale),
-                  style: const TextStyle(fontSize: 18))),
-        ]),
+        StaffAvatar(
+            seed: s.id,
+            name: s.name,
+            role: s.isManager ? 'manager' : s.role,
+            size: 46,
+            morale: s.morale),
         const SizedBox(width: 14),
         Expanded(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(s.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            const SizedBox(height: 2),
             Row(children: [
               Flexible(
-                  child: Text(s.name,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 15))),
-              const SizedBox(width: 6),
-              if (status.isNotEmpty) Pill(status, color: sc),
-            ]),
-            Text(sim.role(s.role),
-                style: const TextStyle(color: Palette.muted, fontSize: 12.5)),
-            const SizedBox(height: 4),
-            Row(children: [
-              const Icon(Icons.construction, size: 13, color: Palette.muted),
-              const SizedBox(width: 3),
-              Expanded(
-                  child:
-                      StatBar(s.skill / 100, color: Palette.staff, height: 6)),
-              const SizedBox(width: 6),
-              Text(skillText,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w700)),
-              const SizedBox(width: 6),
-              Icon(Icons.battery_charging_full,
-                  size: 14,
-                  color: s.fatigue > 70
-                      ? Palette.bad
-                      : (s.fatigue > 50 ? Palette.warn : Palette.ok)),
-              Text('${(100 - s.fatigue).round()}',
-                  style: const TextStyle(fontSize: 11)),
-            ]),
-            if (s.morale < 40)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Pill(s.morale < 30 ? 'may leave' : 'unhappy',
-                    color: Palette.bad, icon: Icons.warning_amber_rounded),
+                child: Text(sim.role(s.role),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        const TextStyle(color: Palette.muted, fontSize: 12.5)),
               ),
+              if (status.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Flexible(child: StateDot(status, color: sc)),
+              ],
+            ]),
+            const SizedBox(height: 7),
+            Row(children: [
+              const Text('ENERGY',
+                  style: TextStyle(
+                      color: Palette.muted,
+                      fontSize: 8.5,
+                      letterSpacing: 1.2,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(width: 6),
+              Flexible(
+                  child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 54),
+                child: Meter(energy,
+                    color: energy < 0.3
+                        ? Palette.bad
+                        : (energy < 0.5 ? Palette.warn : Palette.owner)),
+              )),
+            ]),
           ]),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         trailing ??
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Money(s.wage, size: 13),
-              const Text('/day',
-                  style: TextStyle(color: Palette.muted, fontSize: 11))
+              Text(skillText,
+                  style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      fontFeatures: [FontFeature.tabularFigures()])),
+              const Text('SKILL',
+                  style: TextStyle(
+                      color: Palette.muted,
+                      fontSize: 8.5,
+                      letterSpacing: 1.4,
+                      fontWeight: FontWeight.w600)),
+              const SizedBox(height: 5),
+              Text('${fmtMoney(s.wage)}/day',
+                  style: const TextStyle(color: Palette.muted, fontSize: 11.5)),
             ]),
       ]),
     );
+    if (grouped) {
+      return Material(
+          type: MaterialType.transparency,
+          child: InkWell(onTap: onTap, child: row));
+    }
+    return Panel(onTap: onTap, padding: EdgeInsets.zero, child: row);
   }
 }
 
@@ -249,11 +316,12 @@ class _StaffDetail extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
           children: [
             Row(children: [
-              CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Palette.surface2,
-                  child: Icon(AssetCatalog.role(s.role),
-                      size: 30, color: Palette.ink)),
+              StaffAvatar(
+                  seed: s.id,
+                  name: s.name,
+                  role: s.isManager ? 'manager' : s.role,
+                  size: 60,
+                  morale: s.morale),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -265,7 +333,7 @@ class _StaffDetail extends StatelessWidget {
                           style: const TextStyle(color: Palette.muted)),
                     ]),
               ),
-              Text(faceFor(s.morale), style: const TextStyle(fontSize: 36)),
+              RingGauge(s.morale, size: 48),
             ]),
             if (s.traits.isNotEmpty) ...[
               const SizedBox(height: 10),

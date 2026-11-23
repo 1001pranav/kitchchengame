@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:sim_core/sim_core.dart';
 
 import '../theme.dart';
+import '../scene/pictures.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
 
 class KitchenTab extends StatelessWidget {
   const KitchenTab({super.key});
@@ -11,10 +13,7 @@ class KitchenTab extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Column(children: [
-        Container(
-            color: Palette.surface,
-            child: const TabBar(
-                tabs: [Tab(text: 'Menu'), Tab(text: 'Equipment')])),
+        const GameTabBar(tabs: [Tab(text: 'Menu'), Tab(text: 'Equipment')]),
         const Expanded(child: TabBarView(children: [_Menu(), _Equipment()])),
       ]),
     );
@@ -23,61 +22,105 @@ class KitchenTab extends StatelessWidget {
 
 class _Menu extends StatelessWidget {
   const _Menu();
+  static const _courses = [
+    ('starter', 'Starters'),
+    ('main', 'Mains'),
+    ('side', 'Sides'),
+    ('dessert', 'Desserts'),
+    ('drink', 'Drinks'),
+  ];
   @override
   Widget build(BuildContext context) {
     final c = GameScope.of(context);
     final sim = c.sim!;
     final l = sim.state.viewLoc;
     final dishes = sim.content.dishesFor(sim.state.themeId);
-    final order = ['starter', 'main', 'side', 'dessert', 'drink'];
-    dishes.sort(
-        (a, b) => order.indexOf(a.course).compareTo(order.indexOf(b.course)));
     final canPrice = sim.state.phase != 'service';
     final pi = sim.priceIndex();
+    final on = dishes.where((d) => l.menu[d.id]?.enabled ?? false).toList();
+    double costShare(Dish d) {
+      final m = l.menu[d.id]!;
+      final cost = d.recipe.fold(0.0,
+          (a, r) => a + r.qty * sim.unitPrice('sup_standard', r.ingredientId));
+      return cost / m.price;
+    }
+
+    final avgCost =
+        on.isEmpty ? 0.0 : on.fold(0.0, (a, d) => a + costShare(d)) / on.length;
+    final pct = ((pi - 1) * 100).round();
     return Centered(
       child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Panel(
-              child: Row(children: [
-                const Icon(Icons.sell, color: Palette.accent),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Prices are ${pi >= 1 ? '${((pi - 1) * 100).round()}% above' : '${((1 - pi) * 100).round()}% below'} normal. '
-                    'Higher prices earn more per dish but bring fewer customers and lower "value" reviews.',
-                    style: const TextStyle(height: 1.35),
-                  ),
-                ),
-              ]),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 14, 2, 14),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('THE CARTE',
+                        style: TextStyle(
+                            color: Palette.accent,
+                            fontSize: 10.5,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 3),
+                    Text('${on.length} dishes tonight',
+                        style: const TextStyle(
+                            fontFamily: displayFont,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700)),
+                  ]),
             ),
-            const SizedBox(height: 10),
-            for (var i = 0; i < dishes.length; i++)
-              _DishRow(
-                  dish: dishes[i],
-                  index: l.menu.keys.toList().indexOf(dishes[i].id),
-                  canPrice: canPrice),
+            StatStrip(items: [
+              StatItem(
+                  'PRICES',
+                  pct == 0 ? 'Par' : '${pct > 0 ? '+' : ''}$pct%',
+                  pct > 0
+                      ? 'above normal'
+                      : (pct < 0 ? 'below normal' : 'normal'),
+                  color: pct > 15 ? Palette.warn : null),
+              StatItem('FOOD COST', '${(avgCost * 100).round()}%', 'average',
+                  color: avgCost > 0.36 ? Palette.bad : null,
+                  onTap: () => showTerm(context, 'food_cost')),
+              StatItem('ON MENU', '${on.length}/${dishes.length}', 'dishes'),
+            ]),
+            const SizedBox(height: 8),
+            const Text(
+                'Higher prices earn more per plate but bring fewer guests and harsher "value" reviews.',
+                style: TextStyle(color: Palette.muted, fontSize: 12)),
+            for (final (course, title) in _courses)
+              if (dishes.any((d) => d.course == course)) ...[
+                SectionTitle(title),
+                LedgerGroup(padding: EdgeInsets.zero, children: [
+                  for (final d in dishes.where((d) => d.course == course))
+                    _DishRow(
+                        dish: d,
+                        index: l.menu.keys.toList().indexOf(d.id),
+                        canPrice: canPrice),
+                ]),
+              ],
             const SectionTitle('Keep the menu fresh'),
             const HealthCard(),
             const SizedBox(height: 10),
             Panel(
               child: Row(children: [
-                const Icon(Icons.auto_awesome, color: Palette.tomato),
-                const SizedBox(width: 10),
-                Expanded(
+                const Icon(Icons.auto_awesome_outlined, color: Palette.accent),
+                const SizedBox(width: 12),
+                const Expanded(
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Rework the menu',
-                            style: TextStyle(fontWeight: FontWeight.w800)),
+                        Text('Rework the menu',
+                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        SizedBox(height: 2),
                         Text(
                             '800 coins. Your head chef spends a day on it. Freshness back to 100%, a little buzz.',
                             style: TextStyle(
-                                color: Palette.muted.withValues(alpha: 1),
-                                fontSize: 13)),
+                                color: Palette.muted, fontSize: 12.5)),
                       ]),
                 ),
-                FilledButton.tonal(
+                const SizedBox(width: 8),
+                OutlinedButton(
                     onPressed: canPrice
                         ? () => sendCmd(context, const ReworkMenu(),
                             okText: 'The menu feels new again.')
@@ -108,73 +151,139 @@ class _DishRow extends StatelessWidget {
     final down = sim.stationDown(dish.station);
     final lo = (dish.basePrice * 0.6).ceil(),
         hi = (dish.basePrice * 1.8).floor();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Opacity(
-        opacity: m.enabled ? 1 : 0.6,
-        child: Panel(
-          padding: const EdgeInsets.fromLTRB(12, 10, 6, 10),
+    final fcColor =
+        fc > 0.36 ? Palette.bad : (fc < 0.25 ? Palette.ok : Palette.muted);
+    Widget step(IconData icon, String tip, VoidCallback? onTap) => Tooltip(
+          message: tip,
+          child: InkResponse(
+            onTap: onTap,
+            radius: 20,
+            child: SizedBox(
+              width: 30,
+              height: 34,
+              child: Icon(icon,
+                  size: 18,
+                  color: onTap == null
+                      ? Palette.muted.withValues(alpha: 0.35)
+                      : Palette.muted),
+            ),
+          ),
+        );
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: () => showWhy(context, sim.explain('dish', id: index)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
           child: Row(children: [
-            CircleAvatar(
-                radius: 20,
-                backgroundColor: Palette.surface2,
-                child: Icon(AssetCatalog.course(dish.course),
-                    color: Palette.tomato, size: 20)),
-            const SizedBox(width: 10),
+            Opacity(
+              opacity: m.enabled ? 1 : 0.45,
+              child: DishPicture(dishId: dish.id, size: 44, off: !m.enabled),
+            ),
+            const SizedBox(width: 12),
             Expanded(
-              child: InkWell(
-                onTap: () => showWhy(context, sim.explain('dish', id: index)),
+              child: Opacity(
+                opacity: m.enabled ? 1 : 0.5,
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(dish.name,
-                          style: const TextStyle(fontWeight: FontWeight.w800)),
-                      const SizedBox(height: 2),
-                      Wrap(spacing: 5, runSpacing: 3, children: [
-                        Pill('food cost ${(fc * 100).round()}%',
-                            color: fc > 0.36
-                                ? Palette.bad
-                                : (fc < 0.25 ? Palette.ok : Palette.muted)),
-                        Pill('+${margin.toStringAsFixed(1)}',
-                            color: Palette.ok),
-                        Pill('sold ${m.soldYesterday}', color: Palette.staff),
-                        if (down)
-                          const Pill('station down',
-                              color: Palette.bad,
-                              icon: Icons.warning_amber_rounded),
-                        if (dish.skillReq >= 50)
-                          Pill('chef skill ${dish.skillReq}',
-                              color: Palette.muted),
-                      ]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 14.5)),
+                      const SizedBox(height: 3),
+                      Text.rich(
+                          TextSpan(children: [
+                            TextSpan(
+                                text: 'cost ${(fc * 100).round()}%',
+                                style: TextStyle(color: fcColor)),
+                            TextSpan(
+                                text:
+                                    '  ·  +${margin.toStringAsFixed(1)}  ·  ${m.soldYesterday} sold'),
+                          ]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              color: Palette.muted, fontSize: 11.5)),
+                      if (down || dish.skillReq >= 50) ...[
+                        const SizedBox(height: 4),
+                        down
+                            ? const StateDot('station down', color: Palette.bad)
+                            : StateDot('chef skill ${dish.skillReq}',
+                                color: Palette.muted),
+                      ],
                     ]),
               ),
             ),
-            Column(children: [
+            const SizedBox(width: 6),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
               Row(mainAxisSize: MainAxisSize.min, children: [
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  onPressed: canPrice && m.price > lo
-                      ? () => sendCmd(context, SetPrice(dish.id, m.price - 1))
-                      : null,
-                  icon: const Icon(Icons.remove),
-                  tooltip: 'Lower price',
+                step(
+                    Icons.remove,
+                    'Lower price',
+                    canPrice && m.price > lo
+                        ? () => sendCmd(context, SetPrice(dish.id, m.price - 1))
+                        : null),
+                SizedBox(
+                  width: 30,
+                  child: Text('${m.price}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: [FontFeature.tabularFigures()])),
                 ),
-                Money(m.price, size: 15),
-                IconButton(
-                  visualDensity: VisualDensity.compact,
-                  onPressed: canPrice && m.price < hi
-                      ? () => sendCmd(context, SetPrice(dish.id, m.price + 1))
-                      : null,
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Raise price',
-                ),
+                step(
+                    Icons.add,
+                    'Raise price',
+                    canPrice && m.price < hi
+                        ? () => sendCmd(context, SetPrice(dish.id, m.price + 1))
+                        : null),
               ]),
-              Switch(
-                value: m.enabled,
-                onChanged: (v) => sendCmd(context, SetDishEnabled(dish.id, v)),
+              _OnMenuToggle(
+                on: m.enabled,
+                onTap: () =>
+                    sendCmd(context, SetDishEnabled(dish.id, !m.enabled)),
               ),
             ]),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// A small text toggle instead of a stock switch: ON MENU / OFF.
+class _OnMenuToggle extends StatelessWidget {
+  final bool on;
+  final VoidCallback onTap;
+  const _OnMenuToggle({required this.on, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      toggled: on,
+      button: true,
+      label: on ? 'On the menu' : 'Off the menu',
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          margin: const EdgeInsets.only(top: 2, right: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            color: on ? Palette.accentSoft : Colors.transparent,
+            border: Border.all(
+                color:
+                    on ? Palette.accent.withValues(alpha: 0.7) : Palette.line),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(on ? 'ON MENU' : 'OFF',
+              style: TextStyle(
+                  color: on ? Palette.accent : Palette.muted,
+                  fontSize: 9.5,
+                  letterSpacing: 1.4,
+                  fontWeight: FontWeight.w700)),
         ),
       ),
     );
@@ -313,8 +422,8 @@ class _EqRow extends StatelessWidget {
         borderColor: e.broken ? Palette.bad : Palette.line,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Icon(AssetCatalog.equipment(e.type),
-                color: e.broken ? Palette.bad : Palette.ink),
+            EquipmentPicture(
+                type: e.type, station: t.station, size: 40, broken: e.broken),
             const SizedBox(width: 8),
             Expanded(
                 child: Text(t.name,

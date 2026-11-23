@@ -327,6 +327,11 @@ index** = mean over all staff. Both are shown with a trend arrow.
 showed to be the largest single cost at a managed outlet).
 If not absent: `pLate = (100 − reliability)/300`; late staff start work at tick `rng.int(15, 60)`.
 
+**Opening night (day 0):** both rolls are still made, so the random stream matches any other
+day, but their results are ignored: everyone rostered turns up on time. Without this, about
+one Worst-tier start in six opened with no cook in (the head chef's rota day off is Monday,
+and a no-show took the only line cook) and served nobody.
+
 ### 7.5 Quitting, with or without notice (at close)
 
 `pQuit = max(0, 30 − morale)/300 × (1 − loyalty/200) × quitMult(trait)`.

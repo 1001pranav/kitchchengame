@@ -1,0 +1,1226 @@
+[
+ {
+  "id": "dish_it_bruschetta",
+  "name": "Bruschetta",
+  "theme": "italian",
+  "course": "starter",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 20,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_caprese",
+  "name": "Caprese salad",
+  "theme": "italian",
+  "course": "starter",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 15,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_minestrone",
+  "name": "Minestrone",
+  "theme": "italian",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 30,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_mixed_veg",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_pasta",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_margherita",
+  "name": "Margherita pizza",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 6,
+  "skillReq": 40,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_salami_pizza",
+  "name": "Salami pizza",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 6,
+  "skillReq": 40,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_mozzarella",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_cured_meat",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_bolognese",
+  "name": "Spaghetti bolognese",
+  "theme": "italian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 6,
+  "skillReq": 45,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_pasta",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_beef",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_risotto",
+  "name": "Mushroom risotto",
+  "theme": "italian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 8,
+  "skillReq": 65,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_mushroom",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_cheese",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_baked_fish",
+  "name": "Baked fish with lemon",
+  "theme": "italian",
+  "course": "main",
+  "station": "oven",
+  "prepTicks": 7,
+  "skillReq": 60,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_fish",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_potato",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_garlic_bread",
+  "name": "Garlic bread",
+  "theme": "italian",
+  "course": "side",
+  "station": "oven",
+  "prepTicks": 3,
+  "skillReq": 15,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_salad",
+  "name": "Green salad",
+  "theme": "italian",
+  "course": "side",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_greens",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_tiramisu",
+  "name": "Tiramisu",
+  "theme": "italian",
+  "course": "dessert",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 50,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_cream",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_eggs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_it_espresso",
+  "name": "Espresso",
+  "theme": "italian",
+  "course": "drink",
+  "station": "cold",
+  "prepTicks": 1,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_spring_rolls",
+  "name": "Spring rolls",
+  "theme": "chinese",
+  "course": "starter",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 25,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_wrappers",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_mixed_veg",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_oil",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_dumplings",
+  "name": "Steamed dumplings",
+  "theme": "chinese",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 40,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_wrappers",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_pork",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_hot_sour_soup",
+  "name": "Hot and sour soup",
+  "theme": "chinese",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 35,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_tofu",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_mushroom",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_eggs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_soy",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_fried_rice",
+  "name": "Chicken fried rice",
+  "theme": "chinese",
+  "course": "main",
+  "station": "wok",
+  "prepTicks": 4,
+  "skillReq": 35,
+  "popularity": 1.1,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_eggs",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_soy",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_chow_mein",
+  "name": "Vegetable chow mein",
+  "theme": "chinese",
+  "course": "main",
+  "station": "wok",
+  "prepTicks": 4,
+  "skillReq": 35,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_noodles",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_mixed_veg",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_soy",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_kung_pao",
+  "name": "Kung pao chicken",
+  "theme": "chinese",
+  "course": "main",
+  "station": "wok",
+  "prepTicks": 5,
+  "skillReq": 50,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_chilli",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_pepper",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_soy",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_sweet_sour_pork",
+  "name": "Sweet and sour pork",
+  "theme": "chinese",
+  "course": "main",
+  "station": "fryer",
+  "prepTicks": 6,
+  "skillReq": 50,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_pork",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_pepper",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_oil",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_mapo_tofu",
+  "name": "Mapo tofu",
+  "theme": "chinese",
+  "course": "main",
+  "station": "wok",
+  "prepTicks": 5,
+  "skillReq": 55,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_tofu",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_pork",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_chilli",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_steamed_rice",
+  "name": "Steamed rice",
+  "theme": "chinese",
+  "course": "side",
+  "station": "stove",
+  "prepTicks": 2,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_greens",
+  "name": "Stir-fried greens",
+  "theme": "chinese",
+  "course": "side",
+  "station": "wok",
+  "prepTicks": 3,
+  "skillReq": 25,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_greens",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_fried_ice_cream",
+  "name": "Fried ice cream",
+  "theme": "chinese",
+  "course": "dessert",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 40,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_ice_cream",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_oil",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_cn_jasmine_tea",
+  "name": "Jasmine tea",
+  "theme": "chinese",
+  "course": "drink",
+  "station": "stove",
+  "prepTicks": 1,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_guacamole",
+  "name": "Guacamole and chips",
+  "theme": "mexican",
+  "course": "starter",
+  "station": "cold",
+  "prepTicks": 2,
+  "skillReq": 20,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_avocado",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tortilla",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_nachos",
+  "name": "Nachos",
+  "theme": "mexican",
+  "course": "starter",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 20,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_tortilla",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_cheese",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_chilli",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_beans",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_tortilla_soup",
+  "name": "Tortilla soup",
+  "theme": "mexican",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 30,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_tortilla",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_chilli",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_chicken_tacos",
+  "name": "Chicken tacos",
+  "theme": "mexican",
+  "course": "main",
+  "station": "grill",
+  "prepTicks": 4,
+  "skillReq": 35,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_tortilla",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_herbs",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_burrito",
+  "name": "Beef burrito",
+  "theme": "mexican",
+  "course": "main",
+  "station": "grill",
+  "prepTicks": 5,
+  "skillReq": 40,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_beef",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_rice",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_beans",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_cheese",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_quesadilla",
+  "name": "Cheese quesadilla",
+  "theme": "mexican",
+  "course": "main",
+  "station": "grill",
+  "prepTicks": 4,
+  "skillReq": 30,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_cheese",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_pepper",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_fish_tacos",
+  "name": "Fish tacos",
+  "theme": "mexican",
+  "course": "main",
+  "station": "fryer",
+  "prepTicks": 5,
+  "skillReq": 45,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_tortilla",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_fish",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_greens",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_chilli",
+  "name": "Chilli con carne",
+  "theme": "mexican",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 7,
+  "skillReq": 50,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_beef",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_beans",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_rice",
+  "name": "Mexican rice",
+  "theme": "mexican",
+  "course": "side",
+  "station": "stove",
+  "prepTicks": 3,
+  "skillReq": 20,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_beans",
+  "name": "Refried beans",
+  "theme": "mexican",
+  "course": "side",
+  "station": "stove",
+  "prepTicks": 3,
+  "skillReq": 20,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_beans",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_churros",
+  "name": "Churros",
+  "theme": "mexican",
+  "course": "dessert",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 35,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_chocolate",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_oil",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_mx_agua_fresca",
+  "name": "Lime agua fresca",
+  "theme": "mexican",
+  "course": "drink",
+  "station": "cold",
+  "prepTicks": 1,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_samosa",
+  "name": "Samosa",
+  "theme": "indian",
+  "course": "starter",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 30,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_potato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_oil",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_paneer_tikka",
+  "name": "Paneer tikka",
+  "theme": "indian",
+  "course": "starter",
+  "station": "tandoor",
+  "prepTicks": 5,
+  "skillReq": 45,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_paneer",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_yogurt",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_pepper",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_dal_soup",
+  "name": "Lentil soup",
+  "theme": "indian",
+  "course": "starter",
+  "station": "stove",
+  "prepTicks": 4,
+  "skillReq": 25,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_beans",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_butter_chicken",
+  "name": "Butter chicken",
+  "theme": "indian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 6,
+  "skillReq": 55,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_canned_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_cream",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_tandoori_chicken",
+  "name": "Tandoori chicken",
+  "theme": "indian",
+  "course": "main",
+  "station": "tandoor",
+  "prepTicks": 7,
+  "skillReq": 50,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_chicken",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_yogurt",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_citrus",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_palak_paneer",
+  "name": "Palak paneer",
+  "theme": "indian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 5,
+  "skillReq": 45,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_paneer",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_greens",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_garlic_ginger",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_biryani",
+  "name": "Lamb biryani",
+  "theme": "indian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 9,
+  "skillReq": 70,
+  "popularity": 1.2,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_lamb",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_yogurt",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_chana_masala",
+  "name": "Chana masala",
+  "theme": "indian",
+  "course": "main",
+  "station": "stove",
+  "prepTicks": 5,
+  "skillReq": 35,
+  "popularity": 0.8,
+  "recipe": [
+   {
+    "ingredientId": "ing_beans",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_tomato",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_onion",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_naan",
+  "name": "Naan",
+  "theme": "indian",
+  "course": "side",
+  "station": "tandoor",
+  "prepTicks": 2,
+  "skillReq": 30,
+  "popularity": 1.3,
+  "recipe": [
+   {
+    "ingredientId": "ing_flour",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_butter",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_jeera_rice",
+  "name": "Jeera rice",
+  "theme": "indian",
+  "course": "side",
+  "station": "stove",
+  "prepTicks": 2,
+  "skillReq": 15,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_rice",
+    "qty": 2
+   },
+   {
+    "ingredientId": "ing_spice",
+    "qty": 1
+   }
+  ]
+ },
+ {
+  "id": "dish_in_gulab_jamun",
+  "name": "Gulab jamun",
+  "theme": "indian",
+  "course": "dessert",
+  "station": "fryer",
+  "prepTicks": 3,
+  "skillReq": 40,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_cream",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_flour",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_sugar",
+    "qty": 2
+   }
+  ]
+ },
+ {
+  "id": "dish_in_chai",
+  "name": "Masala chai",
+  "theme": "indian",
+  "course": "drink",
+  "station": "stove",
+  "prepTicks": 1,
+  "skillReq": 10,
+  "popularity": 1.0,
+  "recipe": [
+   {
+    "ingredientId": "ing_tea_coffee",
+    "qty": 1
+   },
+   {
+    "ingredientId": "ing_cream",
+    "qty": 1
+   }
+  ]
+ }
+]

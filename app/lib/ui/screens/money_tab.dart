@@ -6,6 +6,7 @@ import 'package:sim_core/sim_core.dart';
 import '../theme.dart';
 import 'chain_screens.dart';
 import '../widgets/common.dart';
+import '../widgets/ledger.dart';
 
 class MoneyTab extends StatelessWidget {
   const MoneyTab({super.key});
@@ -23,12 +24,7 @@ class MoneyTab extends StatelessWidget {
       key: ValueKey(chain),
       length: tabs.length,
       child: Column(children: [
-        Container(
-            color: Palette.surface,
-            child: TabBar(
-                isScrollable: chain,
-                tabAlignment: chain ? TabAlignment.start : null,
-                tabs: tabs)),
+        GameTabBar(scrollable: chain, tabs: tabs),
         Expanded(
           child: TabBarView(children: [
             const _Overview(),
@@ -59,58 +55,103 @@ class _Overview extends StatelessWidget {
     final weekRev = weekDays.fold<int>(0, (a, d) => a + d.revenue);
     final weekProfit = weekDays.fold<int>(0, (a, d) => a + d.profit);
     final canAct = st.phase != 'service';
+    final weeklyFixed = st.openLocations.fold<int>(
+            0,
+            (a, o) =>
+                a +
+                o.rentWeekly +
+                7 * o.staff.fold<int>(0, (w, s) => w + s.wage)) +
+        sim.weeklyInstalments();
+    final dueSunday = st.wagesOwed + l.rentWeekly + sim.weeklyInstalments();
     return Centered(
       child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Panel(
-              onTap: () => showWhy(context, sim.explain('cash')),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: [
-                      const TermText('Cash in hand', 'cash_flow',
-                          style: TextStyle(color: Palette.muted)),
-                      const Spacer(),
-                      const Icon(Icons.help_outline,
-                          size: 18, color: Palette.muted),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(2, 14, 2, 10),
+              child: InkWell(
+                onTap: () => showWhy(context, sim.explain('cash')),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('THE BOOKS · CASH IN HAND',
+                          style: TextStyle(
+                              color: Palette.accent,
+                              fontSize: 10.5,
+                              letterSpacing: 2,
+                              fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 6),
+                      Text(fmtMoney(st.cash),
+                          style: TextStyle(
+                              fontSize: 38,
+                              height: 1,
+                              fontWeight: FontWeight.w700,
+                              color: st.cash < 0 ? Palette.bad : Palette.ink,
+                              fontFeatures: const [
+                                FontFeature.tabularFigures()
+                              ])),
                     ]),
-                    const SizedBox(height: 4),
-                    Money(st.cash, size: 28, weight: FontWeight.w900),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                        height: 110,
-                        child: CustomPaint(
-                            painter: _CashChart(st.cashHistory),
-                            size: Size.infinite)),
-                    const Text('Last weeks, at each close',
-                        style: TextStyle(color: Palette.muted, fontSize: 11.5)),
-                  ]),
+              ),
             ),
+            if (st.cashHistory.length >= 2) ...[
+              SizedBox(
+                  height: 90,
+                  child: CustomPaint(
+                      painter: _CashChart(st.cashHistory),
+                      size: Size.infinite)),
+              const SizedBox(height: 4),
+              const Text('Cash at each close',
+                  style: TextStyle(color: Palette.muted, fontSize: 11)),
+              const SizedBox(height: 10),
+            ],
+            StatStrip(items: [
+              StatItem('THIS WEEK', fmtMoney(weekProfit, sign: true), 'profit',
+                  color: weekProfit < 0 ? Palette.bad : null,
+                  onTap: () => showWhy(context, sim.explain('profit'))),
+              StatItem(
+                  'COVERS',
+                  weeklyFixed <= 0
+                      ? '–'
+                      : '${(st.cash / weeklyFixed).clamp(0, 99).toStringAsFixed(1)} wk',
+                  'of fixed costs',
+                  color: weeklyFixed > 0 && st.cash < weeklyFixed
+                      ? Palette.bad
+                      : null,
+                  onTap: () => showTerm(context, 'fixed_costs')),
+              StatItem(
+                  'SUNDAY',
+                  fmtMoney(-dueSunday, sign: true),
+                  daysToSunday == 0
+                      ? 'due tonight'
+                      : 'in $daysToSunday day${daysToSunday == 1 ? '' : 's'}',
+                  color: dueSunday > st.cash ? Palette.bad : null),
+            ]),
             const SectionTitle('This week so far'),
-            Panel(
-              child: Column(children: [
-                _row('Sales', weekRev),
-                _row('Profit', weekProfit, bold: true),
-                const SizedBox(height: 4),
-                Text('Wages and rent are counted every day but paid on Sunday.',
-                    style: TextStyle(
-                        color: Palette.muted.withValues(alpha: 1),
-                        fontSize: 12)),
-              ]),
+            LedgerGroup(children: [
+              LedgerLine('Sales', weekRev),
+              LedgerLine('Profit', weekProfit, bold: true),
+            ]),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(2, 6, 2, 0),
+              child: Text(
+                  'Wages and rent are counted every day but paid on Sunday.',
+                  style: TextStyle(color: Palette.muted, fontSize: 12)),
             ),
-            SectionTitle(
-                'Due ${daysToSunday == 0 ? 'tonight' : 'in $daysToSunday day${daysToSunday == 1 ? '' : 's'}'} (Sunday)'),
-            Panel(
-              child: Column(children: [
-                _row('Wages owed so far', -st.wagesOwed),
-                _row('Rent', -l.rentWeekly),
-                _row('Loan payments', -sim.weeklyInstalments()),
-                const Divider(height: 14),
-                _row('Utilities this month (paid on day 28)',
-                    -st.monthUtilities),
-              ]),
-            ),
+            SectionTitle(daysToSunday == 0 ? 'Due tonight' : 'Due Sunday',
+                trailing: Text(
+                    daysToSunday == 0
+                        ? ''
+                        : 'in $daysToSunday day${daysToSunday == 1 ? '' : 's'}',
+                    style: const TextStyle(
+                        color: Palette.muted,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700))),
+            LedgerGroup(children: [
+              LedgerLine('Wages owed so far', -st.wagesOwed),
+              LedgerLine('Rent', -l.rentWeekly),
+              LedgerLine('Loan payments', -sim.weeklyInstalments()),
+              LedgerLine('Utilities this month (day 28)', -st.monthUtilities),
+            ]),
             SectionTitle('Loans (${st.loans.length})'),
             for (final loan in st.loans)
               Padding(
@@ -244,17 +285,6 @@ class _Overview extends StatelessWidget {
           ]),
     );
   }
-
-  Widget _row(String k, int v, {bool bold = false}) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(children: [
-          Expanded(
-              child: Text(k,
-                  style: TextStyle(
-                      fontWeight: bold ? FontWeight.w800 : FontWeight.w500))),
-          Money(v, size: bold ? 16 : 14, sign: true),
-        ]),
-      );
 }
 
 class _CashChart extends CustomPainter {

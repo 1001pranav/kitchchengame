@@ -2,6 +2,26 @@
 
 Every change to a constant's value, with the evidence. Newest first. See doc 06 §6.3.
 
+## Entry 19 — opening night
+
+Measured with `tool/first_night.dart` (60 seeds per tier and difficulty, default card
+answers, no owner input): parties served as a share of the forecast on day 0.
+
+Before: Worst p10 0.00 (about 1 seed in 6 served nobody: no cook in), Bad p10 0.42.
+Cause: the head chef's rota day off is always Monday (the game opens on a Monday) and a
+random no-show could take the only line cook.
+
+Change: absence and lateness results ignored on day 0 (doc 02 §7.4). Tried and rejected:
+moving the first day off to Tuesday — that handed Monday to the single dishwasher at Good
+tier, and Good fell from a median 0.95 to 0.51.
+
+After (normal): Excellent p50 1.02, Best 0.98, Good 0.95, Bad 0.67, Worst 0.62; no zero
+nights from absence (two Worst seeds still close on day 0 from a card's default answer).
+
+The app's opening-night goal (serve N parties) is set from these numbers: 95% of the
+forecast at Good and above, 70% at Bad, 65% at Worst — about the passive median, so the
+owner's help is what makes it. It is presentation only and changes no sim value.
+
 ## Entry 18 — manager-run outlets meet the Veteran target
 
 Measured with `packages/sim_core/tool/managers.dart` (Good-tier second outlet in an

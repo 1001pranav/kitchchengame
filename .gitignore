@@ -2,3 +2,4 @@
 app/build/
 app/.dart_tool/
 packages/sim_core/.dart_tool/
+game/.godot/

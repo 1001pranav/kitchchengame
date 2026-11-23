@@ -158,14 +158,26 @@ class Panel extends StatelessWidget {
       this.borderColor});
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: color ?? Palette.surface,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: borderColor ?? Palette.line)),
-      clipBehavior: Clip.antiAlias,
-      child:
-          InkWell(onTap: onTap, child: Padding(padding: padding, child: child)),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x40000000), blurRadius: 12, offset: Offset(0, 4))
+        ],
+      ),
+      child: Material(
+        color: color ?? Palette.surface,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: borderColor ?? Palette.line)),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+            onTap: onTap,
+            splashColor: Palette.accent.withValues(alpha: 0.08),
+            highlightColor: Palette.accent.withValues(alpha: 0.04),
+            child: Padding(padding: padding, child: child)),
+      ),
     );
   }
 }
@@ -177,17 +189,21 @@ class SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 18, 4, 8),
+      padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
       child: Row(children: [
-        Expanded(
+        Container(width: 14, height: 1, color: Palette.accent),
+        const SizedBox(width: 8),
+        Flexible(
           child: Text(text.toUpperCase(),
               style: const TextStyle(
-                  fontSize: 12,
-                  letterSpacing: 1.1,
-                  fontWeight: FontWeight.w800,
-                  color: Palette.muted)),
+                  fontSize: 11,
+                  letterSpacing: 1.8,
+                  fontWeight: FontWeight.w700,
+                  color: Palette.accent)),
         ),
-        if (trailing != null) trailing!,
+        const SizedBox(width: 8),
+        Expanded(child: Container(height: 1, color: Palette.line)),
+        if (trailing != null) ...[const SizedBox(width: 8), trailing!],
       ]),
     );
   }
@@ -204,7 +220,8 @@ class Pill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
           color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20)),
+          border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
+          borderRadius: BorderRadius.circular(6)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[
           Icon(icon, size: 13, color: color),
@@ -215,7 +232,10 @@ class Pill extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
                 style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700, color: color))),
+                    fontSize: 11.5,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w600,
+                    color: color))),
       ]),
     );
   }
@@ -227,7 +247,12 @@ void showToast(BuildContext context, String text, {bool bad = true}) {
     ..showSnackBar(SnackBar(
       content: Text(text),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: bad ? Palette.ink : Palette.accent,
+      backgroundColor: Palette.surface2,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+              color:
+                  (bad ? Palette.bad : Palette.accent).withValues(alpha: 0.6))),
       duration: const Duration(seconds: 3),
     ));
 }
