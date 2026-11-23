@@ -176,7 +176,7 @@ func show_intro() -> void:
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
 	screen.add_child(m)
 	v.add_child(UI.kicker("A letter, left on the counter", UI.BRASS))
-	v.add_child(UI.title("You have 60,000 and one chance.", 28))
+	v.add_child(UI.title("You have %s and one chance." % UI.money(game.content.balance.i("START_CAPITAL")), 28))
 	var body := "Your aunt ran a kitchen for thirty years. She left you her savings and a note: \"Buy a place. Feed people well. Do not trust anyone who never eats their own food.\"\n\nFive restaurants are for sale. Cheap ones hide problems. Good ones cost more than you have, but the bank will lend.\n\nEvery night the doors open. What happens next is up to you."
 	v.add_child(UI.label(body, 16, Color("d9cfbf"), UI.sans(400), true))
 	var sp := UI.spacer()
