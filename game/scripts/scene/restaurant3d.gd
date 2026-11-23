@@ -379,7 +379,7 @@ func _camera(W: float, fz: float) -> void:
 	cam.keep_aspect = Camera3D.KEEP_WIDTH
 	cam.size = W + 0.5
 	add_child(cam)
-	var mid := (KITCHEN_Z + fz) / 2 + 0.35
+	var mid := (KITCHEN_Z + fz) / 2 - 0.35
 	var pitch := deg_to_rad(52.0)
 	var dist := 14.0
 	cam.look_at_from_position(Vector3(0, sin(pitch) * dist, mid + cos(pitch) * dist), Vector3(0, 0, mid))

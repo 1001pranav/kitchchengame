@@ -107,6 +107,10 @@ func _on_changed() -> void:
 
 func _route() -> void:
 	var st: M.GameState = game.sim.state
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null:
+		snd.music("service" if st.phase == "service" else "title")
+		snd.ambience(st.phase == "service")
 	var want := st.phase
 	if want == "market" and not _intro_seen:
 		return
@@ -127,6 +131,9 @@ func _route() -> void:
 func show_title() -> void:
 	_clear()
 	current = "title"
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null:
+		snd.music("title")
 	var grad := TextureRect.new()
 	var gt := GradientTexture2D.new()
 	var gr := Gradient.new()
@@ -729,6 +736,18 @@ func _close_popup() -> void:
 	_popup = null
 
 func _process(_d: float) -> void:
+	var snd = get_node_or_null("/root/Sound")
+	if snd != null and game.sim != null and game.sim.state.hasLocation and game.sim.ss != null:
+		var people := 0
+		for g in game.sim.ss.groups:
+			if not g.gone and not g.delivery:
+				people += g.size
+		snd.room_level = people / 40.0
+		var cooking := 0
+		for k in game.sim.ss.tasks:
+			if k.type == "cook" and k.started:
+				cooking += 1
+		snd.kitchen_level = cooking / 6.0
 	if current == "service" and _hud.has("meter") and game.sim != null and game.sim.ss != null:
 		var s: M.ServiceState = game.sim.ss
 		var meter: Control = _hud.meter
@@ -909,7 +928,17 @@ func toast(text: String, color := UI.INK, secs := 3.0) -> void:
 	tw.tween_callback(p.queue_free)
 
 func _on_events(events: Array) -> void:
+	var snd = get_node_or_null("/root/Sound")
 	for e in events:
+		if snd != null:
+			match e.type:
+				"groupPaid": snd.play("coin", -6.0, 0.15)
+				"groupWalkedOut": snd.play("walkout", -4.0, 0.4)
+				"incidentRaised": snd.play("incident", -3.0, 0.5)
+				"equipmentBroke": snd.play("breakdown", -3.0, 0.5)
+				"stageReached", "objectiveDone": snd.play("stageup", -3.0, 1.0)
+				"dishReady": snd.play("bell", -16.0, 1.2, 0.02)
+				"groupSeated": snd.play("tap", -18.0, 0.3)
 		match e.type:
 			"groupPaid":
 				var tid = e.args.get("tableId")

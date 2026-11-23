@@ -165,6 +165,9 @@ static func chip(text: String, color := BRASS) -> PanelContainer:
 ## Squash on press: small, but it makes every button feel physical.
 static func _juice(b: Button) -> void:
 	b.button_down.connect(func():
+		var snd = b.get_node_or_null("/root/Sound")
+		if snd != null:
+			snd.play("tap", -12.0, 0.05)
 		b.pivot_offset = b.size / 2
 		var tw := b.create_tween()
 		tw.tween_property(b, "scale", Vector2(0.96, 0.96), 0.06))
