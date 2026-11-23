@@ -158,7 +158,7 @@ func _monthly() -> void:
 				state.scheduled.append(M.Scheduled.mk("inc_inspection", day, null, null, l.id))
 				l.inspectionDay = day
 			# The landlord reviews rent every 168 days after the first 84.
-			var since := state.dayIndex - l.openDay
+			var since = state.dayIndex - l.openDay
 			if since >= 83 and not any(state.scheduled, func(s): return s.incidentId == "inc_landlord_rent" and s.locationId == l.id):
 				var next: int = state.flags.get("%d:next_rent_review" % l.id, l.openDay + 84)
 				if state.dayIndex + 28 >= next:

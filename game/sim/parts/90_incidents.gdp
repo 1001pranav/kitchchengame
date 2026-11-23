@@ -105,7 +105,7 @@ func _cond(c: Dictionary) -> bool:
 			"tickAfter":
 				if l.service == null or l.service.tick < v: return false
 			"groupWaitFoodShare":
-				var s := l.service
+				var s = l.service
 				if s == null: return false
 				if not any(s.groups, func(g): return g.state == "waitFood" and g.counter > _patienceLimit(g) * v): return false
 			"festivalInDays":
@@ -376,7 +376,7 @@ func _applyEffect(e: Dictionary, inst: M.IncidentInstance, out: Array) -> void:
 	var l := loc
 	var eq := l.equipmentById(inst.subjectId)
 	var st := l.staffById(inst.subjectId)
-	var sv := l.service
+	var sv = l.service
 	var n := func(k: String, d = 0) -> Variant: return e[k] if e.get(k) != null else d
 	match e["type"]:
 		"none", "log":

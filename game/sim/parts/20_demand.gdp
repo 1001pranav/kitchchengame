@@ -104,7 +104,7 @@ func _expectedDailyUse(l: M.Location, day = null) -> Dictionary:
 		for d in inCourse:
 			totalPop += d.popularity
 		for d in inCourse:
-			var portions := people * perPerson * d.popularity / totalPop
+			var portions = people * perPerson * d.popularity / totalPop
 			for r in d.recipe:
 				out[r.ingredientId] = out.get(r.ingredientId, 0.0) + portions * r.qty
 	return out

@@ -265,13 +265,13 @@ func _checkObjectives() -> void:
 	_updateHiddenProblems()
 	if t.profit > 0 and not t.closed:
 		_completeObjective("obj_1_first_profit")
-	var s := l.service
+	var s = l.service
 	if s != null and not state.owner.restingToday:
 		var covered := func(rs: Array) -> bool:
 			return any(l.staff, func(x): return x.workingToday and rs.has(x.role))
 		var allCovered: bool = covered.call(["headChef", "lineCook"]) and covered.call(["server"]) and covered.call(["cashier"]) \
 			and covered.call(["dishwasher"]) and covered.call(["cleaner"])
-		var served := (1 - t.ownerTasks * 2.0 / s.tick) if s.tick > 0 else 0.0
+		var served = (1 - t.ownerTasks * 2.0 / s.tick) if s.tick > 0 else 0.0
 		if allCovered and served >= 0.5 and t.groupsServed > 0:
 			_completeObjective("obj_1_full_rota")
 	if not l.hidden.is_empty() and every(l.hidden, func(h): return h.done) and state.dayIndex > 0:
