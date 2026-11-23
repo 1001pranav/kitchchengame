@@ -19,21 +19,24 @@ static var _cache := {}
 ## Walking speed multiplier set from the game speed (0 = paused).
 static var time_scale := 1.0
 
-func setup(model_name: String, ring_color := Color(0, 0, 0, 0)) -> void:
-	if not _cache.has(model_name):
-		_cache[model_name] = load("res://assets/characters/%s.glb" % model_name)
-	model = _cache[model_name].instantiate()
-	model.scale = Vector3.ONE * SCALE
-	add_child(model)
-	anim = model.find_child("AnimationPlayer", true, false)
+var person: Person
+
+## [model_name] is now a role for the built figure ("guest", "chef", ...); [seed] varies it.
+func setup(model_name: String, ring_color := Color(0, 0, 0, 0), seed := 0) -> void:
+	person = Person.new()
+	person.build(model_name, seed)
+	model = person
+	add_child(person)
 	if ring_color.a > 0:
 		ring = MeshInstance3D.new()
 		var tm := TorusMesh.new()
 		tm.inner_radius = 0.13
 		tm.outer_radius = 0.16
 		tm.rings = 24
+		tm.inner_radius = 0.1
+		tm.outer_radius = 0.115
 		ring.mesh = tm
-		ring.scale = Vector3(1, 0.15, 1)
+		ring.scale = Vector3(1, 0.1, 1)
 		ring.position.y = 0.01
 		var m := StandardMaterial3D.new()
 		m.albedo_color = ring_color
@@ -45,13 +48,10 @@ func setup(model_name: String, ring_color := Color(0, 0, 0, 0)) -> void:
 		add_child(ring)
 	_play("idle")
 
-func _play(n: String, blend := 0.2) -> void:
-	if anim == null or n == _current:
-		return
-	if not anim.has_animation(n):
-		n = "idle"
-	_current = n
-	anim.play(n, blend)
+func _play(n: String, _blend := 0.2) -> void:
+	if person != null:
+		person.pose = n
+		_current = n
 
 ## Walk to [dest] through [via] points, then hold [p].
 func go(dest: Vector3, via: Array = [], p := "idle", facing := Vector3.ZERO, lift := 0.0) -> void:
@@ -73,17 +73,19 @@ var moving: bool:
 
 func _process(delta: float) -> void:
 	var mult: float = time_scale
+	if person != null:
+		person.animate(delta, not path.is_empty() and mult > 0.0, mult)
 	if path.is_empty():
 		if remove_on_arrival:
 			queue_free()
 			return
-		model.position.y = lerpf(model.position.y, seat_y, minf(1.0, delta * 10))
+		pass
 		_play(pose)
 		if face_dir != Vector3.ZERO:
 			var want := atan2(face_dir.x, face_dir.z)
 			rotation.y = lerp_angle(rotation.y, want, minf(1.0, delta * 8))
 		return
-	model.position.y = lerpf(model.position.y, 0.0, minf(1.0, delta * 12))
+
 	if mult == 0.0:
 		_play("idle")
 		return
@@ -97,4 +99,4 @@ func _process(delta: float) -> void:
 	else:
 		position += to.normalized() * step
 		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), minf(1.0, delta * 12))
-	_play("sprint" if mult > 2.5 else "walk")
+	_play(pose if pose == "holding-both" else "walk")

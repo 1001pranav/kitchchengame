@@ -17,7 +17,7 @@ Sound="*res://scripts/sound.gd"
 [display]
 
 window/size/viewport_width=390
-window/size/viewport_height=844
+window/size/viewport_height=700
 window/size/window_width_override=390
 window/size/window_height_override=844
 window/stretch/mode="canvas_items"

@@ -8,12 +8,12 @@ signal tapped(kind: String, id: int)   ## "group", "task", "zone" (id = zone ind
 const M = preload("res://sim/model.gd")
 
 const COLS := 3
-const CELL_W := 1.32
-const CELL_D := 1.18
+const CELL_W := 1.0
+const CELL_D := 0.98
 const DINING_Z0 := 0.5
 const KITCHEN_Z := -1.9
-const TABLE_H := 0.24
-const SEAT_H := 0.12
+const TABLE_H := 0.27
+const SEAT_H := 0.16
 const ZONES := ["door", "tables", "pass", "dishes"]
 const GUEST_MODELS := ["character-female-a", "character-female-b", "character-female-c", "character-female-d",
 	"character-female-e", "character-female-f", "character-male-a", "character-male-b", "character-male-c",
@@ -70,6 +70,13 @@ func mat(key: String) -> StandardMaterial3D:
 		m.metallic = d[key][2]
 	_mats[key] = m
 	return m
+
+var _plank_mat: ShaderMaterial
+func _planks() -> ShaderMaterial:
+	if _plank_mat == null:
+		_plank_mat = ShaderMaterial.new()
+		_plank_mat.shader = preload("res://scripts/scene/planks.gdshader")
+	return _plank_mat
 
 func glow_mat(c: Color, energy := 2.0) -> StandardMaterial3D:
 	var m := StandardMaterial3D.new()
@@ -148,8 +155,8 @@ func build(s: Sim) -> void:
 			if r == rows:
 				z = DINING_Z0 + rows * CELL_D + 0.55
 			var d := CELL_D if r < rows else 1.1
-			box(_room, Vector3(W / COLS + 0.001, 0.04, d + 0.001), Vector3(-hx + W / COLS * (c + 0.5), -0.02, z), mat("floor" if (r + c) % 2 == 0 else "floor2"))
-	box(_room, Vector3(W, 0.04, DINING_Z0 + 0.001), Vector3(0, -0.02, DINING_Z0 / 2), mat("floor2"))
+			box(_room, Vector3(W / COLS + 0.001, 0.04, d + 0.001), Vector3(-hx + W / COLS * (c + 0.5), -0.02, z), _planks())
+	box(_room, Vector3(W, 0.04, DINING_Z0 + 0.001), Vector3(0, -0.02, DINING_Z0 / 2), _planks())
 	for c in 3:
 		box(_room, Vector3(W / 3 + 0.001, 0.04, -KITCHEN_Z + 0.001), Vector3(-hx + W / 3 * (c + 0.5), -0.02, KITCHEN_Z / 2), mat("tile" if c % 2 == 0 else "tile2"))
 	box(_room, Vector3(W + 2, 0.02, 1.6), Vector3(0, -0.04, front_z + 0.8), mat("street"))
@@ -160,10 +167,15 @@ func build(s: Sim) -> void:
 	box(_room, Vector3(0.09, 0.025, front_z - DINING_Z0 + 0.2), Vector3(-hx + 0.005, 0.33, (front_z + DINING_Z0) / 2), mat("brass"))
 	box(_room, Vector3(0.08, 0.36, front_z - KITCHEN_Z), Vector3(hx + 0.04, 0.18, (front_z + KITCHEN_Z) / 2), mat("panel"))
 	# Windows on the left wall glow with the street outside.
-	var wz := DINING_Z0 + 0.6
-	while wz < front_z - 0.5:
-		box(_room, Vector3(0.02, 0.42, 0.55), Vector3(-hx + 0.0, 0.68, wz), glow_mat(Color("2b3e5c"), 0.6))
-		wz += CELL_D
+	var wz := DINING_Z0 + 0.5
+	var k := 0
+	var art := [Color("6b3a2a"), Color("2f4a52"), Color("8a6a3a"), Color("3d2f45")]
+	while wz < front_z - 0.6:
+		box(_room, Vector3(0.025, 0.36, 0.3), Vector3(-hx + 0.01, 0.66, wz), mat("brass"))
+		box(_room, Vector3(0.03, 0.3, 0.24), Vector3(-hx + 0.015, 0.66, wz), glow_mat(art[k % art.size()], 0.25))
+		lamp(_room, Vector3(-hx + 0.2, 0.95, wz), Color("ffd7a0"), 0.25, 0.6)
+		wz += CELL_D * 1.5
+		k += 1
 	# Front: low partitions either side of the door.
 	box(_room, Vector3(hx - 0.45, 0.3, 0.07), Vector3(-hx + (hx - 0.45) / 2, 0.15, front_z), mat("panel"))
 	box(_room, Vector3(hx - 0.45, 0.3, 0.07), Vector3(hx - (hx - 0.45) / 2, 0.15, front_z), mat("panel"))
@@ -211,7 +223,10 @@ func _environment() -> void:
 	e.ambient_light_color = Color("40384c")
 	e.ambient_light_energy = 0.6
 	e.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	e.tonemap_exposure = 1.05
+	e.tonemap_exposure = 1.1
+	e.adjustment_enabled = true
+	e.adjustment_contrast = 1.12
+	e.adjustment_saturation = 0.88
 	env.environment = e
 	add_child(env)
 	var key := DirectionalLight3D.new()
@@ -335,8 +350,8 @@ func _build_tables(l: M.Location) -> void:
 		var node := Node3D.new()
 		node.position = p
 		_room.add_child(node)
-		var tw := 0.4 if seats <= 2 else (0.58 if seats <= 4 else 0.92)
-		var td := 0.4 if seats <= 2 else 0.52
+		var tw := 0.32 if seats <= 2 else (0.48 if seats <= 4 else 0.74)
+		var td := 0.32 if seats <= 2 else 0.4
 		# Table: legs, top and a cloth.
 		box(node, Vector3(0.05, TABLE_H, 0.05), Vector3(0, TABLE_H / 2, 0), mat("woodDark"))
 		box(node, Vector3(tw * 0.6, 0.02, 0.05), Vector3(0, 0.01, 0), mat("woodDark"))
@@ -346,16 +361,13 @@ func _build_tables(l: M.Location) -> void:
 		cyl(node, 0.012, 0.05, Vector3(0, TABLE_H + 0.035, 0), mat("linen"))
 		var flame := box(node, Vector3(0.012, 0.02, 0.012), Vector3(0, TABLE_H + 0.07, 0), glow_mat(Color("ffb347"), 4.0))
 		var tl := lamp(node, Vector3(0, TABLE_H + 0.45, 0), Color("ffbd6e"), 0.16, 0.75)
-		# Pendant lamp above.
-		cyl(node, 0.07, 0.06, Vector3(0, 0.95, 0), mat("brass"), 0.1)
-		box(node, Vector3(0.008, 0.5, 0.008), Vector3(0, 1.22, 0), mat("black"))
 		var chairs: Array = []
 		var per_side := seats / 2
 		for s in seats:
 			var side := 1 if s % 2 == 0 else -1
 			var k := s / 2
 			var x := (k - (per_side - 1) / 2.0) * (tw / maxf(1, per_side)) if per_side > 1 else 0.0
-			var cp := Vector3(x, 0, side * (td / 2 + 0.17))
+			var cp := Vector3(x, 0, side * (td / 2 + 0.13))
 			_chair(node, cp, side)
 			chairs.append([p + cp, Vector3(0, 0, -side)])
 		var props := Node3D.new()
@@ -367,11 +379,11 @@ func _chair(parent: Node3D, p: Vector3, side: int) -> void:
 	var c := Node3D.new()
 	c.position = p
 	parent.add_child(c)
-	for lx in [-0.08, 0.08]:
-		for lz in [-0.08, 0.08]:
+	for lx in [-0.065, 0.065]:
+		for lz in [-0.06, 0.06]:
 			box(c, Vector3(0.02, SEAT_H, 0.02), Vector3(lx, SEAT_H / 2, lz), mat("woodDark"))
-	box(c, Vector3(0.2, 0.03, 0.2), Vector3(0, SEAT_H, 0), mat("velvet"))
-	box(c, Vector3(0.2, 0.2, 0.025), Vector3(0, SEAT_H + 0.11, side * 0.095), mat("woodDark"))
+	box(c, Vector3(0.16, 0.025, 0.15), Vector3(0, SEAT_H, 0), mat("velvet"))
+	box(c, Vector3(0.16, 0.2, 0.02), Vector3(0, SEAT_H + 0.11, side * 0.075), mat("woodDark"))
 
 func _camera(W: float, fz: float) -> void:
 	cam = Camera3D.new()
@@ -380,30 +392,44 @@ func _camera(W: float, fz: float) -> void:
 	cam.size = W + 0.5
 	add_child(cam)
 	var mid := (KITCHEN_Z + fz) / 2 - 0.35
-	var pitch := deg_to_rad(52.0)
+	var pitch := deg_to_rad(44.0)
 	var dist := 14.0
 	cam.look_at_from_position(Vector3(0, sin(pitch) * dist, mid + cos(pitch) * dist), Vector3(0, 0, mid))
 	cam.current = true
 	_cam_base = cam.position
+	_cam_size = cam.size
 
 var _cam_base := Vector3.ZERO
+var _cam_size := 1.0
 var cam_offset := 0.0
+var cam_offset_x := 0.0
+var zoom_level := 1.0       ## 1 = whole room; smaller = closer
 
-func pan_camera(dz: float) -> void:
+func pan_camera(dz: float, dx := 0.0) -> void:
 	var rows := ceili(n_tables / float(COLS))
-	var limit := maxf(0.0, rows * CELL_D * 0.5 - 1.2)
+	var limit := maxf(0.0, rows * CELL_D * 0.5 - 1.2) + (1.0 - zoom_level) * 3.0
+	var limit_x := (1.0 - zoom_level) * _cam_size * 0.5
 	cam_offset = clampf(cam_offset + dz, -limit, limit)
-	cam.position = _cam_base + Vector3(0, 0, cam_offset)
+	cam_offset_x = clampf(cam_offset_x + dx, -limit_x, limit_x)
+	cam.position = _cam_base + Vector3(cam_offset_x, 0, cam_offset)
+
+func zoom(f: float) -> void:
+	zoom_level = clampf(zoom_level * f, 0.4, 1.0)
+	cam.size = _cam_size * zoom_level
+	pan_camera(0.0)
 
 # ---------------------------------------------------------------- sync with the sim
 
-func _guest_model(gid: int, i: int) -> String:
-	return GUEST_MODELS[(gid * 7 + i * 5) % GUEST_MODELS.size()]
-
 func _staff_model(s: M.Staff) -> String:
-	if s.isCook or s.role == "prepCook":
-		return "character-worker" if s.id % 2 == 0 else "character-male-f"
-	return GUEST_MODELS[(s.id * 3) % GUEST_MODELS.size()]
+	match s.role:
+		"headChef": return "chef"
+		"lineCook", "prepCook": return "cook"
+		"server": return "server"
+		"cashier": return "cashier"
+		"manager": return "manager"
+		"dishwasher": return "dishwasher"
+		"cleaner": return "cleaner"
+	return "server"
 
 ## Route through the aisles so people do not walk through tables.
 func route(from: Vector3, to: Vector3) -> Array:
@@ -468,7 +494,7 @@ func _sync_staff(s: M.ServiceState) -> void:
 		if a == null:
 			a = Actor.new()
 			add_child(a)
-			a.setup(_staff_model(st), ROLE_COLORS.get(st.role, Color.WHITE))
+			a.setup(_staff_model(st), Color(0, 0, 0, 0), st.id)
 			a.place(spots.kitchen_door if st.isKitchen else spots.door)
 			staff_actors[st.id] = a
 		var n: int = role_count.get(w.role, 0)
@@ -485,7 +511,7 @@ func _sync_staff(s: M.ServiceState) -> void:
 	if here and owner_actor == null:
 		owner_actor = Actor.new()
 		add_child(owner_actor)
-		owner_actor.setup("character-male-b", Color("f2c94c"))
+		owner_actor.setup("owner", Color("c9a55b"), 4242)
 		owner_actor.place(spots.door)
 	elif not here and owner_actor != null:
 		owner_actor.queue_free()
@@ -591,7 +617,7 @@ func _sync_guests(s: M.ServiceState) -> void:
 			for i in g.size:
 				var a := Actor.new()
 				add_child(a)
-				a.setup(_guest_model(g.id, i))
+				a.setup("guest", Color(0, 0, 0, 0), g.id * 13 + i)
 				a.place(spots.street + Vector3(0.15 * i, 0, 0.1 * i))
 				a.speed = 1.3
 				actors.append(a)
@@ -623,7 +649,7 @@ func _bubble(g: M.Group, actors: Array) -> void:
 		b = Node3D.new()
 		var mi := MeshInstance3D.new()
 		var qm := QuadMesh.new()
-		qm.size = Vector2(0.22, 0.22)
+		qm.size = Vector2(0.13, 0.13)
 		mi.mesh = qm
 		var sm := ShaderMaterial.new()
 		sm.shader = preload("res://scripts/scene/ring.gdshader")
@@ -641,7 +667,7 @@ func _bubble(g: M.Group, actors: Array) -> void:
 	for x in actors:
 		c += x.position
 	c /= actors.size()
-	b.position = c + Vector3(0, 0.78, 0)
+	b.position = c + Vector3(0, 0.82, 0)
 
 func _drop_bubble(gid: int) -> void:
 	if bubbles.has(gid):
@@ -721,10 +747,11 @@ func _sync_markers(s: M.ServiceState) -> void:
 		else:
 			pos = spots.door + Vector3(0, 0.8, 0)
 		var lbl := Label3D.new()
-		lbl.text = {"seat": "SEAT", "takeOrder": "ORDER", "deliver": "SERVE", "bill": "BILL", "clear": "CLEAR"}[k.type]
-		lbl.font_size = 44
-		lbl.pixel_size = 0.0032
-		lbl.outline_size = 10
+		lbl.text = {"seat": "Seat", "takeOrder": "Take order", "deliver": "Serve", "bill": "Bill", "clear": "Clear"}[k.type]
+		lbl.font = load("res://assets/fonts/Inter-600.ttf")
+		lbl.font_size = 30
+		lbl.pixel_size = 0.003
+		lbl.outline_size = 14
 		lbl.outline_modulate = Color("0b0a09")
 		lbl.modulate = Color("f2c94c") if s.ownerQueue.has(k.id) else Color("efe6d6")
 		lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED

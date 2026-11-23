@@ -27,6 +27,16 @@ static func font(name: String) -> Font:
 static func sans(weight := 500) -> Font:
 	return font("Inter-%d" % weight)
 
+## Letter-spaced version of a font, for small capitals and calls to action.
+static func tracked(f: Font, spacing := 2) -> Font:
+	var k := "%s@%d" % [f.resource_path, spacing]
+	if not _fonts.has(k):
+		var fv := FontVariation.new()
+		fv.base_font = f
+		fv.spacing_glyph = spacing
+		_fonts[k] = fv
+	return _fonts[k]
+
 static func serif(weight := 700) -> Font:
 	return font("PlayfairDisplay-%d" % weight)
 
@@ -36,17 +46,17 @@ static func theme() -> Theme:
 	t.default_font_size = 15
 	t.set_color("font_color", "Label", INK)
 	var sb := flat(SURFACE2, 10)
-	t.set_stylebox("normal", "Button", flat(SURFACE2, 10, LINE))
-	t.set_stylebox("hover", "Button", flat(Color("312a25"), 10, BRASS.darkened(0.3)))
-	t.set_stylebox("pressed", "Button", flat(Color("3a322b"), 10, BRASS))
+	t.set_stylebox("normal", "Button", flat(Color(1, 1, 1, 0.025), 6, Color(LINE, 1.0)))
+	t.set_stylebox("hover", "Button", flat(Color(1, 1, 1, 0.05), 6, BRASS.darkened(0.25)))
+	t.set_stylebox("pressed", "Button", flat(Color(BRASS, 0.12), 6, BRASS))
 	t.set_stylebox("focus", "Button", StyleBoxEmpty.new())
-	t.set_stylebox("disabled", "Button", flat(Color("1a1715"), 10, LINE))
+	t.set_stylebox("disabled", "Button", flat(Color(0, 0, 0, 0), 6, Color(LINE, 0.5)))
 	t.set_color("font_color", "Button", INK)
 	t.set_color("font_hover_color", "Button", INK)
 	t.set_color("font_pressed_color", "Button", INK)
 	t.set_color("font_disabled_color", "Button", MUTED.darkened(0.3))
-	t.set_font("font", "Button", sans(700))
-	t.set_font_size("font_size", "Button", 14)
+	t.set_font("font", "Button", tracked(sans(600), 1))
+	t.set_font_size("font_size", "Button", 13)
 	t.set_stylebox("panel", "PanelContainer", sb)
 	t.set_stylebox("panel", "Panel", sb)
 	var sc := StyleBoxFlat.new()
@@ -60,7 +70,7 @@ static func theme() -> Theme:
 	t.set_constant("separation", "HBoxContainer", 10)
 	return t
 
-static func flat(bg: Color, radius := 12, border := Color(0, 0, 0, 0), bw := 1) -> StyleBoxFlat:
+static func flat(bg: Color, radius := 8, border := Color(0, 0, 0, 0), bw := 1) -> StyleBoxFlat:
 	var s := StyleBoxFlat.new()
 	s.bg_color = bg
 	s.set_corner_radius_all(radius)
@@ -87,14 +97,14 @@ static func label(text: String, size := 15, color := INK, f: Font = null, wrap :
 
 ## Small caps kicker: "OPENING NIGHT · YOUR GOAL".
 static func kicker(text: String, color := MUTED) -> Label:
-	var l := label(text.to_upper(), 11, color, sans(700))
+	var l := label(text.to_upper(), 10, color, tracked(sans(700), 2))
 	l.add_theme_constant_override("line_spacing", 0)
 	return l
 
 static func title(text: String, size := 30) -> Label:
 	return label(text, size, INK, serif(700), true)
 
-static func panel(content: Control, bg := SURFACE, radius := 14, border := LINE) -> PanelContainer:
+static func panel(content: Control, bg := SURFACE, radius := 8, border := LINE) -> PanelContainer:
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", flat(bg, radius, border))
 	p.add_child(content)
@@ -123,12 +133,12 @@ static func grow(c: Control) -> Control:
 static func cta(text: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.text = text
-	b.custom_minimum_size = Vector2(0, 56)
-	b.add_theme_font_override("font", sans(800))
-	b.add_theme_font_size_override("font_size", 16)
-	b.add_theme_stylebox_override("normal", flat(EMBER, 14))
-	b.add_theme_stylebox_override("hover", flat(EMBER.lightened(0.08), 14))
-	b.add_theme_stylebox_override("pressed", flat(EMBER.darkened(0.15), 14))
+	b.custom_minimum_size = Vector2(0, 52)
+	b.add_theme_font_override("font", tracked(sans(700), 3))
+	b.add_theme_font_size_override("font_size", 14)
+	b.add_theme_stylebox_override("normal", flat(Color("b5503a"), 6, Color("d8775c")))
+	b.add_theme_stylebox_override("hover", flat(Color("c25a42"), 6, Color("e08a70")))
+	b.add_theme_stylebox_override("pressed", flat(Color("9a4330"), 6, Color("d8775c")))
 	b.add_theme_color_override("font_color", Color("fff3ea"))
 	b.add_theme_color_override("font_hover_color", Color("fff3ea"))
 	b.add_theme_color_override("font_pressed_color", Color("fff3ea"))
@@ -141,25 +151,25 @@ static func button(text: String, cb: Callable, primary := false) -> Button:
 	b.text = text
 	b.custom_minimum_size = Vector2(0, 44)
 	if primary:
-		b.add_theme_stylebox_override("normal", flat(BRASS, 10))
-		b.add_theme_stylebox_override("hover", flat(BRASS.lightened(0.1), 10))
-		b.add_theme_stylebox_override("pressed", flat(BRASS.darkened(0.15), 10))
-		b.add_theme_color_override("font_color", ON_BRASS)
-		b.add_theme_color_override("font_hover_color", ON_BRASS)
-		b.add_theme_color_override("font_pressed_color", ON_BRASS)
+		b.add_theme_stylebox_override("normal", flat(Color(BRASS, 0.14), 6, BRASS))
+		b.add_theme_stylebox_override("hover", flat(Color(BRASS, 0.22), 6, BRASS.lightened(0.15)))
+		b.add_theme_stylebox_override("pressed", flat(Color(BRASS, 0.3), 6, BRASS))
+		b.add_theme_color_override("font_color", Color("ecd39a"))
+		b.add_theme_color_override("font_hover_color", Color("f3dfae"))
+		b.add_theme_color_override("font_pressed_color", Color("f3dfae"))
 	b.pressed.connect(cb)
 	_juice(b)
 	return b
 
 static func chip(text: String, color := BRASS) -> PanelContainer:
-	var s := flat(Color(color.r, color.g, color.b, 0.14), 20, Color(color.r, color.g, color.b, 0.5))
+	var s := flat(Color(color.r, color.g, color.b, 0.0), 3, Color(color.r, color.g, color.b, 0.45))
 	s.content_margin_top = 3
 	s.content_margin_bottom = 3
 	s.content_margin_left = 9
 	s.content_margin_right = 9
 	var p := PanelContainer.new()
 	p.add_theme_stylebox_override("panel", s)
-	p.add_child(label(text.to_upper(), 10, color, sans(700)))
+	p.add_child(label(text.to_upper(), 9, color, tracked(sans(700), 1)))
 	return p
 
 ## Squash on press: small, but it makes every button feel physical.

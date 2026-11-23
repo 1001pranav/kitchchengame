@@ -40,7 +40,7 @@ func _ready() -> void:
 	ui.add_child(overlay)
 	toasts = UI.vbox(6)
 	toasts.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	toasts.offset_top = 132
+	toasts.offset_top = 168
 	toasts.offset_left = 16
 	toasts.offset_right = -16
 	toasts.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -67,7 +67,7 @@ func _clear() -> void:
 
 func _sheet(content: Control, height_frac := 0.56, pad := 20) -> PanelContainer:
 	var p := PanelContainer.new()
-	var sb := UI.flat(Color(UI.BG, 0.97), 22, UI.LINE)
+	var sb := UI.flat(Color(UI.BG, 0.96), 10, UI.LINE)
 	sb.corner_radius_bottom_left = 0
 	sb.corner_radius_bottom_right = 0
 	sb.content_margin_left = pad
@@ -323,21 +323,43 @@ func show_prep() -> void:
 		zl.add_child(UI.grow(b))
 	v.add_child(UI.kicker("You start at"))
 	v.add_child(zl)
-	var tabs := UI.hbox(6)
-	for t in ["Staff", "Stock", "Menu", "Money"]:
+	v.add_child(_tab_row())
+	if st.openLocations.size() > 1 and st.ownerLocationId != l.id:
+		var lid := l.id
+		v.add_child(UI.button("You are at %s. Spend today here instead" % st.locationById(st.ownerLocationId).name, func():
+			_result(game.apply({"type": "OwnerTravel", "locationId": lid}))
+			current = ""
+			_route()))
+		if l.manager == null:
+			v.add_child(UI.label("Nobody runs this outlet when you are away: it stays shut. Hire a manager in Company.", 12, UI.BAD, null, true))
+	var closed := l.closedUntil > st.dayIndex
+	_sheet(_pinned(v, UI.cta("STAY CLOSED TODAY" if closed else "OPEN THE DOORS", func():
+		game.apply({"type": "StartService"}))), 0.62)
+	_notices()
+
+func _tab_row() -> Control:
+	var names := ["Staff", "Stock", "Menu", "Money"]
+	if game.sim.state.stage >= 3:
+		names.append("Company")
+	if game.sim.state.openLocations.size() > 1 or game.sim.loc.manager != null:
+		names.append("Outlet")
+	var tabs := GridContainer.new()
+	tabs.columns = 4 if names.size() <= 4 else 3
+	tabs.add_theme_constant_override("h_separation", 6)
+	tabs.add_theme_constant_override("v_separation", 6)
+	for t in names:
 		tabs.add_child(UI.grow(UI.button(t, func():
 			tab = t
 			current = ""
 			_route())))
-	v.add_child(tabs)
-	var sp := UI.spacer()
-	sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(sp)
-	var closed := l.closedUntil > st.dayIndex
-	v.add_child(UI.cta("STAY CLOSED TODAY" if closed else "OPEN THE DOORS", func():
-		game.apply({"type": "StartService"})))
-	_sheet(UI.scroll(v), 0.62)
-	_notices()
+	return tabs
+
+## Scrolling content with the call to action pinned below it.
+func _pinned(content: Control, cta: Control) -> Control:
+	var box := UI.vbox(12)
+	box.add_child(UI.scroll(content))
+	box.add_child(cta)
+	return box
 
 func _opening_goal(fc: int) -> int:
 	var share := [0.65, 0.7, 0.95, 0.95, 0.95]
@@ -394,6 +416,34 @@ func _top_bar() -> void:
 	p.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	p.position = Vector2(14, 44)
 	screen.add_child(p)
+	_outlet_strip(Vector2(14, 118))
+
+## Chips for each outlet when there is more than one: tap to look at it.
+func _outlet_strip(at: Vector2) -> void:
+	var st: M.GameState = game.sim.state
+	var open := st.openLocations
+	if open.size() < 2:
+		return
+	var row := UI.hbox(6)
+	for l in open:
+		var lid: int = l.id
+		var here := "● " if st.ownerLocationId == l.id and not st.travelling else ""
+		var b := UI.button(here + l.name, func():
+			game.apply({"type": "SelectLocation", "locationId": lid})
+			room.build(game.sim)
+			current = ""
+			_route())
+		b.custom_minimum_size = Vector2(0, 34)
+		b.add_theme_font_size_override("font_size", 12)
+		if st.viewLocationId == l.id:
+			b.add_theme_stylebox_override("normal", UI.flat(Color("2a2416"), 10, UI.BRASS))
+		row.add_child(b)
+	var sc := ScrollContainer.new()
+	sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.add_child(row)
+	sc.position = at
+	sc.size = Vector2(get_viewport().get_visible_rect().size.x - 28, 40)
+	screen.add_child(sc)
 
 func _notices() -> void:
 	var st: M.GameState = game.sim.state
@@ -429,6 +479,8 @@ func show_tab(name: String) -> void:
 		"Stock": _tab_stock(body)
 		"Menu": _tab_menu(body)
 		"Money": _tab_money(body)
+		"Company": _tab_company(body)
+		"Outlet": _tab_outlet(body)
 	v.add_child(UI.scroll(body))
 	var m := UI.margin(v, 16, 52, 16, 20)
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -462,6 +514,10 @@ func _tab_staff(v: VBoxContainer) -> void:
 		if s.workingToday and sim.state.phase == "prep":
 			acts.add_child(UI.grow(UI.button("Day off", func():
 				_result(game.apply({"type": "GiveDayOff", "staffId": sid}))
+				_refresh_tab())))
+		if sim.state.stage >= 3 and ["server", "cashier", "headChef"].has(s.role) and s.skill >= 60 and sim.loc.manager == null:
+			acts.add_child(UI.grow(UI.button("Make manager", func():
+				_result(game.apply({"type": "PromoteToManager", "staffId": sid}))
 				_refresh_tab())))
 		acts.add_child(UI.grow(UI.button("Fire", func():
 			_result(game.apply({"type": "Fire", "staffId": sid}))
@@ -561,6 +617,245 @@ func _tab_money(v: VBoxContainer) -> void:
 	for ln in st.loans:
 		v.add_child(UI.label("Loan: %s left · %s a week" % [UI.money(ln.outstanding), UI.money(ln.instalment)], 13, UI.MUTED))
 
+
+# ================================================================ the chain
+
+func _row(left: String, right: String, color := UI.INK) -> Control:
+	var r := UI.hbox()
+	r.add_child(UI.grow(UI.label(left, 13, UI.MUTED, null, true)))
+	r.add_child(UI.label(right, 13, color, UI.sans(700)))
+	return r
+
+func _tab_company(v: VBoxContainer) -> void:
+	var sim: Sim = game.sim
+	var st := sim.state
+	v.add_child(UI.kicker("The company · rating %.1f · worth %s" % [sim.companyRating(), UI.money(sim.valuation())], UI.BRASS))
+	# Requests from managers.
+	if not st.requests.is_empty():
+		v.add_child(UI.kicker("Your managers are asking", UI.WARN))
+		for r in st.requests:
+			var box := UI.vbox(6)
+			var l := st.locationById(r.locationId)
+			box.add_child(UI.kicker(l.name if l != null else ""))
+			box.add_child(UI.label(r.text, 14, UI.INK, null, true))
+			var acts := UI.hbox(6)
+			var rid: int = r.id
+			acts.add_child(UI.grow(UI.button("Approve · %s" % UI.money(r.cost), func():
+				_result(game.apply({"type": "AnswerRequest", "requestId": rid, "answer": "approve"}))
+				_refresh_tab(), true)))
+			if r.cheaperCost != null:
+				acts.add_child(UI.grow(UI.button("Cheaper · %s" % UI.money(r.cheaperCost), func():
+					_result(game.apply({"type": "AnswerRequest", "requestId": rid, "answer": "cheaper"}))
+					_refresh_tab())))
+			acts.add_child(UI.button("No", func():
+				_result(game.apply({"type": "AnswerRequest", "requestId": rid, "answer": "deny"}))
+				_refresh_tab()))
+			box.add_child(acts)
+			v.add_child(UI.panel(box))
+	# Outlets.
+	v.add_child(UI.kicker("Outlets", UI.BRASS))
+	for l in st.openLocations:
+		var box := UI.vbox(4)
+		var top := UI.hbox()
+		var nm := UI.vbox(0)
+		var where := "you are here" if st.ownerLocationId == l.id else ("opens day %d" % (l.openDay + 1) if l.openDay > st.dayIndex else "")
+		nm.add_child(UI.label(l.name, 17, UI.INK, UI.serif(700)))
+		nm.add_child(UI.label("%s%s" % [Sim.formatNames.get(l.format, l.format), (" · " + where) if where != "" else ""], 12, UI.MUTED))
+		top.add_child(UI.grow(nm))
+		if l.badge != "":
+			top.add_child(UI.chip(l.badge, UI.BRASS))
+		box.add_child(top)
+		var lw = l.weeks[l.weeks.size() - 1] if not l.weeks.is_empty() else null
+		box.add_child(_row("Rating", "%.1f" % l.reputation, UI.WARN))
+		box.add_child(_row("Last week", UI.money(lw.operatingProfit) if lw != null else "–", UI.OK if lw != null and lw.operatingProfit >= 0 else UI.BAD))
+		box.add_child(_row("Paid back", "%d%%" % roundi(100.0 * l.returned / maxi(1, l.invested))))
+		var m: M.Staff = l.manager
+		box.add_child(_row("Manager", "%s (%s)" % [m.name, m.grade] if m != null else "none: shut when you are away", UI.INK if m != null else UI.BAD))
+		if l.crisis:
+			box.add_child(UI.label("In trouble: four losing weeks.", 12, UI.BAD))
+		var lid: int = l.id
+		var acts := UI.hbox(6)
+		acts.add_child(UI.grow(UI.button("Look at it", func():
+			game.apply({"type": "SelectLocation", "locationId": lid})
+			room.build(game.sim)
+			tab = "Outlet"
+			_refresh_tab())))
+		if st.ownerLocationId != l.id and st.phase == "prep":
+			acts.add_child(UI.grow(UI.button("Spend today here", func():
+				_result(game.apply({"type": "OwnerTravel", "locationId": lid}))
+				_refresh_tab())))
+		box.add_child(acts)
+		v.add_child(UI.panel(box))
+	# Managers for hire (for the outlet being looked at).
+	if not st.managerApplicants.is_empty():
+		v.add_child(UI.kicker("Managers looking for work · for %s" % sim.loc.name, UI.BRASS))
+		for a in st.managerApplicants:
+			var r := UI.hbox()
+			var nm := UI.vbox(0)
+			nm.add_child(UI.label("%s · %s" % [a.name, a.grade], 15, UI.INK, UI.sans(700)))
+			nm.add_child(UI.label("%s · %s/day%s" % [Sim.profileNames.get(a.profile, a.profile), UI.money(a.wage), (" + %d%% of profit" % a.bonusPct) if a.bonusPct > 0 else ""], 12, UI.MUTED))
+			r.add_child(UI.grow(nm))
+			var aid: int = a.id
+			var hb := UI.button("Hire", func():
+				_result(game.apply({"type": "HireManager", "applicantId": aid}))
+				_refresh_tab(), true)
+			hb.disabled = sim.loc.manager != null
+			r.add_child(hb)
+			v.add_child(UI.panel(r))
+	# Expanding.
+	if not st.outletMarket.is_empty():
+		v.add_child(UI.kicker("Restaurants for sale", UI.BRASS))
+		for i in st.outletMarket.size():
+			var o: M.Offer = st.outletMarket[i]
+			var box := UI.vbox(4)
+			var top := UI.hbox()
+			top.add_child(UI.grow(UI.label(o.location.name, 16, UI.INK, UI.serif(700))))
+			top.add_child(UI.label(UI.money(o.price), 16, UI.BRASS, UI.sans(800)))
+			box.add_child(top)
+			box.add_child(UI.label("%s · %s · %d tables · %.1f★ · rent %s/week" % [TIER_WORDS.get(o.tierId, o.tierId), Sim.formatNames.get(o.location.format, ""), o.location.tableSeats.size(), o.location.reputation, UI.money(o.location.rentWeekly)], 12, UI.MUTED, null, true))
+			var acts := UI.hbox(6)
+			var idx := i
+			if not o.inspected:
+				acts.add_child(UI.grow(UI.button("Inspect", func():
+					_result(game.apply({"type": "InspectOutlet", "offerIndex": idx}))
+					_refresh_tab())))
+			else:
+				for h in o.location.hidden:
+					if h.revealed:
+						box.add_child(UI.label("• " + Sim.hiddenProblemText.get(h.kind, h.kind), 12, UI.BAD))
+			acts.add_child(UI.grow(UI.button("Buy", func():
+				var r = game.apply({"type": "BuyOutlet", "offerIndex": idx})
+				_result(r)
+				if r.ok:
+					toast("A new outlet. Hire it a manager.", UI.OK, 4.0)
+				_refresh_tab(), true)))
+			box.add_child(acts)
+			v.add_child(UI.panel(box))
+	if not st.sites.is_empty():
+		v.add_child(UI.kicker("Empty sites · build your own", UI.BRASS))
+		for site in st.sites:
+			var c := sim.buildCost(site, "medium", "standard", st.themeId)
+			var up: int = c.fitOut + c.equipment + c.deposit + c.licence
+			var box := UI.vbox(4)
+			box.add_child(UI.label(site.name, 16, UI.INK, UI.serif(700)))
+			box.add_child(UI.label("%s · %s · medium, standard fit-out · rent %s/week · opens in %d days" % [Sim.formatNames.get(site.format, ""), site.classId, UI.money(c.rent), c.days], 12, UI.MUTED, null, true))
+			var sid: int = site.id
+			box.add_child(UI.button("Build · %s" % UI.money(up), func():
+				_result(game.apply({"type": "BuildOutlet", "siteId": sid, "size": "medium", "fitOut": "standard"}))
+				_refresh_tab(), true))
+			v.add_child(UI.panel(box))
+	# Chain upgrades.
+	if st.stage >= 4:
+		v.add_child(UI.kicker("The group", UI.BRASS))
+		var b1 := UI.button("Central kitchen · %s" % UI.money(game.content.balance.i("CENTRAL_KITCHEN_COST")), func():
+			_result(game.apply({"type": "BuildCentralKitchen"}))
+			_refresh_tab())
+		b1.disabled = st.centralKitchen
+		v.add_child(b1)
+		v.add_child(UI.button("Bulk contract · %s" % UI.money(game.content.balance.i("BULK_CONTRACT_FEE")), func():
+			_result(game.apply({"type": "SignBulkContract"}))
+			_refresh_tab()))
+		if st.stage >= 5:
+			v.add_child(UI.button("Sell a franchise (%d sold)" % st.franchises, func():
+				_result(game.apply({"type": "StartFranchise"}))
+				_refresh_tab()))
+
+func _tab_outlet(v: VBoxContainer) -> void:
+	var sim: Sim = game.sim
+	var l := sim.loc
+	var st := sim.state
+	v.add_child(UI.kicker(l.name + (" · " + l.badge + " badge" if l.badge != "" else ""), UI.BRASS))
+	var m := l.manager
+	if m != null:
+		var box := UI.vbox(6)
+		box.add_child(UI.label("%s · %s manager" % [m.name, m.grade], 17, UI.INK, UI.serif(700)))
+		box.add_child(_row("People", str(roundi(m.people)) if state_known(m) else "~%d" % (roundi(m.people / 10.0) * 10)))
+		box.add_child(_row("Upkeep", str(roundi(m.upkeep)) if state_known(m) else "~%d" % (roundi(m.upkeep / 10.0) * 10)))
+		box.add_child(_row("Stock", str(roundi(m.stockSkill)) if state_known(m) else "~%d" % (roundi(m.stockSkill / 10.0) * 10)))
+		var bonus := UI.hbox(6)
+		bonus.add_child(UI.grow(UI.label("Profit bonus %d%%" % m.bonusPct, 14)))
+		bonus.add_child(UI.button("−", func():
+			_result(game.apply({"type": "SetManagerBonus", "pct": m.bonusPct - 1}))
+			_refresh_tab()))
+		bonus.add_child(UI.button("+", func():
+			_result(game.apply({"type": "SetManagerBonus", "pct": m.bonusPct + 1}))
+			_refresh_tab()))
+		box.add_child(bonus)
+		var p := l.policies
+		var lim := UI.hbox(6)
+		lim.add_child(UI.grow(UI.label("May spend without asking: %s" % UI.money(p.spendingLimit), 14)))
+		lim.add_child(UI.button("−", func():
+			_result(game.apply({"type": "SetPolicies", "spendingLimit": p.spendingLimit - 250}))
+			_refresh_tab()))
+		lim.add_child(UI.button("+", func():
+			_result(game.apply({"type": "SetPolicies", "spendingLimit": p.spendingLimit + 250}))
+			_refresh_tab()))
+		box.add_child(lim)
+		var stances := ["frugal", "balanced", "quality"]
+		var sr := UI.hbox(6)
+		for sn in stances:
+			var b := UI.button(sn.capitalize(), func():
+				_result(game.apply({"type": "SetPolicies", "stance": sn}))
+				_refresh_tab(), p.stance == sn)
+			sr.add_child(UI.grow(b))
+		box.add_child(UI.kicker("In a situation, they choose"))
+		box.add_child(sr)
+		for pair in [["mayHire", "May hire staff", p.mayHire], ["mayGiveRaises", "May give raises", p.mayGiveRaises], ["autoOrder", "Orders stock every day", p.autoOrder]]:
+			var key: String = pair[0]
+			var on: bool = pair[2]
+			box.add_child(UI.button(("✓ " if on else "✗ ") + pair[1], func():
+				_result(game.apply({"type": "SetPolicies", key: not on}))
+				_refresh_tab(), on))
+		if not l.managerNotes.is_empty():
+			box.add_child(UI.kicker("Lately"))
+			for n in l.managerNotes.slice(maxi(0, l.managerNotes.size() - 4)):
+				box.add_child(UI.label("• " + n, 12, UI.MUTED, null, true))
+		v.add_child(UI.panel(box))
+	else:
+		v.add_child(UI.label("No manager. On days you are elsewhere this outlet stays shut. Hire one in Company, or make a strong server, cashier or head chef the manager in Staff.", 14, UI.WARN, null, true))
+	var acts := UI.vbox(6)
+	acts.add_child(UI.button(("Delivery on" if l.deliveryOn else "Delivery off") + " · takeaway orders by app", func():
+		_result(game.apply({"type": "SetDelivery", "on": not l.deliveryOn}))
+		_refresh_tab(), l.deliveryOn))
+	acts.add_child(UI.button("Add 2 tables · %s" % UI.money(2 * game.content.balance.i("RENOVATION_COST_PER_TABLE")), func():
+		_result(game.apply({"type": "Renovate", "tables": 2}))
+		room.build(game.sim)
+		_refresh_tab()))
+	acts.add_child(UI.button("Audit the till · %s" % UI.money(game.content.balance.i("AUDIT_COST")), func():
+		var r = game.apply({"type": "Audit"})
+		_result(r)
+		if r.ok: toast(str(r.value), UI.INK, 6.0)
+		_refresh_tab()))
+	if st.openLocations.size() > 1:
+		if l.listedDay < 0:
+			acts.add_child(UI.button("Put it up for sale (worth about %s)" % UI.money(sim.saleEstimate()), func():
+				_result(game.apply({"type": "ListOutlet", "list": true}))
+				_refresh_tab()))
+		else:
+			for i in l.saleOffers.size():
+				var idx := i
+				acts.add_child(UI.button("Accept offer %s" % UI.money(l.saleOffers[i].amount), func():
+					_result(game.apply({"type": "AcceptSaleOffer", "index": idx}))
+					room.build(game.sim)
+					tab = ""
+					_refresh_tab(), true))
+			acts.add_child(UI.button("Take it off the market", func():
+				_result(game.apply({"type": "ListOutlet", "list": false}))
+				_refresh_tab()))
+		acts.add_child(UI.button("Close it for good", func():
+			_result(game.apply({"type": "CloseOutlet"}))
+			room.build(game.sim)
+			tab = ""
+			_refresh_tab()))
+	v.add_child(acts)
+	if not l.story.is_empty():
+		v.add_child(UI.kicker("Its story"))
+		for e in l.story.slice(maxi(0, l.story.size() - 6)):
+			v.add_child(UI.label("Day %d · %s" % [e.day + 1, e.text], 12, UI.MUTED, null, true))
+
+func state_known(m: M.Staff) -> bool:
+	return game.sim.state.dayIndex - m.hiredDay >= 28
+
 # ================================================================ service
 
 func show_service() -> void:
@@ -604,6 +899,35 @@ func show_service() -> void:
 	speeds.add_child(UI.grow(UI.spacer()))
 	speeds.add_child(fav)
 	top.add_child(speeds)
+	var st2: M.GameState = game.sim.state
+	if st2.openLocations.size() > 1:
+		var chips := UI.hbox(6)
+		for l in st2.openLocations:
+			var lid: int = l.id
+			var here := "● " if st2.ownerLocationId == l.id and not st2.travelling else ""
+			var b := UI.button(here + l.name, func():
+				game.apply({"type": "SelectLocation", "locationId": lid})
+				room.build(game.sim)
+				current = ""
+				_route())
+			b.custom_minimum_size = Vector2(0, 30)
+			b.add_theme_font_size_override("font_size", 11)
+			if st2.viewLocationId == l.id:
+				b.add_theme_stylebox_override("normal", UI.flat(Color("2a2416"), 10, UI.BRASS))
+			chips.add_child(b)
+		var sc := ScrollContainer.new()
+		sc.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		sc.custom_minimum_size = Vector2(0, 36)
+		sc.add_child(chips)
+		top.add_child(sc)
+		if st2.ownerLocationId != game.sim.loc.id and not st2.travelling:
+			var to: int = game.sim.loc.id
+			top.add_child(UI.button("Drive here (about %d minutes)" % (game.content.balance.i("TRAVEL_TICKS") * 2), func():
+				_result(game.apply({"type": "OwnerTravel", "locationId": to}))
+				current = ""
+				_route()))
+		elif st2.travelling:
+			top.add_child(UI.label("On the road to %s…" % st2.locationById(st2.travelTo).name, 12, UI.OWNER))
 	var tp := UI.panel(top, Color(UI.BG, 0.9), 16)
 	tp.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	tp.offset_left = 10
@@ -660,9 +984,34 @@ func _update_hud() -> void:
 	# Meter shows walk-out budget used.
 	meter.draw.connect(func(): pass) if false else null
 
+var _touches := {}
+var _pinch_d := 0.0
+
 func _unhandled_input(ev: InputEvent) -> void:
 	if current != "service" or game.sim == null:
 		return
+	if ev is InputEventMouseButton and (ev.button_index == MOUSE_BUTTON_WHEEL_UP or ev.button_index == MOUSE_BUTTON_WHEEL_DOWN) and ev.pressed:
+		room.zoom(0.9 if ev.button_index == MOUSE_BUTTON_WHEEL_UP else 1.1)
+		return
+	if ev is InputEventMagnifyGesture:
+		room.zoom(1.0 / ev.factor)
+		return
+	if ev is InputEventScreenTouch:
+		if ev.pressed:
+			_touches[ev.index] = ev.position
+		else:
+			_touches.erase(ev.index)
+		_pinch_d = 0.0
+	if ev is InputEventScreenDrag:
+		_touches[ev.index] = ev.position
+		if _touches.size() == 2:
+			var ps: Array = _touches.values()
+			var d: float = ps[0].distance_to(ps[1])
+			if _pinch_d > 0:
+				room.zoom(_pinch_d / d)
+			_pinch_d = d
+			_dragging = true
+			return
 	if ev is InputEventMouseButton and ev.button_index == MOUSE_BUTTON_LEFT:
 		if ev.pressed:
 			_drag_from = ev.position
@@ -670,9 +1019,9 @@ func _unhandled_input(ev: InputEvent) -> void:
 		elif not _dragging:
 			_tap(ev.position)
 	elif ev is InputEventMouseMotion and ev.button_mask & MOUSE_BUTTON_MASK_LEFT:
-		if ev.position.distance_to(_drag_from) > 12:
+		if ev.position.distance_to(_drag_from) > 12 and _touches.size() < 2:
 			_dragging = true
-			room.pan_camera(-ev.relative.y * 0.012)
+			room.pan_camera(-ev.relative.y * 0.012 * room.zoom_level, -ev.relative.x * 0.012 * room.zoom_level)
 
 func _tap(pos: Vector2) -> void:
 	_close_popup()
@@ -818,19 +1167,9 @@ func show_close() -> void:
 		v.add_child(UI.kicker("What cost you tonight"))
 		for e in causes:
 			v.add_child(UI.label("• " + e.text, 13, UI.INK, null, true))
-	var sp := UI.spacer()
-	sp.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(sp)
-	var tabs := UI.hbox(6)
-	for tb in ["Staff", "Stock", "Menu", "Money"]:
-		tabs.add_child(UI.grow(UI.button(tb, func():
-			tab = tb
-			current = ""
-			_route())))
-	v.add_child(tabs)
-	v.add_child(UI.cta("SLEEP · START DAY %d" % (sim.state.dayIndex + 2), func():
-		game.apply({"type": "EndDay"})))
-	_sheet(UI.scroll(v), 0.8)
+	v.add_child(_tab_row())
+	_sheet(_pinned(v, UI.cta("SLEEP · START DAY %d" % (sim.state.dayIndex + 2), func():
+		game.apply({"type": "EndDay"}))), 0.8)
 
 func show_game_over() -> void:
 	_clear()
@@ -943,11 +1282,11 @@ func _on_events(events: Array) -> void:
 			"groupPaid":
 				var tid = e.args.get("tableId")
 				if tid != null and room.tables.has(tid):
-					_float_money(room.tables[tid].pos + Vector3(0, 0.5, 0), "+" + UI.money(e.args.amount), UI.OK)
+					_float_money(room.tables[tid].pos + Vector3(0, 0.6, 0), "+" + UI.money(e.args.amount), UI.BRASS)
 			"groupWalkedOut":
 				var tid = e.args.get("tableId")
 				var where: Vector3 = room.tables[tid].pos if tid != null and room.tables.has(tid) else room.spots.get("door", Vector3.ZERO)
-				_float_money(where + Vector3(0, 0.6, 0), "WALKED OUT", UI.BAD)
+				_float_money(where + Vector3(0, 0.7, 0), "Walked out", UI.BAD)
 			"dishUnavailable":
 				toast("%s has sold out." % game.content.dishes[e.args.dishId].name, UI.WARN, 3.0)
 			"equipmentBroke":
@@ -960,9 +1299,9 @@ func _on_events(events: Array) -> void:
 func _float_money(world: Vector3, text: String, color: Color) -> void:
 	var l := Label3D.new()
 	l.text = text
-	l.font = UI.sans(800)
-	l.font_size = 48
-	l.pixel_size = 0.0035
+	l.font = UI.sans(700)
+	l.font_size = 30
+	l.pixel_size = 0.003
 	l.outline_size = 12
 	l.outline_modulate = Color("0b0a09")
 	l.modulate = color
