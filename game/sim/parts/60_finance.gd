@@ -1,0 +1,502 @@
+
+# ================================================================ finance.dart
+# Finance (doc 02 §14), marketing (§13) and the menu rework (doc 11 §A.2).
+
+const campaignNames := {"flyers": "Flyers", "localAd": "Local ad", "promoDay": "Promotion day", "blogger": "Food blogger"}
+const campaignAudience := {"flyers": ["family", "student"], "localAd": ["office", "family"], "promoDay": ["student", "family"]}
+const segmentNames := {"office": "office workers", "family": "families", "student": "students", "tourist": "tourists"}
+
+# ---------------------------------------------------------- weekly and monthly
+
+func _weekRecordFor(l: M.Location) -> M.WeekRecord:
+	var days: Array = l.days.filter(func(d): return d.dayIndex > state.dayIndex - 7)
+	days.append(l.today)
+	var w := M.WeekRecord.new()
+	w.week = state.weekIndex
+	var starsSum := 0.0
+	var starsN := 0.0
+	for d in days:
+		w.revenue += d.revenue
+		w.costs += d.costs
+		w.interest += d.interest
+		w.wasteCost += d.wasteCost
+		w.groupsServed += d.groupsServed
+		w.walkouts += d.walkouts
+		w.ingredientSpend += d.ingredientSpend
+		w.wages += d.wages
+		w.rent += d.rent
+		w.marketing += d.marketing
+		w.upkeep += d.upkeep
+		w.other += d.other
+		w.utilities += d.utilities
+		starsSum += d.starsSum
+		starsN += d.starsN
+	w.operatingProfit = w.revenue - w.costs
+	w.avgStars = 0.0 if starsN == 0 else starsSum / starsN
+	return w
+
+func _weekly() -> void:
+	var hq: M.Location = state.openLocations[0]
+	# 1. Wages (accrued daily at each outlet).
+	state.cash -= state.wagesOwed
+	emit("cashChanged", {"delta": -state.wagesOwed})
+	state.wagesOwed = 0
+	# 2. Rent at every outlet, open or still being fitted out.
+	for l in state.openLocations:
+		state.cash -= l.rentWeekly
+	# 3. Loan instalments (interest is booked against the first restaurant).
+	var missedThisWeek := false
+	var anyDue := false
+	for loan in state.loans.duplicate():
+		if loan.startDay > state.dayIndex - 1:
+			continue # first instalment next Sunday
+		var pay: int = loan.instalment
+		var interest: int = loan.interestDue
+		if pay <= 0:
+			continue
+		anyDue = true
+		if state.cash >= pay:
+			state.cash -= pay
+			hq.today.interest += interest
+			loan.outstanding -= pay - interest
+			loan.missedInRow = 0
+			state.creditScore = minf(100, state.creditScore + 1)
+			if loan.outstanding <= 0:
+				state.loans.erase(loan)
+				state.creditScore = minf(100, state.creditScore + 3)
+				state.pendingNotices.append("A loan is fully repaid. The bank trusts you a little more.")
+				_timeline("Loan fully repaid")
+		else:
+			var private_: bool = loan.lender == "private"
+			loan.outstanding += roundi(pay * (0.10 if private_ else 0.05))
+			loan.missedInRow += 1
+			missedThisWeek = true
+			state.lastMissDay = state.dayIndex
+			state.creditScore = maxf(0, state.creditScore - (25 if private_ else 15))
+			at(hq, func(): _note("missedPayment", "Missed a loan payment of %s: penalty added, bank trust down" % money(pay), pay))
+			_timeline("Missed a loan payment (%d weeks running)" % (state.missedInRow + 1))
+			emit("loanMissed", {"loanId": loan.id})
+	if missedThisWeek:
+		state.missedInRow += 1
+	elif anyDue:
+		state.missedInRow = 0
+	# 4. Weekly records: each outlet, then the company.
+	var company := M.WeekRecord.new()
+	company.week = state.weekIndex
+	var starsSum := 0.0
+	var starsN := 0.0
+	for l in state.openLocations:
+		var w := _weekRecordFor(l)
+		l.weeks.append(w)
+		if l.weeks.size() > 104: l.weeks.remove_at(0)
+		company.revenue += w.revenue
+		company.costs += w.costs
+		company.interest += w.interest
+		company.wasteCost += w.wasteCost
+		company.groupsServed += w.groupsServed
+		company.walkouts += w.walkouts
+		company.ingredientSpend += w.ingredientSpend
+		company.wages += w.wages
+		company.rent += w.rent
+		company.marketing += w.marketing
+		company.upkeep += w.upkeep
+		company.other += w.other
+		company.utilities += w.utilities
+		starsSum += w.avgStars * w.groupsServed
+		starsN += w.groupsServed
+		at(l, func():
+			# Competition (doc 11 §A.5); high streets attract rivals twice as fast.
+			if l.reputation >= 4.0 and w.operatingProfit > 0:
+				var up := b.d("COMPETITION_UP") * (2 if l.format == "highStreet" else 1)
+				l.competition = minf(b.d("COMPETITION_MAX"), l.competition + up)
+			else:
+				l.competition = maxf(0, l.competition - b.d("COMPETITION_DOWN"))
+			_weeklyOutlet(w))
+	company.operatingProfit = company.revenue - company.costs
+	company.avgStars = 0.0 if starsN == 0 else starsSum / starsN
+	state.weeks.append(company)
+	if state.weeks.size() > 104: state.weeks.remove_at(0)
+	if company.netProfit > 0:
+		state.profitableWeeksInRow += 1
+	else:
+		state.profitableWeeksInRow = 0
+	if state.investorTaken and company.operatingProfit > 0:
+		var share := roundi(company.operatingProfit * state.investorShare)
+		state.cash -= share
+		at(hq, func(): _note("investor", "Your investor took their %d%% share: %s" % [roundi(state.investorShare * 100), money(share)], share))
+	if state.owner.restDaysThisWeek >= 2 and company.netProfit > 0:
+		_completeObjective("obj_2_week_off")
+	if company.revenue > 0 and company.wasteCost < 0.03 * company.revenue:
+		_completeObjective("obj_1_no_waste")
+	at(hq, _generateApplicants)
+	_weeklyChain()
+	_checkStage()
+	state.pendingNotices.append("@weekly")
+
+func _monthly() -> void:
+	state.cash -= state.monthUtilities
+	state.monthUtilities = 0
+	# Tax on the company's profit over the last 28 days.
+	var profit := 0
+	for l in state.openLocations:
+		for d in l.days:
+			if d.dayIndex > state.dayIndex - 28:
+				profit += d.profit
+		profit += l.today.profit
+	var hq: M.Location = state.openLocations[0]
+	if profit > 0:
+		var tax := roundi(profit * b.d("TAX_RATE"))
+		at(hq, func():
+			spend(tax, "other")
+			_note("tax", "Paid %s tax on this month's profit" % money(tax), 0))
+	for l in state.openLocations:
+		at(l, func():
+			spend(b.i("LICENCE_FEE"), "other")
+			# Random inspection scheduling (about once per 8 weeks).
+			if l.inspectionDay < state.dayIndex and _rng.chance(28 / b.d("INSPECTION_EVERY_DAYS")):
+				var day := state.dayIndex + _rng.next_int(1, 28)
+				state.scheduled.append(M.Scheduled.mk("inc_inspection", day, null, null, l.id))
+				l.inspectionDay = day
+			# The landlord reviews rent every 168 days after the first 84.
+			var since := state.dayIndex - l.openDay
+			if since >= 83 and not any(state.scheduled, func(s): return s.incidentId == "inc_landlord_rent" and s.locationId == l.id):
+				var next: int = state.flags.get("%d:next_rent_review" % l.id, l.openDay + 84)
+				if state.dayIndex + 28 >= next:
+					state.scheduled.append(M.Scheduled.mk("inc_landlord_rent", maxi(next, state.dayIndex + 1), null, null, l.id))
+					state.flags["%d:next_rent_review" % l.id] = next + 168)
+	at(hq, func():
+		if _rng.chance(0.10) and state.cooldowns.get("%d:inc_tax_audit" % hq.id, -1) < state.dayIndex:
+			_raiseIncident("inc_tax_audit", null, null, true))
+	state.pendingNotices.append("@monthly")
+
+func _bankruptcyCheck() -> void:
+	if state.cash < 0:
+		state.negativeDays += 1
+		_timeline("Closed the day with negative cash (%s)" % money(state.cash))
+		if state.negativeDays == 1 or not any(state.openIncidents, func(i): return i.incidentId == "inc_lifeline"):
+			_raiseIncident("inc_lifeline", null, null, true)
+		if state.negativeDays >= b.i("BANKRUPT_NEGATIVE_DAYS"):
+			_gameOver("Your cash stayed below zero for %d days in a row. The bank closed your account." % b.i("BANKRUPT_NEGATIVE_DAYS"))
+	else:
+		state.negativeDays = 0
+	if state.missedInRow >= b.i("BANKRUPT_MISSED_PAYMENTS"):
+		_gameOver("You missed %d loan payments in a row. The bank took the restaurant." % b.i("BANKRUPT_MISSED_PAYMENTS"))
+
+func _gameOver(reason: String) -> void:
+	if state.phase == "gameOver":
+		return
+	state.gameOverReason = reason
+	_timeline(reason)
+	state.phase = "gameOver"
+	emit("gameOver", {"reason": reason})
+
+# ---------------------------------------------------------- credit and loans
+
+func _equipmentResale(e: M.Equipment) -> int:
+	return roundi(content.equipment[e.type].price * e.condition / 100 * b.d("RESALE_FACTOR"))
+
+func _avgWeeklyOpProfit(weeks := 8) -> int:
+	var ws: Array = state.weeks if state.weeks.size() <= weeks else state.weeks.slice(state.weeks.size() - weeks)
+	if ws.is_empty():
+		return 0
+	var a := 0
+	for w in ws:
+		a += w.operatingProfit
+	return roundi(float(a) / ws.size())
+
+func _valuation() -> int:
+	var resale := 0
+	var stars := 0.0
+	for l in state.openLocations:
+		for e in l.equipment:
+			resale += _equipmentResale(e)
+		stars += l.reputation
+	var profitPower: int = (45 if state.perks.has("perk_brand45") else b.i("VALUATION_PROFIT_MULT")) * maxi(0, _avgWeeklyOpProfit())
+	return state.cash + resale + profitPower + roundi(b.d("VALUATION_PER_STAR") * stars) \
+		+ state.franchises * b.i("FRANCHISE_VALUE") - state.totalOutstanding
+
+func _creditLimit() -> int:
+	return maxi(0, roundi(_valuation() * 0.4 * state.creditScore / 100 - state.totalOutstanding))
+
+func _loanRate(secured := false, private_ := false) -> float:
+	var r := b.d("LOAN_WEEKLY_RATE") * diff("DIFF_INTEREST") * (1.6 - state.creditScore / 100)
+	if secured: r *= 0.8
+	if private_: r = b.d("LOAN_WEEKLY_RATE") * diff("DIFF_INTEREST") * 3
+	return r
+
+func _currentInstalments() -> int:
+	var a := 0
+	for l in state.loans:
+		a += l.instalment
+	return a
+
+## The bank's five checks, in order, with pass/fail — shown before applying (doc 07 §4.8).
+## Each entry is [label, passed].
+func _bankChecks(amount: int, term: int, secured: bool) -> Array:
+	var open := state.loans.size()
+	var firstPay := roundi(float(amount) / term + amount * _loanRate(secured))
+	var afford := (0.7 if secured else 0.5) * _avgWeeklyOpProfit()
+	var limit := _creditLimit()
+	return [
+		["Fewer than 3 loans open (%d now)" % open, open < 3],
+		["No missed payment in the last 4 weeks", state.dayIndex - state.lastMissDay > 28],
+		["Bank trust at least 30 (now %d)" % roundi(state.creditScore), state.creditScore >= 30],
+		["Repayments %s/week within %d%% of weekly profit (%s)" % [money(_currentInstalments() + firstPay), 70 if secured else 50, money(afford)], _currentInstalments() + firstPay <= afford],
+		["Amount within your credit limit (%s)" % money(limit), amount <= limit],
+	]
+
+func _applyLoan(amount: int, term: int, secured: bool, lender: String) -> CommandResult:
+	if amount < 1000:
+		return CommandResult.fail(SimError.invalidValue, "Borrow at least 1,000.")
+	if not [26, 52, 104].has(term):
+		return CommandResult.fail(SimError.invalidValue)
+	if lender == "private":
+		if any(state.loans, func(l): return l.lender == "private"):
+			return CommandResult.fail(SimError.limitReached, "The private lender allows only one loan at a time.")
+		if amount > b.i("PRIVATE_LENDER_MAX"):
+			return CommandResult.fail(SimError.invalidValue, "The private lender lends up to %s." % money(b.i("PRIVATE_LENDER_MAX")))
+		_addLoan(amount, 26, "private", false)
+		return CommandResult.good("approved")
+	if state.bankBlockedUntil > state.dayIndex:
+		return CommandResult.fail(SimError.locked, "After a rejection the bank waits 7 days. Try again on day %d." % (state.bankBlockedUntil + 1))
+	if secured and any(state.loans, func(l): return l.secured):
+		return CommandResult.fail(SimError.limitReached, "This restaurant already secures a loan.")
+	var checks := _bankChecks(amount, term, secured)
+	var reasons := ["tooManyLoans", "recentMissedPayment", "lowTrust", "cannotAfford"]
+	for i in 4:
+		if not checks[i][1]:
+			state.bankBlockedUntil = state.dayIndex + 7
+			return CommandResult.new(false, SimError.refused, "Rejected: %s." % checks[i][0], [], reasons[i])
+	if not checks[4][1]:
+		var limit := _creditLimit()
+		if limit >= 1000:
+			state.counterOffer = limit
+			state.counterOfferTerm = term
+			return CommandResult.new(true, null, "The bank offers %s instead." % money(limit), [], "counterOffer")
+		state.bankBlockedUntil = state.dayIndex + 7
+		return CommandResult.new(false, SimError.refused, "Rejected: over your credit limit.", [], "overLimit")
+	_addLoan(amount, term, "bank", secured)
+	return CommandResult.good("approved")
+
+func _addLoan(amount: int, term: int, lender: String, secured: bool) -> void:
+	var rate := _loanRate(false, true) if lender == "private" else _loanRate(secured)
+	var l := M.Loan.new()
+	l.id = state.allocId(); l.lender = lender; l.principal0 = amount; l.outstanding = amount
+	l.weeklyRate = rate; l.termWeeks = term; l.secured = secured; l.startDay = state.dayIndex
+	state.loans.append(l)
+	state.cash += amount
+	emit("cashChanged", {"delta": amount})
+	_timeline("Borrowed %s (%s)" % [money(amount), "private lender" if lender == "private" else "bank"])
+
+func _repayLoan(loanId: int, amount: int) -> CommandResult:
+	var loan = first_or_null(state.loans, func(l): return l.id == loanId)
+	if loan == null: return CommandResult.fail(SimError.unknownId)
+	var pay := mini(amount, loan.outstanding)
+	if pay <= 0: return CommandResult.fail(SimError.invalidValue)
+	if state.cash < pay: return CommandResult.fail(SimError.notEnoughCash)
+	state.cash -= pay
+	loan.outstanding -= pay
+	if loan.outstanding <= 0:
+		state.loans.erase(loan)
+		state.creditScore = minf(100, state.creditScore + 3)
+		_timeline("Paid off a loan early")
+	return CommandResult.good()
+
+func _lifeline(kind: String, equipmentId) -> CommandResult:
+	match kind:
+		"emergencyLoan":
+			var amount := maxi(0, -state.cash) + b.i("EMERGENCY_LOAN_EXTRA")
+			_addLoan(amount, 26, "private", false)
+			state.loans[state.loans.size() - 1].weeklyRate = _loanRate() * 3
+		"sellEquipment":
+			var e := loc.equipmentById(equipmentId)
+			if e == null: return CommandResult.fail(SimError.unknownId)
+			var v := roundi(_equipmentResale(e) * 0.5)
+			loc.equipment.erase(e)
+			earn(v, "none")
+			_timeline("Sold %s in a hurry for %s" % [content.equipment[e.type].name, money(v)])
+		"investor":
+			if state.investorTaken:
+				return CommandResult.fail(SimError.limitReached, "Only one investor per game.")
+			state.investorTaken = true
+			state.investorShare = b.d("INVESTOR_SHARE")
+			earn(b.i("INVESTOR_CASH"), "none")
+			_timeline("Took an investor: %s for 20%% of weekly profit forever" % money(b.i("INVESTOR_CASH")))
+		_:
+			return CommandResult.fail(SimError.invalidValue)
+	return CommandResult.good()
+
+# ---------------------------------------------------------- marketing
+
+func _campaignFit(type: String) -> float:
+	var mix: Dictionary = content.locationClasses[loc.classId].segmentMix
+	var aud = campaignAudience.get(type)
+	if aud == null:
+		return 0.5
+	var a := 0.0
+	for s in aud:
+		a += mix.get(s, 0.0)
+	return a
+
+func _fitWord(fit: float) -> String:
+	return "poor" if fit < 0.45 else ("fair" if fit < 0.6 else "good")
+
+func _lastCampaignDay(type: String) -> Variant:
+	var last = null
+	for c in loc.campaigns:
+		if c.type == type and (last == null or c.startDay > last):
+			last = c.startDay
+	return last
+
+func _startCampaign(type: String) -> CommandResult:
+	if state.stage < 2:
+		return CommandResult.fail(SimError.locked, "Marketing unlocks at Stage 2 (Stable).")
+	var def = b.map("CAMPAIGNS").get(type)
+	if def == null: return CommandResult.fail(SimError.unknownId)
+	var cost := roundi(float(def["cost"]) * (0.85 if state.perks.has("perk_highStreet") else 1.0))
+	if state.cash < cost:
+		return CommandResult.fail(SimError.notEnoughCash, "This campaign costs %s." % money(cost))
+	var start := state.dayIndex + 1 if state.phase == "close" else state.dayIndex
+	if any(loc.campaigns, func(c): return c.type == type and c.endDay >= start):
+		return CommandResult.fail(SimError.limitReached, "That campaign is already running.")
+	if type == "blogger":
+		spend(cost, "marketing")
+		state.flags["%d:blogger_pending" % loc.id] = start + 3
+		state.flags.erase("%d:blogger_done" % loc.id)
+		var cb := M.Campaign.new()
+		cb.id = state.allocId(); cb.type = type; cb.startDay = start; cb.endDay = start + 3; cb.cost = cost
+		cb.boost = 0; cb.mult = 1; cb.outcome = "pending"; cb.reason = "A food blogger will visit within 3 days."; cb.revealed = true
+		loc.campaigns.append(cb)
+		return CommandResult.good()
+	var fit := _campaignFit(type)
+	var last = _lastCampaignDay(type)
+	var repeat: bool = last != null and start - last < 21
+	var fresh := loc.freshness >= 0.8
+	var luck := _rng.next_float() + b.d("CAMPAIGN_FIT_WEIGHT") * (fit - 0.5) \
+		+ (b.d("CAMPAIGN_FRESH_BONUS") if fresh else 0.0) - (b.d("CAMPAIGN_REPEAT_PENALTY") if repeat else 0.0) \
+		+ b.d("CAMPAIGN_REP_WEIGHT") * (loc.reputation - 3.5)
+	var table := [[0.15, 0.0, "Flopped"], [0.40, 0.5, "Weak response"], [0.75, 1.0, "As expected"],
+		[0.93, 1.5, "Worked well"], [99.0, 3.5, "Big hit"]]
+	var mult := 0.0
+	var outcome := ""
+	for row in table:
+		if luck < row[0]:
+			mult = row[1]
+			outcome = row[2]
+			break
+	var name: String = campaignNames[type]
+	var audl: Array = []
+	for s in campaignAudience[type]:
+		audl.append(segmentNames[s])
+	var aud := " and ".join(audl)
+	var reason: String
+	if mult == 0:
+		if repeat:
+			reason = "The %s flopped. People had seen the same thing only days ago." % name
+		elif fit < 0.45:
+			reason = "The %s flopped. Few %s around here." % [name, aud]
+		else:
+			reason = "The %s flopped. Bad luck: it happens to every ad sometimes." % name
+	elif mult < 1:
+		reason = "The %s got a weak response%s." % [name, " — it was too soon after the last one" if repeat else ""]
+	elif mult == 1:
+		reason = "The %s did about what was expected." % name
+	else:
+		reason = "The %s %s%s." % [name, "was a big hit" if mult > 2 else "worked well", " — a fresh menu gave people a reason to come" if fresh else ""]
+	spend(cost, "marketing")
+	var days := int(def["days"])
+	var boost := float(def["boost"]) * mult
+	var buzzGain := float(def["buzz"]) * mult
+	var before := loc.buzz
+	loc.buzz = minf(1, loc.buzz + buzzGain)
+	var c := M.Campaign.new()
+	c.id = state.allocId(); c.type = type; c.startDay = start; c.endDay = start + days - 1; c.cost = cost
+	c.boost = boost; c.mult = mult; c.outcome = outcome; c.reason = reason; c.buzzLeft = loc.buzz - before
+	loc.campaigns.append(c)
+	_note("campaign", "Started a %s (%s)" % [name, money(cost)], cost)
+	return CommandResult.good()
+
+func _bloggerVisit(stars: float) -> void:
+	state.flags["%d:blogger_done" % loc.id] = 1 << 30
+	state.flags.erase("%d:blogger_pending" % loc.id)
+	var c = null
+	for x in loc.campaigns:
+		if x.type == "blogger":
+			c = x
+	if stars >= 4:
+		loc.reputation = minf(5, loc.reputation + 0.3)
+		loc.buzz = minf(1, loc.buzz + 0.3)
+		if c != null:
+			c.outcome = "Big hit"
+			c.reason = "The food blogger loved it (%.1f stars): rating +0.3." % stars
+	else:
+		loc.reputation = maxf(0, loc.reputation - 0.2)
+		if c != null:
+			c.outcome = "Flopped"
+			c.reason = "The food blogger was not impressed (%.1f stars): rating −0.2." % stars
+	if c != null:
+		state.pendingNotices.append(c.reason)
+
+## Return on spend per campaign (doc 02 §13.2).
+func _campaignAccounting() -> void:
+	var l := loc
+	var t := loc.today
+	var active: Array = l.campaigns.filter(func(c): return c.type != "blogger" and not c.settled)
+	if active.is_empty():
+		return
+	var boosts: Array = l.campaigns.filter(func(c): return c.type != "blogger" and state.dayIndex >= c.startDay and state.dayIndex <= c.endDay)
+	var sumBoost := 0.0
+	for c in boosts: sumBoost += c.boost
+	var boostEff := minf(sumBoost, b.d("CAMPAIGN_BOOST_CAP"))
+	var sumBuzzLeft := 0.0
+	for c in active: sumBuzzLeft += c.buzzLeft
+	var bf := 0.90 + 0.20 * l.buzz
+	var bfWithout := 0.90 + 0.20 * maxf(0, l.buzz - sumBuzzLeft)
+	var lift := (1 + boostEff) * bf / bfWithout
+	var groups := t.groupsArrived
+	var seated := t.groupsSeated
+	if groups > 0 and lift > 1.0001:
+		var baseGroups := groups / lift
+		var extraSeated := maxf(0.0, seated - minf(baseGroups, float(seated)))
+		var weights: Array = []
+		for c in active:
+			var w := 0.0
+			if boosts.has(c) and sumBoost > 0:
+				w += boostEff * c.boost / sumBoost
+			w += 0.20 * c.buzzLeft / bfWithout
+			if w > 0:
+				weights.append([c, w])
+		var totalW := 0.0
+		for e in weights: totalW += e[1]
+		var perGroup := 0.0 if seated == 0 else float(t.revenue - t.ingredientsUsedCost) / seated
+		for e in weights:
+			var c: M.Campaign = e[0]
+			var share: float = extraSeated * e[1] / totalW
+			c.extraGroups += share
+			c.extraProfit += share * perGroup
+			if c.type == "promoDay" and c.startDay == state.dayIndex:
+				var avgBill := 0.0 if seated == 0 else float(t.revenue) / seated
+				c.discountGiven += roundi(baseGroups * avgBill * (1 / 0.75 - 1))
+	for c in active:
+		if state.dayIndex > c.endDay and c.buzzLeft < 0.0005:
+			c.settled = true
+
+func _reworkMenu() -> CommandResult:
+	var chef = first_or_null(loc.staff, func(s): return s.role == "headChef")
+	if chef == null:
+		return CommandResult.fail(SimError.locked, "You need a head chef to rework the menu.")
+	if chef.skill < b.d("MENU_REWORK_SKILL"):
+		return CommandResult.fail(SimError.locked, "%s needs skill %d to rework the menu (now %d)." % [chef.name, b.i("MENU_REWORK_SKILL"), roundi(chef.skill)])
+	var cost := b.i("MENU_REWORK_COST")
+	if state.cash < cost:
+		return CommandResult.fail(SimError.notEnoughCash, "A menu rework costs %s." % money(cost))
+	spend(cost, "marketing")
+	loc.freshness = 1
+	loc.buzz = minf(1, loc.buzz + b.d("MENU_REWORK_BUZZ"))
+	loc.lastReworkDay = state.dayIndex
+	var day := state.dayIndex + 1 if state.phase == "close" else state.dayIndex
+	chef.trainingUntil = maxi(chef.trainingUntil, day + 1)
+	if state.phase == "prep": chef.workingToday = false
+	_note("rework", "Reworked the menu: it feels new again", cost)
+	_timeline("Reworked the menu")
+	return CommandResult.good()
