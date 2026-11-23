@@ -7,7 +7,7 @@ import 'load.dart';
 
 /// Parity trace: plays a scripted game and prints the full state after each day
 /// as one JSON line. game/tools/trace.gd plays the same script in Godot.
-/// Usage: dart run tool/trace.dart <seed> <difficulty> <offer> <days>
+/// Usage: `dart run tool/trace.dart SEED DIFFICULTY OFFER DAYS [chain]`
 void main(List<String> args) {
   final seed = int.parse(args[0]);
   final diff = args[1];
@@ -38,9 +38,13 @@ void main(List<String> args) {
       sim.state.stage = 3;
       sim.state.cash = 400000;
       sim.state.marketRefreshDay = -1;
-      sim.apply(const EndDay()); // close phase is required; we are in prep, so this fails harmlessly
+      sim.apply(
+          const EndDay()); // close phase is required; we are in prep, so this fails harmlessly
     }
-    if (args.length > 4 && args[4] == 'chain' && d == 3 && sim.state.outletMarket.isNotEmpty) {
+    if (args.length > 4 &&
+        args[4] == 'chain' &&
+        d == 3 &&
+        sim.state.outletMarket.isNotEmpty) {
       sim.apply(const BuyOutlet(2));
       final l2 = sim.state.locations.last;
       sim.apply(SelectLocation(l2.id));
