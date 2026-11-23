@@ -1,0 +1,392 @@
+{
+ "START_CAPITAL": 100000,
+ "DUE_DILIGENCE_COST": 2000,
+ "START_HYGIENE": {
+  "excellent": 90,
+  "best": 85,
+  "good": 75,
+  "bad": 62,
+  "worst": 52
+ },
+ "SERVICE_TICKS": 360,
+ "TICKS_PER_HOUR": 30,
+ "LAST_SEATING_TICK": 330,
+ "OVERTIME_TICKS_MAX": 30,
+ "TICKS_PER_SECOND_1X": 2,
+ "DOW_FACTOR": [
+  0.8,
+  0.85,
+  0.9,
+  1.0,
+  1.25,
+  1.4,
+  1.2
+ ],
+ "SEASON_FACTOR": [
+  1.0,
+  0.95,
+  1.0,
+  1.1
+ ],
+ "HOUR_WEIGHTS": [
+  0.4,
+  1.4,
+  1.6,
+  0.8,
+  0.3,
+  0.3,
+  0.5,
+  1.0,
+  1.6,
+  1.8,
+  1.4,
+  0.5
+ ],
+ "GROUP_SIZE_WEIGHTS": [
+  15,
+  40,
+  15,
+  20,
+  6,
+  4
+ ],
+ "AVG_GROUP_SIZE": 2.74,
+ "DEMAND_NOISE_MIN": 0.9,
+ "DEMAND_NOISE_SPAN": 0.2,
+ "SEGMENTS": {
+  "office": {
+   "patienceMult": 0.8,
+   "spendMult": 0.8,
+   "priceSensitivity": 1.0
+  },
+  "family": {
+   "patienceMult": 1.0,
+   "spendMult": 1.1,
+   "priceSensitivity": 1.0
+  },
+  "student": {
+   "patienceMult": 1.1,
+   "spendMult": 0.7,
+   "priceSensitivity": 1.5
+  },
+  "tourist": {
+   "patienceMult": 1.0,
+   "spendMult": 1.3,
+   "priceSensitivity": 0.6
+  }
+ },
+ "COURSE_CHANCE": {
+  "starter": 0.4,
+  "side": 0.3,
+  "sweet": 0.35
+ },
+ "FOOD_COST_TARGET": {
+  "starter": 0.3,
+  "main": 0.32,
+  "side": 0.28,
+  "dessert": 0.25,
+  "drink": 0.2
+ },
+ "PATIENCE": {
+  "waitTable": 18,
+  "waitOrder": 8,
+  "waitFood": 25,
+  "waitBill": 8
+ },
+ "AC_BROKEN_PATIENCE": 0.8,
+ "TASK_TICKS": {
+  "seat": 1,
+  "takeOrder": 2,
+  "deliver": 1,
+  "bill": 2,
+  "clear": 2,
+  "pack": 1
+ },
+ "EAT_TICKS_BASE": 12,
+ "EAT_TICKS_PER_PERSON": 3,
+ "EAT_TICKS_MAX": 30,
+ "COOK_PARALLEL": 3,
+ "COLD_SLOTS": 3,
+ "PREP_BONUS": 0.15,
+ "HOOD_BROKEN_COOK_MULT": 1.2,
+ "HEAD_CHEF_LINE_BONUS": 5,
+ "STAND_IN_TIME_MULT": 1.5,
+ "STAND_IN_SKILL_PENALTY": 15,
+ "WASH_RATE": 0.8,
+ "PLATES_PER_TABLE": 6,
+ "FOOD_POISON_CHANCE": 0.02,
+ "CRITIC_WEIGHT": 10,
+ "REP_UP": 0.05,
+ "REP_DOWN": 0.1,
+ "ZONE_BOOST": 0.75,
+ "PASS_COOK_BOOST": 0.8,
+ "OFF_ROLE_PENALTY": 15,
+ "OWNER_SKILL": {
+  "seat": 60,
+  "takeOrder": 60,
+  "deliver": 60,
+  "bill": 60,
+  "clear": 50,
+  "cook": 35
+ },
+ "OWNER_WALK_TICKS": 1,
+ "OWNER_QUEUE_MAX": 3,
+ "FAVOURS_MAX": 3,
+ "FAVOUR_EVERY": 50,
+ "TREAT_COST": 8,
+ "TREAT_PATIENCE": 10,
+ "BRING_BILL_SAT": 5,
+ "TARGET_BASE": 0.02,
+ "TARGET_PER_ABSENT": 0.08,
+ "TARGET_MET_MORALE": 2,
+ "OWNER_ENERGY_PER_TICK": 0.4,
+ "OWNER_RECOVERY": 70,
+ "OWNER_LOW_ENERGY": 20,
+ "OWNER_MISTAKE_CHANCE": 0.15,
+ "INCIDENT_COUNTDOWN": 40,
+ "SERVICE_INCIDENT_EVERY": 30,
+ "BASE_WAGE": {
+  "headChef": 220,
+  "lineCook": 140,
+  "prepCook": 100,
+  "dishwasher": 80,
+  "server": 100,
+  "cashier": 100,
+  "cleaner": 80,
+  "manager": 260
+ },
+ "HAPPINESS_SPEED": 0.15,
+ "ABSENCE_DIVISOR": 1000,
+ "NO_NOTICE_BASE": {
+  "easy": 0.05,
+  "normal": 0.15,
+  "hard": 0.3
+ },
+ "OVERTIME_MULT": 1.5,
+ "SEVERANCE_DAYS": 7,
+ "TRAIN_COST_PER_SKILL": 10,
+ "TRAIN_DAYS": 2,
+ "MAX_STAFF": 16,
+ "MAINTENANCE_PCT": 0.02,
+ "MAINTENANCE_GAIN": 15,
+ "BREAK_BASE": 0.002,
+ "CHEAP_REPAIR_FAIL_PER_DAY": 0.04,
+ "MAX_CONDITION_START": 95,
+ "MAX_CONDITION_FLOOR": 60,
+ "RESALE_FACTOR": 0.4,
+ "REPAIR": {
+  "cheap": {
+   "cost": 0.1,
+   "condition": 40,
+   "days": 1
+  },
+  "proper": {
+   "cost": 0.25,
+   "condition": 70,
+   "days": 2
+  },
+  "emergency": {
+   "cost": 0.4,
+   "condition": 50,
+   "days": 0
+  }
+ },
+ "HYGIENE_PER_GROUP": 0.15,
+ "HYGIENE_CLEAN_PCT": 0.4,
+ "INSPECTION_EVERY_DAYS": 56,
+ "INSPECTION_PASS": 80,
+ "INSPECTION_WARN": 50,
+ "INSPECTION_FINE_WARN": 1500,
+ "INSPECTION_FINE_CLOSE": 5000,
+ "CAMPAIGNS": {
+  "flyers": {
+   "cost": 900,
+   "boost": 0.08,
+   "days": 3,
+   "buzz": 0.1
+  },
+  "localAd": {
+   "cost": 3000,
+   "boost": 0.15,
+   "days": 7,
+   "buzz": 0.25
+  },
+  "promoDay": {
+   "cost": 0,
+   "boost": 0.5,
+   "days": 1,
+   "buzz": 0.15
+  },
+  "blogger": {
+   "cost": 3000,
+   "boost": 0,
+   "days": 3,
+   "buzz": 0
+  }
+ },
+ "CAMPAIGN_BOOST_CAP": 0.6,
+ "CAMPAIGN_FIT_WEIGHT": 0.2,
+ "CAMPAIGN_FRESH_BONUS": 0.08,
+ "CAMPAIGN_REPEAT_PENALTY": 0.15,
+ "CAMPAIGN_REP_WEIGHT": 0.05,
+ "BUZZ_START": 0.5,
+ "BUZZ_DECAY": 0.01,
+ "FRESHNESS_START": 0.6,
+ "FRESHNESS_DECAY": 0.01,
+ "ROTATE_FRESHNESS": 0.25,
+ "MENU_REWORK_COST": 800,
+ "MENU_REWORK_BUZZ": 0.1,
+ "MENU_REWORK_SKILL": 50,
+ "MENU_MIN": 6,
+ "PRICE_MIN_MULT": 0.6,
+ "PRICE_MAX_MULT": 1.8,
+ "PRICE_SPIKE_MULT": 1.5,
+ "COMPETITION_UP": 0.01,
+ "COMPETITION_DOWN": 0.005,
+ "COMPETITION_MAX": 0.5,
+ "AWARENESS_GAIN": 0.01,
+ "TAKEOVER_START_AWARENESS": 0.7,
+ "YEARLY_COST_CREEP_WAGE": 1.03,
+ "YEARLY_COST_CREEP_INGREDIENT": 1.02,
+ "UTILITIES_BASE": 80,
+ "UTILITIES_PER_GROUP": 1.2,
+ "UTILITIES_PER_UNIT": 15,
+ "TAX_RATE": 0.1,
+ "LICENCE_FEE": 500,
+ "LOAN_WEEKLY_RATE": 0.004,
+ "DIFF_INTEREST": {
+  "easy": 0.75,
+  "normal": 1.0,
+  "hard": 1.3
+ },
+ "DIFF_INCIDENTS": {
+  "easy": 0.75,
+  "normal": 1.0,
+  "hard": 1.25
+ },
+ "DIFF_PATIENCE": {
+  "easy": 1.15,
+  "normal": 1.0,
+  "hard": 0.9
+ },
+ "DIFF_VOLATILITY": {
+  "easy": 0.5,
+  "normal": 1.0,
+  "hard": 1.5
+ },
+ "PRIVATE_LENDER_MAX": 20000,
+ "EMERGENCY_LOAN_EXTRA": 5000,
+ "INVESTOR_CASH": 30000,
+ "INVESTOR_SHARE": 0.2,
+ "SKIM_PCT": 0.03,
+ "VALUATION_PROFIT_MULT": 40,
+ "VALUATION_PER_STAR": 20000,
+ "BANKRUPT_NEGATIVE_DAYS": 3,
+ "BANKRUPT_MISSED_PAYMENTS": 3,
+ "STAGE2_PROFIT_WEEKS": 4,
+ "STAGE2_REP": 3.5,
+ "STAGE3_CASH": 60000,
+ "STAGE3_REP": 4.0,
+ "FILM_CREW_TICKS": 60,
+ "GAS_LOW_CHANCE": 0.05,
+ "FATIGUE_WORK": 12,
+ "FATIGUE_RUSH": 6,
+ "FATIGUE_REST": 30,
+ "FATIGUE_OVERNIGHT": 8,
+ "BREAK_COND_DIVISOR": 1500,
+ "MIXED_DEMAND_MULT": 1.1,
+ "MIXED_COOK_MULT": 1.1,
+ "MENU_MAX": 12,
+ "MENU_MAX_MIXED": 16,
+ "FORMATS": {
+  "neighbourhood": {
+   "rentMult": 1.0,
+   "footfallMult": 1.0,
+   "weekendMult": 1.0,
+   "lunchMult": 1.0,
+   "eveningMult": 1.0
+  },
+  "highStreet": {
+   "rentMult": 1.4,
+   "footfallMult": 1.25,
+   "weekendMult": 1.15,
+   "lunchMult": 1.0,
+   "eveningMult": 1.0
+  },
+  "officeDistrict": {
+   "rentMult": 1.1,
+   "footfallMult": 1.15,
+   "weekendMult": 0.45,
+   "lunchMult": 2.5,
+   "eveningMult": 0.4
+  }
+ },
+ "DELIVERY_SHARE": 0.25,
+ "DELIVERY_COMMISSION": 0.2,
+ "PACKAGING_PER_DISH": 0.5,
+ "MASTERY_FROM": 65,
+ "MASTERY_FULL": 90,
+ "NEGLECT_GRACE_SQ_DIV": 70,
+ "NEGLECT_MAX": 0.1,
+ "NEGLECT_PER_DAY": 0.01,
+ "VISIT_MIN_TICKS": 60,
+ "TRAVEL_TICKS": 20,
+ "TRAVEL_ENERGY": 6,
+ "OPENING_GRACE_WEEKS": 12,
+ "TAKEOVER_MARKET_PRICE_FACTOR": 0.4,
+ "OPENING_RESERVE_WEEKS": 2,
+ "BUILD_SIZES": {
+  "small": {
+   "tables": 10,
+   "rent": 0.8,
+   "fitOut": 0.7
+  },
+  "medium": {
+   "tables": 14,
+   "rent": 1.0,
+   "fitOut": 1.0
+  },
+  "large": {
+   "tables": 20,
+   "rent": 1.3,
+   "fitOut": 1.4
+  }
+ },
+ "FIT_OUTS": {
+  "basic": {
+   "cost": 8000,
+   "days": 7,
+   "buzz": 0.6
+  },
+  "standard": {
+   "cost": 15000,
+   "days": 14,
+   "buzz": 0.8
+  },
+  "premium": {
+   "cost": 30000,
+   "days": 21,
+   "buzz": 1.0
+  }
+ },
+ "OPENING_LICENCE": 1000,
+ "SCRATCH_START_RATING": 3.0,
+ "SCRATCH_START_AWARENESS": 0.45,
+ "SALE_PROFIT_MULT": 20,
+ "RENOVATION_COST_PER_TABLE": 1500,
+ "CENTRAL_KITCHEN_COST": 40000,
+ "CENTRAL_KITCHEN_WEEKLY": 3000,
+ "CENTRAL_KITCHEN_PREP_MULT": 0.7,
+ "CENTRAL_KITCHEN_SKILL": 15,
+ "BULK_CONTRACT_FEE": 5000,
+ "BULK_CONTRACT_DISCOUNT": 0.05,
+ "FRANCHISE_SIGNING_FEE": 25000,
+ "FRANCHISE_WEEKLY_FEE": 600,
+ "FRANCHISE_SCANDAL_CHANCE": 0.02,
+ "FRANCHISE_VALUE": 30000,
+ "AUDIT_COST": 500,
+ "STAGE4_OUTLETS": 3,
+ "STAGE4_PROFIT_WEEKS": 4,
+ "STAGE5_VALUATION": 2000000,
+ "MANAGER_ZONE_SHARE": 1.0
+}

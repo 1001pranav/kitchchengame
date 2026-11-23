@@ -1,0 +1,352 @@
+{
+ "reputation": {
+  "name": "Rating",
+  "meaning": "What customers think of you, from 0 to 5 stars",
+  "why": "Higher rating brings more customers every day"
+ },
+ "group": {
+  "name": "Party",
+  "meaning": "A set of customers who arrive and sit together",
+  "why": "Each party needs a table, a server and a bill"
+ },
+ "walk_out": {
+  "name": "Walk-out",
+  "meaning": "A party that left because they waited too long",
+  "why": "You lose the sale and your rating drops"
+ },
+ "patience": {
+  "name": "Patience",
+  "meaning": "How long a party will wait before leaving",
+  "why": "Slow service empties your tables"
+ },
+ "86": {
+  "name": "Sold out / Off the menu",
+  "meaning": "A dish you cannot or will not serve today",
+  "why": "Customers who wanted it are disappointed"
+ },
+ "rota": {
+  "name": "Days off",
+  "meaning": "Each person's weekly day off; the restaurant itself never closes",
+  "why": "Put days off on quiet days and keep key roles apart"
+ },
+ "stand_in": {
+  "name": "Stand-in",
+  "meaning": "Someone doing another role's work on that person's day off",
+  "why": "Slower and less skilled than the real thing"
+ },
+ "negotiation": {
+  "name": "Negotiated prices",
+  "meaning": "Lower supplier prices won by a skilled manager",
+  "why": "Cuts your biggest cost; lost if that manager leaves"
+ },
+ "deputy": {
+  "name": "Deputy",
+  "meaning": "A staff member your manager has trained to run a branch",
+  "why": "A ready-made manager for your next outlet"
+ },
+ "area": {
+  "name": "Where you stand",
+  "meaning": "The part of the restaurant you are working in",
+  "why": "You do the jobs there and your staff there work faster"
+ },
+ "favour": {
+  "name": "Favour",
+  "meaning": "One of three special efforts you can call on in a shift",
+  "why": "They come back slowly, so choose where they count"
+ },
+ "rush": {
+  "name": "Rush",
+  "meaning": "Telling the kitchen to cook one table's order first",
+  "why": "Saves a table that is about to walk out"
+ },
+ "treat": {
+  "name": "Treat",
+  "meaning": "Something free for customers who are waiting",
+  "why": "They wait longer, for a small cost"
+ },
+ "bring_the_bill": {
+  "name": "Bring the bill",
+  "meaning": "Ending a table's meal early",
+  "why": "Frees the table for the queue, but they feel hurried"
+ },
+ "shift_target": {
+  "name": "Target",
+  "meaning": "The most parties you can afford to lose this shift",
+  "why": "Tells you whether the night went well"
+ },
+ "owner_energy": {
+  "name": "Your energy",
+  "meaning": "How tired you are",
+  "why": "Exhausted owners make mistakes and lose a day"
+ },
+ "morale": {
+  "name": "Happiness",
+  "meaning": "How happy a staff member is at work, from 0 to 100",
+  "why": "Unhappy staff are slower, call in sick and may quit without warning"
+ },
+ "notice": {
+  "name": "Notice",
+  "meaning": "Days a leaving staff member still works",
+  "why": "Without notice you are short-handed tomorrow"
+ },
+ "fatigue": {
+  "name": "Tiredness",
+  "meaning": "How worn out a staff member is",
+  "why": "Tired staff are slow and get hurt"
+ },
+ "reliability": {
+  "name": "Reliability",
+  "meaning": "How often they turn up on time",
+  "why": "Unreliable staff leave you short"
+ },
+ "batch_daysleft": {
+  "name": "Use-by",
+  "meaning": "How many days until this stock goes bad",
+  "why": "Expired stock is thrown away \u2014 money in the bin"
+ },
+ "waste": {
+  "name": "Waste",
+  "meaning": "Food bought but never sold",
+  "why": "Waste comes straight out of profit"
+ },
+ "par_level": {
+  "name": "Keep-in-stock level",
+  "meaning": "The amount you always want on the shelf",
+  "why": "The game reorders up to this level for you"
+ },
+ "food_cost": {
+  "name": "Food cost",
+  "meaning": "Share of a dish's price spent on ingredients",
+  "why": "Above about 35% the dish earns too little"
+ },
+ "margin": {
+  "name": "Profit per dish",
+  "meaning": "What is left from the price after ingredients",
+  "why": "Popular dishes with thin profit can still lose money"
+ },
+ "station_slot": {
+  "name": "Cooking station",
+  "meaning": "A place where one kind of dish is cooked",
+  "why": "A broken station removes its dishes from the menu"
+ },
+ "condition": {
+  "name": "Condition",
+  "meaning": "How worn a machine is, 0 to 100",
+  "why": "Worn machines break down at the worst time"
+ },
+ "maintenance": {
+  "name": "Servicing",
+  "meaning": "A small paid check-up of a machine",
+  "why": "Much cheaper than a breakdown"
+ },
+ "hygiene": {
+  "name": "Cleanliness",
+  "meaning": "How clean the restaurant is, 0 to 100",
+  "why": "Low cleanliness fails inspections and sickens guests"
+ },
+ "operating_profit": {
+  "name": "Profit",
+  "meaning": "Money in minus the cost of running the place",
+  "why": "This is what pays back your loan"
+ },
+ "cash_flow": {
+  "name": "Cash in hand",
+  "meaning": "Money you can spend right now",
+  "why": "You can be profitable and still unable to pay wages"
+ },
+ "instalment": {
+  "name": "Loan payment",
+  "meaning": "The weekly amount you repay the bank",
+  "why": "Missing three in a row ends the game"
+ },
+ "credit_score": {
+  "name": "Bank trust",
+  "meaning": "How much the bank trusts you",
+  "why": "Decides how much you can borrow and at what cost"
+ },
+ "valuation": {
+  "name": "Company value",
+  "meaning": "What your whole business is worth",
+  "why": "Unlocks the final stage and is your score"
+ },
+ "due_diligence": {
+  "name": "Inspect before buying",
+  "meaning": "Paying to look for hidden problems",
+  "why": "Shows trouble before it becomes yours"
+ },
+ "hidden_problem": {
+  "name": "Inherited problem",
+  "meaning": "Trouble the last owner left behind",
+  "why": "Shows up in your first weeks"
+ },
+ "incident": {
+  "name": "Situation",
+  "meaning": "Something has happened and needs your decision",
+  "why": "Ignoring it lets the worst option happen"
+ },
+ "request": {
+  "name": "Request",
+  "meaning": "Your manager asking permission for something beyond their limit",
+  "why": "Ignored requests leave problems unsolved"
+ },
+ "contribution": {
+  "name": "Contribution",
+  "meaning": "What a branch added to or took from company money this week",
+  "why": "Shows which branches carry the others"
+ },
+ "payback": {
+  "name": "Paid back",
+  "meaning": "How much of what you spent on a branch it has earned back",
+  "why": "Tells you whether opening it was worth it"
+ },
+ "transfer": {
+  "name": "Transfer",
+  "meaning": "Moving a staff member to another branch",
+  "why": "Strengthens one branch and weakens another"
+ },
+ "break_even": {
+  "name": "Break-even",
+  "meaning": "The number of parties you must serve in a day to cover that day's costs",
+  "why": "Below it the day loses money even if the room looked busy"
+ },
+ "fixed_costs": {
+  "name": "Costs that never stop",
+  "meaning": "Rent, wages and loan payments you owe whether customers come or not",
+  "why": "A slow week still costs the same"
+ },
+ "manager_grade": {
+  "name": "Grade",
+  "meaning": "A manager's overall level, from Trainee to Veteran",
+  "why": "Higher grades need less of your time and cost more"
+ },
+ "potential": {
+  "name": "Potential",
+  "meaning": "How good a manager can become with experience and coaching",
+  "why": "A cheap manager with high potential is worth investing in"
+ },
+ "manager_skills": {
+  "name": "People / Upkeep / Stock",
+  "meaning": "How well a manager handles staff, equipment and ordering",
+  "why": "Weak skills show up as waste, breakdowns and resignations"
+ },
+ "campaign_outcome": {
+  "name": "How the ad went",
+  "meaning": "Whether a campaign flopped, did as expected or hit big",
+  "why": "Ads are a gamble; the right audience and a fresh menu improve the odds"
+ },
+ "return_on_spend": {
+  "name": "Return",
+  "meaning": "Extra profit a campaign brought back for each coin spent on it",
+  "why": "Below \u00d71 the ad lost money; compare channels to see what works here"
+ },
+ "buzz": {
+  "name": "Buzz",
+  "meaning": "How much people are talking about your restaurant",
+  "why": "It fades unless you advertise or do something new"
+ },
+ "freshness": {
+  "name": "Menu freshness",
+  "meaning": "How new your menu feels to regulars",
+  "why": "A menu that never changes slowly loses customers"
+ },
+ "competition": {
+  "name": "Rivals",
+  "meaning": "Other restaurants competing for your customers",
+  "why": "Success attracts them; staying the same lets them win"
+ },
+ "equipment_age": {
+  "name": "Age",
+  "meaning": "How old a machine is",
+  "why": "Old machines break more even when serviced"
+ },
+ "badge": {
+  "name": "Badge",
+  "meaning": "Proof that an outlet has paid for itself and runs without you",
+  "why": "Gold badges unlock a bonus for the whole chain"
+ },
+ "format": {
+  "name": "Type of outlet",
+  "meaning": "The kind of place it is: office, mall, tourist spot\u2026",
+  "why": "Each type has its own challenge and adds something new"
+ },
+ "secured_loan": {
+  "name": "Loan against an outlet",
+  "meaning": "A cheaper loan the bank can recover by taking the outlet's sale money",
+  "why": "If you sell that outlet the loan is paid off first"
+ },
+ "affordability": {
+  "name": "Can you afford it",
+  "meaning": "The bank compares your weekly repayments with your weekly profit",
+  "why": "Low profit means the bank says no, however much you need it"
+ },
+ "counter_offer": {
+  "name": "Bank's offer",
+  "meaning": "A smaller loan than you asked for",
+  "why": "Take it, or improve your numbers and ask again"
+ },
+ "private_lender": {
+  "name": "Private lender",
+  "meaning": "Someone who lends without questions at very high interest",
+  "why": "A last resort that can sink you"
+ },
+ "sale_estimate": {
+  "name": "What it would sell for",
+  "meaning": "The likely price for an outlet today",
+  "why": "It falls when profit and rating fall"
+ },
+ "lease": {
+  "name": "Lease",
+  "meaning": "Your contract to rent the premises for a set number of years",
+  "why": "Longer is cheaper but costly to leave early"
+ },
+ "break_fee": {
+  "name": "Leaving fee",
+  "meaning": "What you pay to end a lease early",
+  "why": "Makes closing a bad outlet expensive"
+ },
+ "fit_out": {
+  "name": "Fit-out",
+  "meaning": "Building work to turn empty premises into a restaurant",
+  "why": "Rent is due while it is being done"
+ },
+ "equipment_lease": {
+  "name": "Rented equipment",
+  "meaning": "A machine you pay for weekly and never own",
+  "why": "No big payment and free repairs, but it costs more over time"
+ },
+ "second_hand": {
+  "name": "Second-hand",
+  "meaning": "Used equipment at half price",
+  "why": "Cheaper, older, and sometimes faulty"
+ },
+ "goodwill": {
+  "name": "Goodwill",
+  "meaning": "What you pay for a running restaurant's customers and name",
+  "why": "Why buying costs more than building"
+ },
+ "policy": {
+  "name": "Standing orders",
+  "meaning": "Rules your manager follows when you are away",
+  "why": "Good orders keep a branch running without you"
+ },
+ "neglect_slack": {
+  "name": "Standards slipping",
+  "meaning": "What happens when you do not visit a branch",
+  "why": "Service slows, waste and theft rise"
+ },
+ "skimming": {
+  "name": "Missing cash",
+  "meaning": "Sales and cash in the till do not match",
+  "why": "Someone may be stealing"
+ },
+ "crisis": {
+  "name": "In trouble",
+  "meaning": "A branch that has lost money four weeks running",
+  "why": "Fix it or close it before it sinks the company"
+ },
+ "auto_run": {
+  "name": "Fast-forward",
+  "meaning": "The shift runs without you",
+  "why": "Possible only when every job is filled"
+ }
+}

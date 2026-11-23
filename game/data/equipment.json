@@ -1,0 +1,118 @@
+[
+ {
+  "type": "eq_range",
+  "name": "Range",
+  "kind": "station",
+  "price": 6000,
+  "wearPerDay": 0.5,
+  "station": "stove",
+  "slots": 4
+ },
+ {
+  "type": "eq_oven",
+  "name": "Oven",
+  "kind": "station",
+  "price": 5000,
+  "wearPerDay": 0.4,
+  "station": "oven",
+  "slots": 3
+ },
+ {
+  "type": "eq_fryer",
+  "name": "Deep fryer",
+  "kind": "station",
+  "price": 3000,
+  "wearPerDay": 0.6,
+  "station": "fryer",
+  "slots": 2
+ },
+ {
+  "type": "eq_grill",
+  "name": "Grill",
+  "kind": "station",
+  "price": 4000,
+  "wearPerDay": 0.5,
+  "station": "grill",
+  "slots": 3
+ },
+ {
+  "type": "eq_wok",
+  "name": "Wok burner",
+  "kind": "station",
+  "price": 3500,
+  "wearPerDay": 0.5,
+  "station": "wok",
+  "slots": 3
+ },
+ {
+  "type": "eq_tandoor",
+  "name": "Tandoor",
+  "kind": "station",
+  "price": 4500,
+  "wearPerDay": 0.4,
+  "station": "tandoor",
+  "slots": 2
+ },
+ {
+  "type": "eq_fridge",
+  "name": "Refrigerator",
+  "kind": "storage",
+  "price": 4000,
+  "wearPerDay": 0.3,
+  "storage": "chilled",
+  "capacity": 1000
+ },
+ {
+  "type": "eq_freezer",
+  "name": "Freezer",
+  "kind": "storage",
+  "price": 3500,
+  "wearPerDay": 0.3,
+  "storage": "frozen",
+  "capacity": 400
+ },
+ {
+  "type": "eq_shelving",
+  "name": "Dry store shelving",
+  "kind": "storage",
+  "price": 800,
+  "wearPerDay": 0.05,
+  "storage": "dry",
+  "capacity": 1500
+ },
+ {
+  "type": "eq_dish_machine",
+  "name": "Dish machine",
+  "kind": "support",
+  "price": 3000,
+  "wearPerDay": 0.5
+ },
+ {
+  "type": "eq_hood",
+  "name": "Exhaust hood",
+  "kind": "support",
+  "price": 2500,
+  "wearPerDay": 0.3
+ },
+ {
+  "type": "eq_pos",
+  "name": "Till / POS",
+  "kind": "support",
+  "price": 1500,
+  "wearPerDay": 0.2
+ },
+ {
+  "type": "eq_ac",
+  "name": "Air conditioning",
+  "kind": "support",
+  "price": 3000,
+  "wearPerDay": 0.3
+ },
+ {
+  "type": "eq_generator",
+  "name": "Generator",
+  "kind": "support",
+  "price": 4000,
+  "wearPerDay": 0.1
+ }
+]
